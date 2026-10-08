@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { authClient } from '@/auth/client';
 import { ThemeProvider, useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -23,10 +24,6 @@ export default function RootLayout() {
     Literata_700Bold,
   });
   const [queryClient] = useState(() => new QueryClient());
-
-  useEffect(() => {
-    if (fontsLoaded || fontError) void SplashScreen.hideAsync();
-  }, [fontsLoaded, fontError]);
 
   // On a font error the app still renders, with system fonts.
   if (!fontsLoaded && !fontError) return null;
@@ -44,10 +41,34 @@ export default function RootLayout() {
 
 function Navigator() {
   const theme = useTheme();
+  const session = authClient.useSession();
+  const signedIn = Boolean(session.data);
+  // Better Auth reports `isPending` again on every background refresh while signed out (e.g. when the
+  // tab regains focus). Only the first check may hold the app back, or a half-filled form would vanish.
+  const [ready, setReady] = useState(false);
+  if (!ready && !session.isPending) setReady(true);
+
+  useEffect(() => {
+    if (ready) void SplashScreen.hideAsync();
+  }, [ready]);
+
+  // Wait for the first session check so signed-in users never see the sign-in page flash by.
+  if (!ready) return null;
+
   return (
     <>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
+        <Stack.Protected guard={signedIn}>
+          <Stack.Screen name="(app)" />
+        </Stack.Protected>
+        <Stack.Protected guard={!signedIn}>
+          <Stack.Screen name="(auth)" />
+        </Stack.Protected>
+        {/* Reached from emailed links, signed in or not. */}
+        <Stack.Screen name="reset-password" />
+        <Stack.Screen name="email-confirmed" />
+      </Stack>
     </>
   );
 }

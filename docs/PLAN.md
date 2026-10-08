@@ -1,29 +1,41 @@
 # Plan
 
-Build order for v1, top to bottom. Each stage ends deployed to staging and checked on web plus at least one device build. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTURE.md](ARCHITECTURE.md).
+Build order, top to bottom. **Web first**: everything is built and checked in the browser; screens stay React Native
+code so they carry over to iOS later. Each step ends deployed to staging (https://bookclub-staging.ogun.se) for the
+owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## Stages
+## Phase A: accounts (web)
 
-- [x] **Foundations:** monorepo, shared package, Hono server with `/healthz`, Drizzle + migrations, Expo app shell (router, theme tokens, fonts, i18n), CI (typecheck, lint, test), Docker + compose with memory limits, staging live at bookclub-staging.ogun.se.
-- [ ] **Accounts:** Google and Apple sign-in on iOS, Android and web; profile (name, avatar); sign out everywhere; account deletion with Apple token revocation; data export.
-- [ ] **Books:** search, ISBN lookup, barcode scan, provider fallback + cache, cover proxy, manual entry, edition picker with page-count confirmation.
-- [ ] **Clubs:** create, invite link and code (rotate), join through universal links / app links, members and roles, remove a member, leave, transfer ownership, set the club book, finish date and milestones, past books.
-- [ ] **Progress:** pick your edition for the club book, log a page or %, offline queue, history, club chart (positions + pace line + over time, with a text equivalent), live updates over WebSocket.
-- [ ] **Notes:** add a note on a page, notes list by position with "≈ p.N" mapping, spoiler blur and tap to reveal, replies, reactions, edit/delete, report, block, owner moderation.
-- [ ] **Notifications:** push token registration, per-type preferences, note/reply/finish events (spoiler-safe), milestone reminders, receipt pruning.
-- [ ] **Production hardening:** encrypted off-site backups + tested restore, Sentry, uptime check, rate limits reviewed, privacy policy / terms / support pages, accessibility pass, design pass (warm & bookish), store listings and screenshots.
-- [ ] **Release:** TestFlight beta, Google Play closed test (12 testers × 14 days), production deploy of the API (deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving, unlike staging today), store submissions.
+- [x] **Foundations:** monorepo, shared package, Hono server with `/healthz`, Drizzle + migrations, Expo app shell (router, theme tokens, fonts, i18n), CI (typecheck, lint, test), Docker + compose with memory limits, staging live.
+- [x] **1. Email + password:** sign up, sign in, sign out, confirm email, forgot password, display name. 10+ character passwords, leaked-password check, rate-limited sign-in. Locally, emails are written to the server log.
+- [ ] **2. Real email on staging:** Resend, sending from `noreply@mail.ogun.se`.
+- [ ] **3. Google sign-in:** same account when the email matches an existing one.
+- [ ] **4. Account management:** change password, download my data, delete my account.
 
-## Needs you (only you can do these)
+## Phase B: the book club (web)
 
-Start the slow ones early; nothing below blocks Foundations.
+- [ ] **5. Books:** search by title/ISBN with cache (Google Books, Open Library fallback), cover proxy, manual entry, edition picker with page-count confirmation. ISBN is typed on web; the barcode scanner comes with iOS.
+- [ ] **6. Clubs:** create, invite link and code (rotate), join, members and roles, remove a member, leave, transfer ownership, set the club book, finish date and meetings, past books.
+- [ ] **7. Progress:** pick your edition, log a page or %, offline queue, history, club chart (positions + pace line + over time, with a text equivalent), live updates over WebSocket.
+- [ ] **8. Notes:** notes on a page, list by position with "≈ p.N" mapping, spoiler blur and tap to reveal, replies, reactions, edit/delete, report, block, owner moderation. Activity shows in the app; no push or email notifications on web for now.
 
-- [ ] **Google Play Console** account ($25, one-time). Slowest item: identity verification, then the mandatory 12-tester / 14-day closed test before production.
-- [x] **DNS at Hostinger:** A records `bookclub` and `bookclub-staging` → 57.129.169.251.
-- [ ] **Expo account** (free) for EAS builds and updates.
-- [ ] **Google Cloud project:** OAuth consent screen (app name, support email, privacy link), OAuth client IDs (web, iOS, Android), a Books API key. (accounts + books stages; I'll write the click-by-click steps.)
-- [ ] **Apple Developer:** App ID with Sign in with Apple + push, a Services ID for web sign-in, a Sign in with Apple key and an APNs key. (accounts + notifications stages; steps provided.)
-- [ ] **Firebase project** for Android push (FCM v1 credentials go into EAS, not into the repo). (notifications stage)
-- [ ] **Object storage bucket** for backups (OVH Object Storage, Backblaze B2 or Cloudflare R2; all a few cents a month at our size). (hardening stage)
-- [ ] **Sentry account** (free). (hardening stage)
-- [ ] **Secrets on the VPS** (`.env` files) and GitHub deploy-key secrets, the same way as for Pace.
+## Phase C: go live on web
+
+- [ ] **9. Hardening:** encrypted off-site backups + tested restore, error tracking, uptime check, rate limits reviewed, privacy policy / terms / support pages, accessibility pass, design pass (warm & bookish).
+- [ ] **10. Production** at bookclub.ogun.se: deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving (unlike staging today). Google consent screen published.
+
+## Later
+
+- [ ] **iOS:** EAS builds (Expo account `ogunse` is linked), Sign in with Apple (required once Google sign-in is offered), native Google sign-in, push notifications, barcode scanner, TestFlight, App Store.
+- [ ] **Android (much later):** Play Console, the mandatory 12-tester / 14-day closed test, Play Store.
+
+## Needs the owner
+
+- [x] DNS at Hostinger: `bookclub`, `bookclub-staging` → 57.129.169.251; Resend records for `mail.ogun.se`.
+- [x] Expo account, project linked.
+- [x] Resend account; sending-only API key on the VPS.
+- [x] Google Cloud project: consent screen (Testing, test users added), web OAuth client; secret on the VPS.
+- [ ] Google Books API key, same Cloud project (step 5).
+- [ ] Object storage bucket for backups (step 9).
+- [ ] Error tracking account, e.g. Sentry free tier (step 9).
+- [ ] Later: Apple Developer setup (iOS), Google Play Console (Android).

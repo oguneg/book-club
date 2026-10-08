@@ -4,11 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 
 /** Page wrapper: safe areas, theme background, and a readable column width on tablets and web. */
-export function Screen({ children }: { children: ReactNode }) {
+export function Screen({ children, width = 'default' }: { children: ReactNode; width?: 'default' | 'narrow' }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <ScrollView
+      keyboardShouldPersistTaps="handled"
       style={{ backgroundColor: theme.colors.background }}
       contentContainerStyle={[
         styles.content,
@@ -19,12 +20,12 @@ export function Screen({ children }: { children: ReactNode }) {
         },
       ]}
     >
-      <View style={styles.column}>{children}</View>
+      <View style={[styles.column, { maxWidth: width === 'narrow' ? 420 : 560 }]}>{children}</View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   content: { flexGrow: 1, alignItems: 'center' },
-  column: { width: '100%', maxWidth: 560 },
+  column: { width: '100%' },
 });

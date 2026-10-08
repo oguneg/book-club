@@ -30,6 +30,10 @@ Expo output for the web app, or scan the QR code with Expo Go on a phone on the 
 API automatically (same host as the dev server, port 8787). If Windows asks whether Node may accept connections on
 private networks, allow it, or phones can't reach the API.
 
+Locally, no email is sent: confirmation and password-reset emails, with their links, are written to the API's
+log. Google sign-in works locally when `apps/server/.env` (git-ignored) holds `GOOGLE_CLIENT_SECRET`; the public
+client ID is in `apps/server/dev.env`. Without the secret the Google button is simply hidden.
+
 To try the production build of the web app served by the production server bundle, like staging does:
 
 ```bash

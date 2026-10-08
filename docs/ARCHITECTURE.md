@@ -54,7 +54,9 @@ deploy/          update.sh, backup scripts, compose files
   - **iOS:** native Sign in with Apple sheet → identity token → server verifies. The authorization code is exchanged for a refresh token, so account deletion can revoke it (Apple requires this).
   - **Android/iOS Google:** native Google sign-in → ID token → server verifies.
   - **Web, and Apple on Android:** standard OAuth redirect.
-  - Accounts with the same verified email are linked. Apple private-relay emails are stored as given; we send no email in v1.
+  - Accounts with the same email are linked only if the existing account confirmed its email (blocks pre-registration takeover). Apple private-relay emails are stored as given.
+- **Email/password** (Better Auth): confirmation required before first sign-in, 10+ character passwords checked against Have I Been Pwned (k-anonymity), rate-limited sign-in, reset links valid 1 hour and single-use, all sessions revoked on reset. Sign-up with a taken address answers like a new sign-up; the owner gets a "you already have an account" email instead.
+- **Email** goes out through Resend from `noreply@mail.ogun.se` (sending-only key); in development it is written to the server log.
 - **Live updates:** one WebSocket per client. The client subscribes to the clubs it belongs to (membership checked on subscribe), and the server publishes after each committed write: `progress`, `note`, `reply`, `reaction`, `member`, `club`. It's in-process now; Postgres LISTEN/NOTIFY is the upgrade path if we ever run more than one process. Clients refetch after reconnecting, so a missed event costs nothing.
 - **Push:** Expo push service (expo-server-sdk), which needs an APNs key and FCM v1 credentials in EAS. Sends are batched, and receipts are checked to prune dead tokens.
 - **Jobs** (in-process scheduler, single instance): meeting/milestone reminders, receipt checks, cover cache cleanup.

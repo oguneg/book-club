@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Text } from 'react-native';
+import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { useTheme } from '@/theme';
 
@@ -9,6 +10,7 @@ export default function NotFound() {
   const { t } = useTranslation();
   return (
     <Screen>
+      <PageTitle title={t('notFound.title')} />
       <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: fontSize.xl, color: colors.text }}>
         {t('notFound.title')}
       </Text>

@@ -2,20 +2,14 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { healthResponse } from '@bookclub/shared';
-import pino from 'pino';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createApp } from './app';
-import { connectPglite, connectPostgres, type Database } from './db/client';
-import { loadEnv } from './env';
+import type { Database } from './db/client';
+import { testApp, testDatabase } from './test/helpers';
 
-// CI sets TEST_DATABASE_URL to a real Postgres; locally the tests use in-memory PGlite.
 let database: Database;
-const log = pino({ level: 'silent' });
 
 beforeAll(async () => {
-  const url = process.env.TEST_DATABASE_URL;
-  database = url ? connectPostgres(url) : await connectPglite();
-  await database.migrate();
+  database = await testDatabase();
 });
 
 afterAll(async () => {
@@ -23,8 +17,7 @@ afterAll(async () => {
 });
 
 function appWith(vars: Record<string, string> = {}) {
-  const env = loadEnv({ APP_ENV: 'test', GIT_COMMIT: 'abc1234', ...vars });
-  return createApp({ env, database, log });
+  return testApp(database, vars).app;
 }
 
 describe('health', () => {
@@ -39,8 +32,7 @@ describe('health', () => {
 
   it('answers 503 when the database is down', async () => {
     const down: Database = { ...database, ping: async () => false };
-    const env = loadEnv({ APP_ENV: 'test' });
-    const res = await createApp({ env, database: down, log }).request('/healthz');
+    const res = await testApp(down).app.request('/healthz');
     expect(res.status).toBe(503);
     expect(healthResponse.parse(await res.json()).status).toBe('degraded');
   });
@@ -60,7 +52,13 @@ describe('api', () => {
   });
 
   it('keeps staging out of search engines', async () => {
-    const staging = await appWith({ APP_ENV: 'staging', DATABASE_URL: 'postgres://x@localhost/x' }).request('/healthz');
+    const staging = await appWith({
+      APP_ENV: 'staging',
+      DATABASE_URL: 'postgres://x@localhost/x',
+      PUBLIC_URL: 'https://bookclub-staging.example',
+      BETTER_AUTH_SECRET: 'x'.repeat(32),
+      RESEND_API_KEY: 're_test',
+    }).request('/healthz');
     expect(staging.headers.get('x-robots-tag')).toBe('noindex, nofollow');
     const test = await appWith().request('/healthz');
     expect(test.headers.get('x-robots-tag')).toBeNull();

@@ -1,9 +1,92 @@
 {
   "appName": "Bookclub",
+  "tagline": "Read together, whatever edition you hold.",
+  "common": {
+    "or": "or",
+    "continue": "Continue",
+    "backToSignIn": "Back to sign in",
+    "email": "Email",
+    "password": "Password",
+    "show": "Show",
+    "hide": "Hide",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
   "home": {
-    "tagline": "Read together, whatever edition you hold.",
+    "greeting": "Hi, {{name}}",
     "emptyTitle": "Your clubs will live here",
-    "emptyBody": "Signing in arrives in the next stage. For now this screen checks that the app can reach its server."
+    "emptyBody": "Creating and joining clubs comes in a later step. For now you're signed in, and that's what this step is for.",
+    "signOut": "Sign out"
+  },
+  "auth": {
+    "google": "Continue with Google",
+    "signIn": {
+      "title": "Sign in",
+      "subtitle": "Welcome back.",
+      "submit": "Sign in",
+      "forgot": "Forgot your password?",
+      "noAccount": "New here?",
+      "createAccount": "Create an account"
+    },
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Join a club, log your page, leave notes for the others.",
+      "name": "Your name",
+      "nameHint": "Shown to the people in your clubs.",
+      "passwordHint": "At least {{min}} characters.",
+      "submit": "Create account",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send you a link to choose a new one.",
+      "submit": "Send reset link"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "signup": "We sent a confirmation link to {{email}}. Open it to finish creating your account.",
+      "unverified": "Confirm your email first. We sent a new link to {{email}}.",
+      "reset": "If there's an account for {{email}}, we sent it a link to choose a new password. The link works for 1 hour.",
+      "spam": "Nothing after a few minutes? Check your spam folder.",
+      "resend": "Send the link again",
+      "resendIn": "Send again in {{seconds}} s",
+      "resent": "Sent. Check your inbox."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "newPassword": "New password",
+      "submit": "Save new password",
+      "doneTitle": "Password changed",
+      "doneBody": "You've been signed out everywhere. Sign in with your new password.",
+      "invalidTitle": "This link doesn't work anymore",
+      "invalidBody": "Reset links work once, for 1 hour. Ask for a new one.",
+      "askAgain": "Send a new link"
+    },
+    "confirmed": {
+      "title": "Email confirmed",
+      "body": "Welcome to Bookclub.",
+      "invalidTitle": "This link doesn't work anymore",
+      "invalidBody": "Confirmation links work once, for 24 hours. Sign in and we'll send you a new one."
+    },
+    "validation": {
+      "nameRequired": "Enter your name.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordTooShort": "Use at least {{min}} characters."
+    },
+    "errors": {
+      "invalidCredentials": "Wrong email or password.",
+      "passwordTooShort": "Use at least {{min}} characters.",
+      "passwordTooLong": "That password is too long.",
+      "passwordCompromised": "This password has appeared in a known data breach. Choose a different one.",
+      "invalidEmail": "Enter a valid email address.",
+      "tooManyAttempts": "Too many attempts. Wait a minute and try again.",
+      "network": "Can't reach the server. Check your connection and try again.",
+      "googleCancelled": "Google sign-in was cancelled.",
+      "googleNotLinked": "This email already has a Bookclub account that isn't confirmed yet. Confirm it with the link we emailed, then Google sign-in will work too.",
+      "googleFailed": "Google sign-in didn't work. Try again, or use your email and password.",
+      "generic": "Something went wrong. Try again."
+    }
   },
   "server": {
     "checking": "Checking the server…",
@@ -14,6 +97,6 @@
   },
   "notFound": {
     "title": "Page not found",
-    "back": "Go to your clubs"
+    "back": "Go to the start"
   }
 }

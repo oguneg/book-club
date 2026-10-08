@@ -1,15 +1,17 @@
 import { serveStatic } from '@hono/node-server/serve-static';
-import type { HealthResponse } from '@bookclub/shared';
+import type { HealthResponse, PublicConfig } from '@bookclub/shared';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { Logger } from 'pino';
+import type { Auth } from './auth';
 import type { Database } from './db/client';
 import type { Env } from './env';
 
 export interface AppDeps {
   env: Env;
   database: Database;
+  auth: Auth;
   log: Logger;
 }
 
@@ -21,7 +23,7 @@ function cacheControlFor(path: string): string {
   return 'public, max-age=3600';
 }
 
-export function createApp({ env, database, log }: AppDeps) {
+export function createApp({ env, database, auth, log }: AppDeps) {
   const app = new Hono();
 
   app.use(async (c, next) => {
@@ -72,6 +74,12 @@ export function createApp({ env, database, log }: AppDeps) {
   };
   app.get('/healthz', async (c) => c.json(...(await health())));
   app.get('/api/health', async (c) => c.json(...(await health())));
+
+  const publicConfig: PublicConfig = { google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) };
+  app.get('/api/config', (c) => c.json(publicConfig));
+
+  // Sign-up, sign-in, sessions, email confirmation, password reset, Google OAuth.
+  app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 
   app.all('/api/*', (c) => c.json({ error: 'not_found' }, 404));
 

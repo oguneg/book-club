@@ -1,7 +1,9 @@
 import { serve } from '@hono/node-server';
 import pino from 'pino';
 import { createApp } from './app';
+import { createAuth } from './auth';
 import { connectPglite, connectPostgres } from './db/client';
+import { logMailer, resendMailer } from './email/mailer';
 import { loadEnv } from './env';
 
 const env = loadEnv();
@@ -11,7 +13,17 @@ const database = env.DATABASE_URL ? connectPostgres(env.DATABASE_URL) : await co
 await database.migrate();
 log.info({ db: env.DATABASE_URL ? 'postgres' : `pglite:${env.PGLITE_DIR}` }, 'database ready');
 
-const app = createApp({ env, database, log });
+const mailer =
+  env.EMAIL_TRANSPORT === 'resend' && env.RESEND_API_KEY
+    ? resendMailer({ apiKey: env.RESEND_API_KEY, from: env.EMAIL_FROM, log })
+    : logMailer(log);
+const auth = createAuth({ env, db: database.db, mailer, log });
+log.info(
+  { email: env.EMAIL_TRANSPORT, google: Boolean(env.GOOGLE_CLIENT_ID), publicUrl: env.PUBLIC_URL, appUrl: env.APP_URL },
+  'auth ready',
+);
+
+const app = createApp({ env, database, auth, log });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {
   log.info({ port: info.port }, 'listening');
 });

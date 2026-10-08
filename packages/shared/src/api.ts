@@ -8,3 +8,9 @@ export const healthResponse = z.object({
   db: z.boolean(),
 });
 export type HealthResponse = z.infer<typeof healthResponse>;
+
+/** What the app needs to know about the server before sign-in. */
+export const publicConfig = z.object({
+  google: z.boolean(),
+});
+export type PublicConfig = z.infer<typeof publicConfig>;
