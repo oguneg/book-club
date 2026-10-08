@@ -1,0 +1,64 @@
+# One compose project per environment, each in its own checkout on the VPS:
+#   ~/book-club-staging  -> bookclub-staging.ogun.se
+#   ~/book-club          -> bookclub.ogun.se (from the release stage on)
+# Settings come from .env next to this file (see .env.example). HTTPS is handled by the shared
+# Caddy proxy (~/proxy on the VPS): the app joins the external "web" network and declares its domain.
+services:
+  app:
+    build:
+      context: .
+      args:
+        GIT_COMMIT: ${GIT_COMMIT:-unknown}
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${APP_ENV:?Set APP_ENV in .env}
+      DATABASE_URL: postgres://bookclub:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/bookclub
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 384m
+    networks:
+      - web
+      - default
+    labels:
+      caddy: ${DOMAIN:?Set DOMAIN in .env}
+      caddy.reverse_proxy: "{{upstreams 8787}}"
+      caddy.encode: zstd gzip
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  db:
+    # Same major version as PGlite (local dev) and CI.
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bookclub
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: bookclub
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookclub -d bookclub"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    mem_limit: 512m
+    # Not on the "web" network: only the app can reach the database.
+    networks:
+      - default
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+networks:
+  web:
+    external: true
+
+volumes:
+  db-data:

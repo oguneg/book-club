@@ -1,0 +1,19 @@
+{
+  "appName": "Bookclub",
+  "home": {
+    "tagline": "Read together, whatever edition you hold.",
+    "emptyTitle": "Your clubs will live here",
+    "emptyBody": "Signing in arrives in the next stage. For now this screen checks that the app can reach its server."
+  },
+  "server": {
+    "checking": "Checking the server…",
+    "connected": "Server connected · {{env}} · version {{version}}",
+    "degraded": "Server reachable, but its database is not answering",
+    "unreachable": "Can't reach the server",
+    "retry": "Try again"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "back": "Go to your clubs"
+  }
+}

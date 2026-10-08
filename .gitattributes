@@ -1,0 +1,6 @@
+# Everything is stored and checked out with LF, so shell scripts and Docker files work on the VPS.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ttf binary
+*.wasm binary

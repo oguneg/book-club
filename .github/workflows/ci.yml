@@ -1,0 +1,81 @@
+# Every push and pull request: lint, typecheck, tests (against real Postgres), server build and app bundles.
+# Pushes to main then deploy to staging (https://bookclub-staging.ogun.se) and check the new version is live.
+# DEPLOY_SSH_KEY_STAGING is a key that can only run ~/book-club-staging/deploy/update.sh on the VPS.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: bookclub
+          POSTGRES_PASSWORD: bookclub
+          POSTGRES_DB: bookclub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bookclub -d bookclub_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgres://bookclub:bookclub@localhost:5432/bookclub_test
+      EXPO_NO_TELEMETRY: 1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build -w @bookclub/server
+      - name: Bundle the app for web, iOS and Android
+        working-directory: apps/mobile
+        run: npx expo export --platform all --output-dir dist
+
+  deploy-staging:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: staging
+      url: https://bookclub-staging.ogun.se
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to the VPS
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY_STAGING }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo '57.129.169.251 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJa4Zyg+N/pp0ZaQ2lYOnP5LQGwd2YbGcjBS0ztlxcwE' > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o IdentitiesOnly=yes -o ServerAliveInterval=30 debian@57.129.169.251
+      - name: Check that staging runs this commit
+        run: |
+          expected="${GITHUB_SHA::7}"
+          for _ in $(seq 1 24); do
+            body=$(curl -fsS https://bookclub-staging.ogun.se/api/health || true)
+            echo "$body"
+            if echo "$body" | grep -q "\"version\":\"$expected\""; then exit 0; fi
+            sleep 5
+          done
+          echo "staging is not serving $expected"
+          exit 1
