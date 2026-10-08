@@ -4,7 +4,7 @@ Build order for v1, top to bottom. Each stage ends deployed to staging and check
 
 ## Stages
 
-- [ ] **Foundations:** monorepo, shared package, Hono server with `/healthz`, Drizzle + migrations, Expo app shell (router, theme tokens, fonts, i18n), CI (typecheck, lint, test), Docker + compose with memory limits, staging live at bookclub-staging.ogun.se.
+- [x] **Foundations:** monorepo, shared package, Hono server with `/healthz`, Drizzle + migrations, Expo app shell (router, theme tokens, fonts, i18n), CI (typecheck, lint, test), Docker + compose with memory limits, staging live at bookclub-staging.ogun.se.
 - [ ] **Accounts:** Google and Apple sign-in on iOS, Android and web; profile (name, avatar); sign out everywhere; account deletion with Apple token revocation; data export.
 - [ ] **Books:** search, ISBN lookup, barcode scan, provider fallback + cache, cover proxy, manual entry, edition picker with page-count confirmation.
 - [ ] **Clubs:** create, invite link and code (rotate), join through universal links / app links, members and roles, remove a member, leave, transfer ownership, set the club book, finish date and milestones, past books.
@@ -12,7 +12,7 @@ Build order for v1, top to bottom. Each stage ends deployed to staging and check
 - [ ] **Notes:** add a note on a page, notes list by position with "≈ p.N" mapping, spoiler blur and tap to reveal, replies, reactions, edit/delete, report, block, owner moderation.
 - [ ] **Notifications:** push token registration, per-type preferences, note/reply/finish events (spoiler-safe), milestone reminders, receipt pruning.
 - [ ] **Production hardening:** encrypted off-site backups + tested restore, Sentry, uptime check, rate limits reviewed, privacy policy / terms / support pages, accessibility pass, design pass (warm & bookish), store listings and screenshots.
-- [ ] **Release:** TestFlight beta, Google Play closed test (12 testers × 14 days), production deploy of the API, store submissions.
+- [ ] **Release:** TestFlight beta, Google Play closed test (12 testers × 14 days), production deploy of the API (deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving, unlike staging today), store submissions.
 
 ## Needs you (only you can do these)
 
