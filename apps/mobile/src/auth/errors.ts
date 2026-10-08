@@ -23,6 +23,8 @@ export function authErrorMessage(t: TFunction, error: AuthError | null | undefin
       return t('auth.errors.passwordCompromised');
     case 'INVALID_EMAIL':
       return t('auth.errors.invalidEmail');
+    case 'INVALID_PASSWORD':
+      return t('auth.errors.invalidPassword');
     default:
       return t('auth.errors.generic');
   }
@@ -36,6 +38,10 @@ export function googleErrorMessage(t: TFunction, code: string): string {
     case 'account_not_linked':
     case 'unable_to_link_account':
       return t('auth.errors.googleNotLinked');
+    case 'email_does_not_match':
+      return t('auth.errors.googleEmailMismatch');
+    case 'account_already_linked_to_different_user':
+      return t('auth.errors.googleTaken');
     default:
       return t('auth.errors.googleFailed');
   }

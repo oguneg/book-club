@@ -6,7 +6,7 @@ import type { Logger } from 'pino';
 import type { Db } from './db/client';
 import * as schema from './db/schema';
 import { sendInBackground, type Mailer } from './email/mailer';
-import { existingAccountMessage, resetPasswordMessage, verifyEmailMessage } from './email/messages';
+import { accountDeletedMessage, existingAccountMessage, resetPasswordMessage, verifyEmailMessage } from './email/messages';
 import type { Env } from './env';
 
 const DAY = 60 * 60 * 24;
@@ -68,6 +68,19 @@ export function createAuth({ env, db, mailer, log }: { env: Env; db: Db; mailer:
     session: {
       expiresIn: 30 * DAY,
       updateAge: DAY,
+      // Deleting an account without a password (Google-only) needs a sign-in within this window.
+      freshAge: DAY,
+    },
+
+    user: {
+      deleteUser: {
+        enabled: true,
+        // Rows owned by the user (sessions, sign-in methods) go with it through ON DELETE CASCADE.
+        // Clubs they own are handed over in the clubs step.
+        afterDelete: async (user) => {
+          sendInBackground(mailer, log, accountDeletedMessage({ to: user.email, name: user.name }));
+        },
+      },
     },
 
     databaseHooks: {

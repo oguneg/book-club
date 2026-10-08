@@ -7,6 +7,7 @@ import type { Logger } from 'pino';
 import type { Auth } from './auth';
 import type { Database } from './db/client';
 import type { Env } from './env';
+import { accountRoutes } from './routes/account';
 
 export interface AppDeps {
   env: Env;
@@ -64,7 +65,7 @@ export function createApp({ env, database, auth, log }: AppDeps) {
   }
 
   if (env.CORS_ORIGINS.length > 0) {
-    app.use('/api/*', cors({ origin: env.CORS_ORIGINS, credentials: true }));
+    app.use('/api/*', cors({ origin: env.CORS_ORIGINS, credentials: true, exposeHeaders: ['Content-Disposition'] }));
   }
 
   const health = async (): Promise<[HealthResponse, 200 | 503]> => {
@@ -80,6 +81,8 @@ export function createApp({ env, database, auth, log }: AppDeps) {
 
   // Sign-up, sign-in, sessions, email confirmation, password reset, Google OAuth.
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
+
+  app.route('/api/account', accountRoutes({ auth, db: database.db }));
 
   app.all('/api/*', (c) => c.json({ error: 'not_found' }, 404));
 

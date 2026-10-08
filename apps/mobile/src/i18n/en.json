@@ -10,13 +10,17 @@
     "show": "Show",
     "hide": "Hide",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "back": "Back",
+    "save": "Save",
+    "saved": "Saved."
   },
   "home": {
     "greeting": "Hi, {{name}}",
     "emptyTitle": "Your clubs will live here",
     "emptyBody": "Creating and joining clubs comes in a later step. For now you're signed in, and that's what this step is for.",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "account": "Account"
   },
   "auth": {
     "google": "Continue with Google",
@@ -26,7 +30,8 @@
       "submit": "Sign in",
       "forgot": "Forgot your password?",
       "noAccount": "New here?",
-      "createAccount": "Create an account"
+      "createAccount": "Create an account",
+      "accountDeleted": "Your account was deleted. Thank you for reading with us."
     },
     "signUp": {
       "title": "Create your account",
@@ -85,7 +90,10 @@
       "googleCancelled": "Google sign-in was cancelled.",
       "googleNotLinked": "This email already has a Bookclub account that isn't confirmed yet. Confirm it with the link we emailed, then Google sign-in will work too.",
       "googleFailed": "Google sign-in didn't work. Try again, or use your email and password.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "invalidPassword": "Your current password is wrong.",
+      "googleEmailMismatch": "That Google account uses a different email address. You can only connect a Google account with the same address as your Bookclub account.",
+      "googleTaken": "That Google account is already connected to another Bookclub account."
     }
   },
   "server": {
@@ -98,5 +106,57 @@
   "notFound": {
     "title": "Page not found",
     "back": "Go to the start"
+  },
+  "account": {
+    "title": "Account",
+    "profile": "Profile",
+    "name": "Your name",
+    "nameHint": "Shown to the people in your clubs.",
+    "email": "Email",
+    "emailNote": "Your sign-in address. It's never shown to other members.",
+    "methods": "Ways to sign in",
+    "password": "Password",
+    "passwordSet": "Set",
+    "passwordNotSet": "Not set: you sign in with Google.",
+    "changePassword": "Change password",
+    "addPassword": "Add a password",
+    "addPasswordSent": "We sent a link to {{email}}. Open it to choose a password.",
+    "google": "Google",
+    "googleConnected": "Connected",
+    "googleNotConnected": "Not connected",
+    "connectGoogle": "Connect Google",
+    "disconnectGoogle": "Disconnect",
+    "disconnectNeedsPassword": "Add a password before disconnecting Google, so you can still sign in.",
+    "googleDisconnected": "Google disconnected. Sign in with your password from now on.",
+    "devices": "Devices",
+    "devicesCount_one": "You're signed in on this device only.",
+    "devicesCount_other": "You're signed in on {{count}} devices, including this one.",
+    "signOutOthers": "Sign out on all other devices",
+    "othersSignedOut": "Signed out everywhere else.",
+    "data": "Your data",
+    "dataBody": "Download everything Bookclub stores about you, as a JSON file.",
+    "download": "Download my data",
+    "dangerTitle": "Delete account",
+    "dangerBody": "Permanently delete your account and everything in it.",
+    "deleteLink": "Delete my account…",
+    "signOut": "Sign out"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "current": "Current password",
+    "new": "New password",
+    "submit": "Change password",
+    "done": "Password changed. Your other devices were signed out."
+  },
+  "deleteAccount": {
+    "title": "Delete your account?",
+    "body": "This permanently deletes your profile, your sign-in methods and everything else stored with your account. It cannot be undone. Download your data first if you want to keep a copy.",
+    "passwordLabel": "Enter your password to confirm",
+    "googleNote": "You sign in with Google, so no password is needed.",
+    "submit": "Delete my account permanently",
+    "cancel": "Keep my account",
+    "reauthTitle": "Sign in again first",
+    "reauthBody": "For your security, deleting an account without a password needs a sign-in from the last 24 hours. Sign out, sign in with Google again, then come back here.",
+    "reauthAction": "Sign out now"
   }
 }

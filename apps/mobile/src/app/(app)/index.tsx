@@ -6,6 +6,7 @@ import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { ServerStatus } from '@/components/ServerStatus';
 import { Button } from '@/components/ui/Button';
+import { TextLink } from '@/components/ui/TextLink';
 import { useTheme } from '@/theme';
 
 export default function Home() {
@@ -17,7 +18,10 @@ export default function Home() {
   return (
     <Screen>
       <PageTitle />
-      <Text style={{ fontFamily: fonts.headingBold, fontSize: fontSize.lg, color: colors.accent }}>{t('appName')}</Text>
+      <View style={styles.header}>
+        <Text style={{ fontFamily: fonts.headingBold, fontSize: fontSize.lg, color: colors.accent }}>{t('appName')}</Text>
+        <TextLink href="/account" label={t('home.account')} />
+      </View>
       <Text
         accessibilityRole="header"
         style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, color: colors.text, marginTop: space.xl }}
@@ -62,4 +66,5 @@ export default function Home() {
 
 const styles = StyleSheet.create({
   card: { borderWidth: StyleSheet.hairlineWidth },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
 });

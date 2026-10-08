@@ -6,6 +6,7 @@ import { View, type TextInput } from 'react-native';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
+import { takeFlash } from '@/auth/flash';
 import { AuthLayout, OrDivider } from '@/components/AuthLayout';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Button } from '@/components/ui/Button';
@@ -22,6 +23,7 @@ export default function SignIn() {
   const [emailError, setEmailError] = useState<string>();
   const [error, setError] = useState(params.error ? googleErrorMessage(t, params.error) : undefined);
   const [busy, setBusy] = useState(false);
+  const [deleted] = useState(() => takeFlash() === 'accountDeleted');
   const passwordRef = useRef<TextInput>(null);
 
   async function submit() {
@@ -60,6 +62,7 @@ export default function SignIn() {
 
   return (
     <AuthLayout title={t('auth.signIn.title')} subtitle={t('auth.signIn.subtitle')}>
+      {deleted && <Notice tone="info" message={t('auth.signIn.accountDeleted')} />}
       {error && <Notice message={error} />}
       {config.data?.google && (
         <>

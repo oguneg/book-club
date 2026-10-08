@@ -5,7 +5,7 @@ import { useTheme } from '@/theme';
 interface ButtonProps {
   label: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
   loading?: boolean;
   disabled?: boolean;
   /** Shown before the label, e.g. a provider logo. */
@@ -15,9 +15,9 @@ interface ButtonProps {
 
 export function Button({ label, onPress, variant = 'primary', loading = false, disabled = false, icon, accessibilityHint }: ButtonProps) {
   const { colors, fontSize, radius, space, minTouch } = useTheme();
-  const primary = variant === 'primary';
   const inactive = disabled || loading;
-  const textColor = primary ? colors.onAccent : colors.text;
+  const fill = variant === 'primary' ? colors.accent : variant === 'danger' ? colors.danger : undefined;
+  const textColor = fill ? colors.onAccent : colors.text;
 
   return (
     <Pressable
@@ -32,8 +32,8 @@ export function Button({ label, onPress, variant = 'primary', loading = false, d
           minHeight: minTouch,
           borderRadius: radius.md,
           paddingHorizontal: space.lg,
-          backgroundColor: primary ? colors.accent : colors.surface,
-          borderColor: primary ? colors.accent : colors.border,
+          backgroundColor: fill ?? colors.surface,
+          borderColor: fill ?? colors.border,
           opacity: inactive ? 0.6 : pressed ? 0.85 : 1,
         },
       ]}
