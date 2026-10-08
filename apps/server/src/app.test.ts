@@ -13,7 +13,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await database.close();
+  await database?.close();
 });
 
 function appWith(vars: Record<string, string> = {}) {

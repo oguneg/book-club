@@ -14,7 +14,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await database.close();
+  await database?.close();
 });
 
 afterEach(() => {

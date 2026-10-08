@@ -8,10 +8,14 @@ import { loadEnv } from '../env';
 
 export const log = pino({ level: 'silent' });
 
-/** CI sets TEST_DATABASE_URL to a real Postgres; locally tests use an in-memory PGlite. */
+/**
+ * CI sets TEST_DATABASE_URL to a real Postgres, shared by all test files and migrated once in
+ * global-setup.ts; locally each test file gets its own in-memory PGlite.
+ */
 export async function testDatabase(): Promise<Database> {
   const url = process.env.TEST_DATABASE_URL;
-  const database = url ? connectPostgres(url) : await connectPglite();
+  if (url) return connectPostgres(url);
+  const database = await connectPglite();
   await database.migrate();
   return database;
 }
