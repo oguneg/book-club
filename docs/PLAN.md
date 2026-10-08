@@ -8,8 +8,8 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 
 - [x] **Foundations:** monorepo, shared package, Hono server with `/healthz`, Drizzle + migrations, Expo app shell (router, theme tokens, fonts, i18n), CI (typecheck, lint, test), Docker + compose with memory limits, staging live.
 - [x] **1. Email + password:** sign up, sign in, sign out, confirm email, forgot password, display name. 10+ character passwords, leaked-password check, rate-limited sign-in. Locally, emails are written to the server log.
-- [ ] **2. Real email on staging:** Resend, sending from `noreply@mail.ogun.se`.
-- [ ] **3. Google sign-in:** same account when the email matches an existing one.
+- [x] **2. Real email on staging:** Resend, sending from `noreply@mail.ogun.se`.
+- [x] **3. Google sign-in:** same account when the email matches an existing one.
 - [ ] **4. Account management:** change password, download my data, delete my account.
 
 ## Phase B: the book club (web)
