@@ -45,6 +45,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "91d9f7cf-daba-4fbc-93e8-62b48bdef23a"
+      }
+    },
+    "owner": "ogunse"
   }
 }
