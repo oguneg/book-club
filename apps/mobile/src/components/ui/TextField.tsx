@@ -19,7 +19,7 @@ export function TextField({ label, error, hint, password = false, ref, ...input 
   const [revealed, setRevealed] = useState(false);
   const describedBy = useId();
 
-  const borderColor = error ? colors.danger : focused ? colors.accent : colors.border;
+  const borderColor = error ? colors.danger : focused ? colors.accent : colors.control;
 
   return (
     <View style={{ gap: space.xs }}>

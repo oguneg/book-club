@@ -20,7 +20,9 @@ export function Screen({ children, width = 'default' }: { children: ReactNode; w
         },
       ]}
     >
-      <View style={[styles.column, { maxWidth: width === 'narrow' ? 420 : 560 }]}>{children}</View>
+      <View role="main" style={[styles.column, { maxWidth: width === 'narrow' ? 420 : 560 }]}>
+        {children}
+      </View>
     </ScrollView>
   );
 }

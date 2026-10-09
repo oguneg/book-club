@@ -147,7 +147,7 @@ function Entry({
               hitSlop={6}
               style={({ pressed }) => [
                 styles.chip,
-                { borderColor: r.mine ? colors.accent : colors.border, backgroundColor: r.mine ? colors.background : 'transparent', opacity: pressed ? 0.6 : 1 },
+                { borderColor: r.mine ? colors.accent : colors.control, backgroundColor: r.mine ? colors.background : 'transparent', opacity: pressed ? 0.6 : 1 },
               ]}
             >
               <Text style={{ fontSize: fontSize.sm, color: colors.text }}>{`${r.emoji} ${r.count}`}</Text>
@@ -169,7 +169,7 @@ function Entry({
                 setPanel('none');
                 actions.react(entry.id, emoji).catch((err) => setError(noteErrorMessage(t, err)));
               }}
-              style={({ pressed }) => [styles.emoji, { borderColor: colors.border, opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [styles.emoji, { borderColor: colors.control, opacity: pressed ? 0.6 : 1 }]}
             >
               <Text style={{ fontSize: fontSize.lg }}>{emoji}</Text>
             </Pressable>
@@ -238,7 +238,7 @@ function SpoilerCover({ preview, label, place, onReveal }: { preview: string; la
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={t('notes.revealLabel', { place })}
+      accessibilityLabel={t('notes.revealLabel', { place, hint: label })}
       onPress={onReveal}
       style={({ pressed }) => ({ borderRadius: radius.md, backgroundColor: colors.background, padding: space.md, gap: space.sm, opacity: pressed ? 0.8 : 1 })}
     >

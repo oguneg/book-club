@@ -31,7 +31,10 @@ export function useDeviceCount() {
 /** Saves the data export as a file. Web only for now; the iOS step adds the share sheet. */
 export async function downloadMyData(): Promise<void> {
   const res = await fetch(`${API_URL}/api/account/export`, { credentials: 'include' });
-  if (!res.ok) throw new ApiError(res.status, `export failed with ${res.status}`);
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new ApiError(res.status, `export failed with ${res.status}`, body.error);
+  }
   const filename = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'bookclub-data.json';
   if (Platform.OS !== 'web') return;
   const url = URL.createObjectURL(await res.blob());

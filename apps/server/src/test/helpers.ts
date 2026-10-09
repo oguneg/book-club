@@ -6,6 +6,7 @@ import type { Fetch } from '../books/providers';
 import { createBookService } from '../books/service';
 import { createClubService } from '../clubs/service';
 import { createLiveHub } from '../live';
+import { moderatorAlerts } from '../moderation';
 import { createNoteService } from '../notes/service';
 import { createReadingService } from '../readings/service';
 import { connectPglite, connectPostgres, type Database } from '../db/client';
@@ -63,7 +64,7 @@ export function testApp(
   const books = createBookService({ db: database.db, fetch: fetchFn, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
   const live = createLiveHub({ db: database.db, log });
   const readings = createReadingService({ db: database.db, live });
-  const notes = createNoteService({ db: database.db, live });
+  const notes = createNoteService({ db: database.db, live, onHidden: moderatorAlerts({ env, mailer, log }) });
   return { env, auth, books, clubs, readings, notes, live, app: createApp({ env, database, auth, books, clubs, readings, notes, live, log }) };
 }
 
@@ -132,8 +133,8 @@ export async function signedInUser(
   appUrl: string,
   mail: ReturnType<typeof captureMailer>,
   name = 'Reader',
+  email = uniqueEmail(name.toLowerCase().replace(/\W+/g, '-')),
 ): Promise<{ browser: Browser; email: string; userId: string }> {
-  const email = uniqueEmail(name.toLowerCase().replace(/\W+/g, '-'));
   const browser = new Browser(app, appUrl);
   await browser.post('/api/auth/sign-up/email', { email, password: 'correct horse battery', name, callbackURL: `${appUrl}/` });
   await browser.request(linkIn(await mail.lastTo(email)));

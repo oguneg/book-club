@@ -72,6 +72,13 @@ describe('download my data', () => {
     expect(text).not.toContain(stored?.hash);
     for (const { token } of tokens) expect(text).not.toContain(token);
   });
+
+  it('allows a few exports an hour', async () => {
+    const ctx = setup();
+    const { browser } = await signedInUser(ctx);
+    for (let i = 0; i < 5; i++) expect((await browser.request('/api/account/export')).status).toBe(200);
+    expect((await browser.request('/api/account/export')).status).toBe(429);
+  });
 });
 
 describe('profile', () => {

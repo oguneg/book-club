@@ -20,6 +20,7 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
     depends_on:
       db:
         condition: service_healthy

@@ -17,6 +17,9 @@ export type LiveEvent =
   | { type: 'club-progress'; clubId: string } // a member of the club logged progress on the club book
   | { type: 'notes'; bookKey: string }; // notes on this book changed (new note, reply, reaction, edit)
 
+/** One per open app or tab; more than this from one account is a bug or abuse. */
+export const MAX_SOCKETS_PER_USER = 20;
+
 interface Socket {
   send(data: string): void;
 }
@@ -56,6 +59,8 @@ export function createLiveHub({ db, log }: { db: Db; log: Logger }) {
     },
 
     connectedUsers: () => byUser.size,
+
+    socketsOf: (userId: string) => byUser.get(userId)?.size ?? 0,
 
     /** A club changed: tell every member. */
     async clubChanged(clubId: string) {
@@ -141,6 +146,7 @@ export function attachLive(
       }
       const session = await auth.api.getSession({ headers }).catch(() => null);
       if (!session) return reject(socket, '401 Unauthorized');
+      if (hub.socketsOf(session.user.id) >= MAX_SOCKETS_PER_USER) return reject(socket, '429 Too Many Requests');
 
       wss.handleUpgrade(req, socket, head, (ws: WebSocket) => {
         const userId = session.user.id;

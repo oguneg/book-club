@@ -8,7 +8,7 @@ import {
   updateClubBookInput,
   updateClubInput,
 } from '@bookclub/shared';
-import { Hono, type Context } from 'hono';
+import { Hono, type Context, type MiddlewareHandler } from 'hono';
 import type { z } from 'zod';
 import type { Auth } from '../auth';
 import { ClubError, type ClubService } from '../clubs/service';
@@ -35,6 +35,13 @@ export function clubRoutes({ auth, clubs, readings, live }: { auth: Auth; clubs:
   // Invite codes are guessable only by brute force; these limits make that hopeless.
   const allowPreview = createRateLimiter({ windowMs: 10 * 60_000, max: 60 });
   const allowJoin = createRateLimiter({ windowMs: 10 * 60_000, max: 20 });
+  // Generous for people running a club; a script filling the database hits these first.
+  const allowWrites = createRateLimiter({ windowMs: 10 * 60_000, max: 120 });
+  const allowCreate = createRateLimiter({ windowMs: 24 * 60 * 60_000, max: 10 });
+  const limitWrites: MiddlewareHandler<SignedInEnv> = async (c, next) => {
+    if (c.req.method !== 'GET' && !allowWrites(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
+    await next();
+  };
   const signedIn = requireSession(auth);
 
   const app = new Hono<SignedInEnv>();
@@ -66,8 +73,8 @@ export function clubRoutes({ auth, clubs, readings, live }: { auth: Auth; clubs:
 
   // ---- Clubs ----
 
-  app.use('/clubs', signedIn);
-  app.use('/clubs/*', signedIn);
+  app.use('/clubs', signedIn, limitWrites);
+  app.use('/clubs/*', signedIn, limitWrites);
   // After any successful change to a club, its members' open apps refresh it.
   app.use('/clubs/:id/*', async (c, next) => {
     await next();
@@ -85,6 +92,7 @@ export function clubRoutes({ auth, clubs, readings, live }: { auth: Auth; clubs:
   app.get('/clubs', async (c) => c.json({ clubs: await clubs.listForUser(c.get('user').id) }));
 
   app.post('/clubs', async (c) => {
+    if (!allowCreate(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
     const club = await clubs.create(c.get('user').id, await body(c, createClubInput));
     return c.json({ club }, 201);
   });

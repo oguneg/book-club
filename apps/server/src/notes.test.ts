@@ -1,10 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { blockListResponse, clubResponse, notesResponse, readingResponse, type Note } from '@bookclub/shared';
+import { blockListResponse, clubResponse, notesResponse, readingResponse, reportQueueResponse, type Note } from '@bookclub/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Database } from './db/client';
 import { edition } from './db/schema';
-import type { Browser } from './test/helpers';
-import { captureMailer, signedInUser, testApp, testDatabase } from './test/helpers';
+import { Browser, captureMailer, signedInUser, testApp, testDatabase, uniqueEmail } from './test/helpers';
 
 let database: Database;
 
@@ -233,5 +232,66 @@ describe('data export', () => {
     expect(data.reactions).toMatchObject([{ noteId: annNote, emoji: '🤔' }]);
     expect(data.reports).toMatchObject([{ noteId: annNote, reason: 'spoiler', status: 'open' }]);
     expect(data.blocked).toMatchObject([{ name: 'Ann Author' }]);
+  });
+});
+
+describe('moderation', () => {
+  it('does not exist for anyone but moderators', async () => {
+    const w = await world();
+    expect((await new Browser(w.app, w.env.APP_URL).request('/api/admin')).status).toBe(401);
+    expect((await w.ann.browser.request('/api/admin')).status).toBe(404);
+    expect((await w.ann.browser.request('/api/admin/reports')).status).toBe(404);
+  });
+
+  it('emails moderators once when reports hide a note; they keep it or remove it', async () => {
+    const mail = captureMailer();
+    const moderatorEmail = uniqueEmail('mod');
+    const ctx = testApp(database, { ADMIN_EMAILS: ` ${moderatorEmail.toUpperCase()}, other@example.com` }, mail.mailer);
+    const user = (name: string, email?: string) => signedInUser(ctx.app, ctx.env.APP_URL, mail, name, email);
+    const work = newWork();
+    const editionId = await anEdition(work, 300);
+    const bookKey = `w:${work}`;
+    const [author, mod, ...reporters] = await Promise.all([
+      user('Al Author'),
+      user('Mo Moderator', moderatorEmail),
+      user('Rae One'),
+      user('Rae Two'),
+      user('Rae Three'),
+      user('Rae Four'),
+    ]);
+    const readingId = readingResponse.parse(await (await author.browser.post('/api/readings', { editionId, startPage: 1, endPage: 300 })).json()).reading.id;
+    const kept = await write(author.browser, { readingId, page: 10, body: 'fine, actually', visibility: 'public' });
+    const removed = await write(author.browser, { readingId, page: 20, body: 'truly awful', visibility: 'public' });
+    const alerts = () => mail.sent.filter((m) => m.subject.includes('needs review'));
+
+    for (const r of reporters.slice(0, 3)) {
+      await r.browser.post(`/api/notes/${kept}/report`, { reason: 'offensive' });
+      await r.browser.post(`/api/notes/${removed}/report`, { reason: 'spam', details: 'selling things' });
+    }
+    await reporters[3]!.browser.post(`/api/notes/${kept}/report`, { reason: 'offensive' });
+    // One email per hidden note, to every moderator, none for reports past the threshold.
+    expect(alerts().map((m) => m.to).sort()).toEqual(['other@example.com', 'other@example.com', moderatorEmail, moderatorEmail].sort());
+    expect(alerts()[0]?.text).toContain(`${ctx.env.APP_URL}/admin/reports`);
+    expect(alerts()[0]?.text).not.toContain('truly awful');
+
+    expect((await mod.browser.request('/api/admin')).status).toBe(200);
+    // The queue is global; other tests share this database.
+    const queueOf = async () =>
+      reportQueueResponse.parse(await (await mod.browser.request('/api/admin/reports')).json()).notes.filter((n) => [kept, removed].includes(n.id));
+    const queue = await queueOf();
+    expect(queue.map((n) => [n.body, n.reports.length, n.hidden])).toEqual([
+      ['fine, actually', 4, true],
+      ['truly awful', 3, true],
+    ]);
+    expect(queue[1]?.reports[0]).toMatchObject({ reason: 'spam', details: 'selling things', reporter: 'Rae One' });
+    expect((await notesFor(mod.browser, bookKey)).notes).toEqual([]);
+
+    expect((await mod.browser.post(`/api/admin/reports/${kept}/dismiss`, {})).status).toBe(204);
+    expect((await mod.browser.post(`/api/admin/reports/${removed}/remove`, {})).status).toBe(204);
+    expect(bodies((await notesFor(mod.browser, bookKey)).notes)).toEqual(['fine, actually']);
+    // Whoever reported it still doesn't see it.
+    expect((await notesFor(reporters[0]!.browser, bookKey)).notes).toEqual([]);
+    expect(await queueOf()).toEqual([]);
+    expect((await mod.browser.post(`/api/admin/reports/${kept}/dismiss`, {})).status).toBe(404);
   });
 });

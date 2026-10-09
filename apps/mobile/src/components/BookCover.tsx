@@ -25,15 +25,19 @@ export function BookCover({ cover, title, size = 'sm' }: { cover: string | null;
       </View>
     );
   }
+  // Decorative: the title is always next to it. expo-image drops an empty alt on the web, so the wrapper
+  // hides it from screen readers instead.
   return (
-    <Image
-      source={{ uri: coverUri(cover) }}
-      accessibilityIgnoresInvertColors
-      alt=""
-      onError={() => setFailedKey(cover)}
-      contentFit="cover"
-      transition={150}
-      style={{ width, height, borderRadius: radius.sm, backgroundColor: colors.border }}
-    />
+    <View aria-hidden style={{ width, height }}>
+      <Image
+        source={{ uri: coverUri(cover) }}
+        accessibilityIgnoresInvertColors
+        alt=""
+        onError={() => setFailedKey(cover)}
+        contentFit="cover"
+        transition={150}
+        style={{ width, height, borderRadius: radius.sm, backgroundColor: colors.border }}
+      />
+    </View>
   );
 }

@@ -68,7 +68,7 @@ export function ClubProgress({ book, members, myUserId }: { book: Book; members:
                 <Text style={{ color: colors.text, fontSize: fontSize.sm, fontWeight: me ? '700' : '500' }}>{name}</Text>
                 <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{line}</Text>
               </View>
-              <ProgressBar position={m.reading?.position ?? 0} marker={pace} emphasis={me || isSelected} />
+              <ProgressBar position={m.reading?.position ?? 0} marker={pace} emphasis={me || isSelected} label={`${name}: ${line}`} />
             </Pressable>
           );
         })}

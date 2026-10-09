@@ -69,6 +69,13 @@ describe('creating and listing clubs', () => {
     expect((await owner.browser.post('/api/clubs', { name: 'x'.repeat(81) })).status).toBe(400);
   });
 
+  it('limits how many clubs one person starts in a day', async () => {
+    const ctx = setup();
+    const owner = await ctx.user('Olivia Owner');
+    for (let i = 0; i < 10; i++) expect((await owner.browser.post('/api/clubs', { name: `Club ${i}` })).status).toBe(201);
+    expect(await (await owner.browser.post('/api/clubs', { name: 'One too many' })).json()).toEqual({ error: 'rate_limited' });
+  });
+
   it('is hidden from non-members', async () => {
     const ctx = setup();
     const owner = await ctx.user('Olivia Owner');

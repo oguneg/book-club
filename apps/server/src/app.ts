@@ -1,6 +1,7 @@
 import { serveStatic } from '@hono/node-server/serve-static';
 import type { HealthResponse, PublicConfig } from '@bookclub/shared';
 import { Hono } from 'hono';
+import { bodyLimit } from 'hono/body-limit';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { Logger } from 'pino';
@@ -13,6 +14,7 @@ import type { ReadingService } from './readings/service';
 import type { Database } from './db/client';
 import type { Env } from './env';
 import { accountRoutes } from './routes/account';
+import { adminRoutes } from './routes/admin';
 import { bookRoutes } from './routes/books';
 import { clubRoutes } from './routes/clubs';
 import { noteRoutes } from './routes/notes';
@@ -84,6 +86,10 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
     app.use('/api/*', cors({ origin: env.CORS_ORIGINS, credentials: true, exposeHeaders: ['Content-Disposition'] }));
   }
 
+  // Every API body is small JSON (the longest is a 2000-character note). Anything bigger is refused before
+  // it is read into memory, so one request can't exhaust the container.
+  app.use('/api/*', bodyLimit({ maxSize: 64 * 1024, onError: (c) => c.json({ error: 'too_large' }, 413) }));
+
   const health = async (): Promise<[HealthResponse, 200 | 503]> => {
     const db = await database.ping();
     const body: HealthResponse = { status: db ? 'ok' : 'degraded', version: env.GIT_COMMIT, env: env.APP_ENV, db };
@@ -103,6 +109,7 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
   app.route('/api', clubRoutes({ auth, clubs, readings, live }));
   app.route('/api', readingRoutes({ auth, readings }));
   app.route('/api', noteRoutes({ auth, notes }));
+  app.route('/api', adminRoutes({ auth, env, notes }));
 
   app.all('/api/*', (c) => c.json({ error: 'not_found' }, 404));
 

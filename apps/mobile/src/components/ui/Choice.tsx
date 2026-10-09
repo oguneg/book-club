@@ -37,7 +37,7 @@ export function Choice<T extends string>({
               justifyContent: 'center',
               borderRadius: radius.sm,
               borderWidth: 1,
-              borderColor: selected ? colors.accent : colors.border,
+              borderColor: selected ? colors.accent : colors.control,
               backgroundColor: selected ? colors.background : 'transparent',
               opacity: pressed ? 0.7 : 1,
             })}

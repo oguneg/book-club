@@ -45,6 +45,16 @@ describe('api', () => {
     expect(await res.json()).toEqual({ error: 'not_found' });
   });
 
+  it('refuses request bodies over 64 KB before reading them', async () => {
+    const res = await appWith().request('/api/notes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: 'x'.repeat(70 * 1024) }),
+    });
+    expect(res.status).toBe(413);
+    expect(await res.json()).toEqual({ error: 'too_large' });
+  });
+
   it('sends security headers', async () => {
     const res = await appWith().request('/api/health');
     expect(res.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");

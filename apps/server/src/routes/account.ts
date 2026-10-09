@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 import type { Auth } from '../auth';
 import type { Db } from '../db/client';
 import { account, club, clubMember, edition, note, noteReaction, noteReport, progressEvent, reading, session, user as userTable, userBlock } from '../db/schema';
+import { createRateLimiter } from '../rate-limit';
 import { requireSession, type SignedInEnv } from '../session';
 
 /**
@@ -108,7 +109,10 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
 }
 
 export function accountRoutes({ auth, db }: { auth: Auth; db: Db }) {
+  // A dozen queries per export; nobody needs more than a few an hour.
+  const allowExport = createRateLimiter({ windowMs: 60 * 60_000, max: 5 });
   return new Hono<SignedInEnv>().use(requireSession(auth)).get('/export', async (c) => {
+    if (!allowExport(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
     const data = await exportUserData(db, c.get('user'), c.get('session').id);
     const date = new Date().toISOString().slice(0, 10);
     c.header('Content-Disposition', `attachment; filename="bookclub-data-${date}.json"`);

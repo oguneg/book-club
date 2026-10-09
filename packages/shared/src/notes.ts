@@ -67,6 +67,27 @@ export const noteBodyInput = z.object({ body: z.string().trim().min(1).max(MAX_N
 export const reactionInput = z.object({ emoji: z.enum(REACTIONS) });
 export const reportInput = z.object({ reason: z.enum(['spoiler', 'offensive', 'spam', 'other']), details: z.string().trim().max(500).optional() });
 
+/** A note (or reply) with open reports, as moderators see it. */
+export const reportedNote = z.object({
+  id: z.string(),
+  author: z.object({ id: z.string(), name: z.string() }),
+  body: z.string().nullable(),
+  isReply: z.boolean(),
+  visibility: noteVisibility,
+  club: z.object({ id: z.string(), name: z.string() }).nullable(),
+  bookTitle: z.string(),
+  page: z.number().int().nullable(),
+  position: z.number().int(),
+  createdAt: z.string(),
+  /** Hidden from everyone but its author because enough people reported it. */
+  hidden: z.boolean(),
+  reports: z.array(
+    z.object({ reason: reportInput.shape.reason, details: z.string().nullable(), reporter: z.string(), createdAt: z.string() }),
+  ),
+});
+export type ReportedNote = z.infer<typeof reportedNote>;
+export const reportQueueResponse = z.object({ notes: z.array(reportedNote) });
+
 export const blockedUser = z.object({ id: z.string(), name: z.string(), blockedAt: z.string() });
 export const blockListResponse = z.object({ blocked: z.array(blockedUser) });
 

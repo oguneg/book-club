@@ -33,7 +33,7 @@ export function Button({ label, onPress, variant = 'primary', loading = false, d
           borderRadius: radius.md,
           paddingHorizontal: space.lg,
           backgroundColor: fill ?? colors.surface,
-          borderColor: fill ?? colors.border,
+          borderColor: fill ?? colors.control,
           opacity: inactive ? 0.6 : pressed ? 0.85 : 1,
         },
       ]}

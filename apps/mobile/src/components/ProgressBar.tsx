@@ -15,7 +15,8 @@ export function ProgressBar({
   position: number;
   marker?: number | null;
   emphasis?: boolean;
-  label?: string;
+  /** What screen readers announce, e.g. "Ann: page 120 of 320". Required: a bar without a name is just a shape. */
+  label: string;
 }) {
   const { colors } = useTheme();
   const pct = (p: number) => `${Math.max(0, Math.min(100, (p / POSITION_SCALE) * 100))}%` as const;

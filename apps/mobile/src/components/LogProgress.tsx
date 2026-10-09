@@ -57,7 +57,7 @@ export function LogProgress({ reading }: { reading: ReadingDetail }) {
         borderRadius: radius.sm,
         backgroundColor: mode === key ? colors.surface : 'transparent',
         borderWidth: 1,
-        borderColor: mode === key ? colors.border : 'transparent',
+        borderColor: mode === key ? colors.control : 'transparent',
       }}
     >
       <Text style={{ color: mode === key ? colors.text : colors.textMuted, fontSize: fontSize.sm, fontWeight: '600' }}>{label}</Text>

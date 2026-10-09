@@ -36,7 +36,7 @@ export function DateField({ label, value, onChange, kind = 'date', hint, error }
           fontFamily: 'inherit',
           color: colors.text,
           backgroundColor: colors.surface,
-          border: `1px solid ${error ? colors.danger : focused ? colors.accent : colors.border}`,
+          border: `1px solid ${error ? colors.danger : focused ? colors.accent : colors.control}`,
           boxShadow: focused ? `0 0 0 1px ${error ? colors.danger : colors.accent}` : 'none',
           borderRadius: radius.md,
           outline: 'none',

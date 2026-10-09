@@ -86,3 +86,22 @@ ${footer}
     html: layout({ heading, body, footer }),
   };
 }
+
+export function noteHiddenMessage({ to, url }: { to: string; url: string }): EmailMessage {
+  const heading = 'A note was hidden after reports';
+  const body = 'Enough readers reported a public note that it is now hidden from everyone but its author. Keep it or remove it.';
+  const footer = 'You get this because your address is listed as a Bookclub moderator.';
+  return {
+    to,
+    subject: 'Bookclub: a reported note needs review',
+    text: `${heading}
+
+${body}
+
+${url}
+
+${footer}
+`,
+    html: layout({ heading, body, action: 'Review reports', url, footer }),
+  };
+}

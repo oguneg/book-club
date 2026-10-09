@@ -21,7 +21,15 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 
 ## Phase C: go live on web
 
-- [ ] **9. Hardening:** encrypted off-site backups + tested restore, error tracking, uptime check, rate limits reviewed, a page for reviewing note reports, privacy policy / terms / support pages, accessibility pass, design pass (warm & bookish).
+- [ ] **9. Hardening:**
+  - [x] Rate limits reviewed: 64 KB request bodies, club writes and new clubs, data export, live sockets per account.
+  - [x] Reviewing reported notes: moderators listed in `ADMIN_EMAILS` keep or remove them, and get an email when one is hidden.
+  - [x] Accessibility pass: axe on every screen in light and dark (no violations), 3:1 borders on form controls, one h1 per page with h2 sections, a main landmark, labelled progress bars, decorative covers hidden. A screen-reader pass on a phone comes with iOS.
+  - [ ] Encrypted off-site backups + a tested restore (needs a storage bucket).
+  - [ ] Error tracking (needs an account).
+  - [ ] Uptime check, plus a heartbeat from the nightly backup (needs an account).
+  - [ ] Privacy policy, terms and support pages (needs who runs the service and a contact address).
+  - [ ] Design pass (warm & bookish).
 - [ ] **10. Production** at bookclub.ogun.se: deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving (unlike staging today). Google consent screen published.
 
 ## Later

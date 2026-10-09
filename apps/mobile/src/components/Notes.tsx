@@ -139,7 +139,7 @@ function YouAreHere({ viewer }: { viewer: NoteViewer }) {
   const { colors, fontSize, space } = useTheme();
   const rule = { flex: 1, height: 1, backgroundColor: colors.accent, opacity: 0.5 };
   return (
-    <View accessibilityRole="header" style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: space.sm }}>
+    <View accessibilityRole="header" aria-level={3} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: space.sm }}>
       <View style={rule} />
       <Text style={{ color: colors.accent, fontSize: fontSize.xs, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' }}>
         {t('notes.youAreHere', { page: positionToPage(viewer.position, viewer) })}

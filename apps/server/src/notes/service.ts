@@ -8,6 +8,7 @@ import {
   type Note,
   type NoteReply,
   type NoteViewer,
+  type ReportedNote,
 } from '@bookclub/shared';
 import { and, asc, count, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import type { z } from 'zod';
@@ -30,7 +31,16 @@ const notFound = () => new NoteError(404, 'not_found');
 type NoteRow = typeof note.$inferSelect;
 export type NoteScope = 'all' | 'public' | 'mine' | `club:${string}`;
 
-export function createNoteService({ db, live }: { db: Db; live?: LiveHub }) {
+export function createNoteService({
+  db,
+  live,
+  onHidden,
+}: {
+  db: Db;
+  live?: LiveHub;
+  /** A public note just reached enough reports to be hidden: tell the moderators. */
+  onHidden?: (noteId: string) => void;
+}) {
   /** The viewer's latest reading of this book: their place (for spoilers) and their edition (for page numbers). */
   async function viewerOf(userId: string, bookKey: string): Promise<NoteViewer | null> {
     const [r] = await db
@@ -78,6 +88,19 @@ export function createNoteService({ db, live }: { db: Db; live?: LiveHub }) {
     await live.notesChanged(row).catch(() => {});
   }
 
+  /** Deletes a note or reply; a note with replies stays as a "deleted" placeholder. Returns its thread's note. */
+  async function deleteNote(row: NoteRow): Promise<NoteRow> {
+    const top = row.parentId ? ((await db.select().from(note).where(eq(note.id, row.parentId)))[0] ?? row) : row;
+    const [replies] = row.parentId ? [{ n: 0 }] : await db.select({ n: count() }).from(note).where(and(eq(note.parentId, row.id), isNull(note.deletedAt)));
+    if ((replies?.n ?? 0) > 0) {
+      await db.update(note).set({ body: null, deletedAt: new Date() }).where(eq(note.id, row.id));
+      await db.delete(noteReaction).where(eq(noteReaction.noteId, row.id));
+    } else {
+      await db.delete(note).where(eq(note.id, row.id));
+    }
+    return top;
+  }
+
   return {
     async list(userId: string, bookKey: string, scope: NoteScope = 'all'): Promise<{ viewer: NoteViewer | null; notes: Note[] }> {
       const [viewer, clubs, blocked] = await Promise.all([viewerOf(userId, bookKey), myClubs(userId), blockedWith(userId)]);
@@ -118,11 +141,16 @@ export function createNoteService({ db, live }: { db: Db; live?: LiveHub }) {
       const allIds = [...ids, ...replies.map((r) => r.note.id)];
 
       // Reports: what this viewer reported is gone for them; public notes with enough open reports are gone for all but the author.
+      // A note the viewer reported stays hidden for them even after a moderator keeps it.
       const reports = allIds.length
         ? await db
-            .select({ noteId: noteReport.noteId, n: count(), mine: sql<boolean>`bool_or(${noteReport.reporterId} = ${userId})` })
+            .select({
+              noteId: noteReport.noteId,
+              n: sql<number>`count(*) filter (where ${noteReport.status} = 'open')`.mapWith(Number),
+              mine: sql<boolean>`bool_or(${noteReport.reporterId} = ${userId})`,
+            })
             .from(noteReport)
-            .where(and(inArray(noteReport.noteId, allIds), eq(noteReport.status, 'open')))
+            .where(inArray(noteReport.noteId, allIds))
             .groupBy(noteReport.noteId)
         : [];
       const reportOf = new Map(reports.map((r) => [r.noteId, r]));
@@ -269,13 +297,7 @@ export function createNoteService({ db, live }: { db: Db; live?: LiveHub }) {
       const top = row.parentId ? (await db.select().from(note).where(eq(note.id, row.parentId)))[0]! : row;
       const moderator = top.visibility === 'club' && top.clubId && roleAtLeast((await myClubs(userId)).get(top.clubId), 'admin');
       if (row.userId !== userId && !moderator) throw new NoteError(403, 'forbidden');
-      const [replies] = row.parentId ? [{ n: 0 }] : await db.select({ n: count() }).from(note).where(and(eq(note.parentId, row.id), isNull(note.deletedAt)));
-      if ((replies?.n ?? 0) > 0) {
-        await db.update(note).set({ body: null, deletedAt: new Date() }).where(eq(note.id, noteId));
-        await db.delete(noteReaction).where(eq(noteReaction.noteId, noteId));
-      } else {
-        await db.delete(note).where(eq(note.id, noteId));
-      }
+      await deleteNote(row);
       await announce(top);
     },
 
@@ -294,10 +316,83 @@ export function createNoteService({ db, live }: { db: Db; live?: LiveHub }) {
     async report(userId: string, noteId: string, input: z.infer<typeof reportInput>) {
       const row = await loadVisible(noteId, userId);
       if (row.userId === userId) throw new NoteError(400, 'own_note');
-      await db
+      const added = await db
         .insert(noteReport)
         .values({ noteId, reporterId: userId, reason: input.reason, details: input.details || null })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ noteId: noteReport.noteId });
+      if (added.length === 0 || row.visibility !== 'public') return;
+      const [open] = await db.select({ n: count() }).from(noteReport).where(and(eq(noteReport.noteId, noteId), eq(noteReport.status, 'open')));
+      // Exactly at the threshold: it just went out of sight for everyone, once.
+      if (open?.n === REPORTS_TO_HIDE) {
+        onHidden?.(noteId);
+        await announce(row);
+      }
+    },
+
+    /** For moderators: every note or reply with open reports, most reported first. */
+    async reportQueue(): Promise<ReportedNote[]> {
+      const open = await db
+        .select({ report: noteReport, reporter: user.name })
+        .from(noteReport)
+        .innerJoin(user, eq(user.id, noteReport.reporterId))
+        .where(eq(noteReport.status, 'open'))
+        .orderBy(asc(noteReport.createdAt));
+      if (open.length === 0) return [];
+      const rows = await db
+        .select({ note, authorName: user.name, clubName: club.name, bookTitle: edition.title })
+        .from(note)
+        .innerJoin(user, eq(user.id, note.userId))
+        .innerJoin(edition, eq(edition.id, note.editionId))
+        .leftJoin(club, eq(club.id, note.clubId))
+        .where(inArray(note.id, [...new Set(open.map((o) => o.report.noteId))]));
+      return rows
+        .map(({ note: n, authorName, clubName, bookTitle }) => {
+          const reports = open.filter((o) => o.report.noteId === n.id);
+          return {
+            id: n.id,
+            author: { id: n.userId, name: authorName },
+            body: n.body,
+            isReply: n.parentId !== null,
+            visibility: n.visibility,
+            club: n.clubId && clubName ? { id: n.clubId, name: clubName } : null,
+            bookTitle,
+            page: n.page,
+            position: n.position,
+            createdAt: n.createdAt.toISOString(),
+            hidden: n.visibility === 'public' && reports.length >= REPORTS_TO_HIDE,
+            reports: reports.map((o) => ({
+              reason: o.report.reason,
+              details: o.report.details,
+              reporter: o.reporter,
+              createdAt: o.report.createdAt.toISOString(),
+            })),
+          };
+        })
+        .sort((a, b) => b.reports.length - a.reports.length);
+    },
+
+    /** A moderator keeps the note: its reports are dismissed and it shows again, except to whoever reported it. */
+    async dismissReports(noteId: string) {
+      const dismissed = await db
+        .update(noteReport)
+        .set({ status: 'dismissed' })
+        .where(and(eq(noteReport.noteId, noteId), eq(noteReport.status, 'open')))
+        .returning({ noteId: noteReport.noteId });
+      if (dismissed.length === 0) throw notFound();
+      const [row] = await db.select().from(note).where(eq(note.id, noteId));
+      if (row) await announce(row);
+    },
+
+    /** A moderator removes a reported note or reply. */
+    async removeReported(noteId: string) {
+      const [row] = await db.select().from(note).where(eq(note.id, noteId));
+      if (!row) throw notFound();
+      await db
+        .update(noteReport)
+        .set({ status: 'actioned' })
+        .where(and(eq(noteReport.noteId, noteId), eq(noteReport.status, 'open')));
+      await announce(await deleteNote(row));
     },
 
     async block(userId: string, targetId: string) {

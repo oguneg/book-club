@@ -6,7 +6,10 @@ export interface Palette {
   surface: string;
   text: string;
   textMuted: string;
+  /** Hairlines that only decorate: cards, dividers, chart grid. */
   border: string;
+  /** Edges of things you interact with (fields, buttons, chips): 3:1 against the page, WCAG 1.4.11. */
+  control: string;
   accent: string;
   onAccent: string;
   success: string;
@@ -20,6 +23,7 @@ export const palettes: Record<'light' | 'dark', Palette> = {
     text: '#2A2119',
     textMuted: '#6B5D4F',
     border: '#E2D7C3',
+    control: '#958676',
     accent: '#8A3B2E',
     onAccent: '#FFFFFF',
     success: '#3F6B4A',
@@ -31,6 +35,7 @@ export const palettes: Record<'light' | 'dark', Palette> = {
     text: '#EEE5D5',
     textMuted: '#B3A693',
     border: '#3A332A',
+    control: '#766A5C',
     accent: '#D9876F',
     onAccent: '#1B1814',
     success: '#8DBF96',

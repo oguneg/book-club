@@ -41,6 +41,11 @@ const schema = z
     /** Reject passwords found in known breaches (Have I Been Pwned, k-anonymity: the password never leaves). */
     PASSWORD_BREACH_CHECK: z.stringbool().optional(),
     RATE_LIMIT: z.stringbool().optional(),
+    /** Comma-separated emails of the people who review reported notes (confirmed addresses only). */
+    ADMIN_EMAILS: z
+      .string()
+      .optional()
+      .transform((value) => (value ?? '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean)),
   })
   .superRefine((env, ctx) => {
     const require = (key: keyof typeof env, why: string) => {

@@ -18,7 +18,7 @@ export function Section({ title, children, tone = 'normal' }: { title: string; c
         },
       ]}
     >
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: tone === 'danger' ? colors.danger : colors.text }}>
+      <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: tone === 'danger' ? colors.danger : colors.text }}>
         {title}
       </Text>
       {children}

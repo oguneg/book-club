@@ -50,7 +50,7 @@ export default function Home() {
         {t('home.greeting', { name: session?.user.name ?? '' })}
       </Text>
 
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text, marginTop: space.xl }}>
+      <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text, marginTop: space.xl }}>
         {t('home.readingNow')}
       </Text>
       <View style={{ marginTop: space.sm, gap: space.sm }}>
@@ -64,7 +64,7 @@ export default function Home() {
               lines={[formatAuthors(r.edition.authors), readingLine(t, r)]}
             />
             <View style={{ paddingHorizontal: 8 }}>
-              <ProgressBar position={r.position} />
+              <ProgressBar position={r.position} label={`${r.edition.title}: ${readingLine(t, r)}`} />
             </View>
           </View>
         ))}
@@ -74,7 +74,7 @@ export default function Home() {
         </View>
       </View>
 
-      <Text accessibilityRole="header" style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text, marginTop: space.xl }}>
+      <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text, marginTop: space.xl }}>
         {t('home.yourClubs')}
       </Text>
       <View style={{ marginTop: space.md, gap: space.md }}>

@@ -8,6 +8,7 @@ import { connectPglite, connectPostgres } from './db/client';
 import { logMailer, resendMailer } from './email/mailer';
 import { loadEnv } from './env';
 import { attachLive, createLiveHub } from './live';
+import { moderatorAlerts } from './moderation';
 import { createNoteService } from './notes/service';
 import { createReadingService } from './readings/service';
 
@@ -40,7 +41,7 @@ const books = createBookService({ db: database.db, fetch, googleApiKey: env.GOOG
 const live = createLiveHub({ db: database.db, log });
 const readings = createReadingService({ db: database.db, live });
 
-const notes = createNoteService({ db: database.db, live });
+const notes = createNoteService({ db: database.db, live, onHidden: moderatorAlerts({ env, mailer, log }) });
 
 const app = createApp({ env, database, auth, books, clubs, readings, notes, live, log });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {

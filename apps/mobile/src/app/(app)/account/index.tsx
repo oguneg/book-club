@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { downloadMyData, useDeviceCount, useSignInMethods } from '@/api/account';
+import { useIsModerator } from '@/api/admin';
+import { ApiError } from '@/api/client';
 import { useBlockActions, useBlocks } from '@/api/notes';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
@@ -49,6 +51,7 @@ export default function Account() {
           <SignInSection email={user.email} />
           <DevicesSection />
           <BlockedSection />
+          <ModerationSection />
           <DataSection />
           <Section title={t('account.dangerTitle')} tone="danger">
             <Hint>{t('account.dangerBody')}</Hint>
@@ -214,8 +217,8 @@ function DataSection() {
     setError(undefined);
     try {
       await downloadMyData();
-    } catch {
-      setError(t('auth.errors.generic'));
+    } catch (err) {
+      setError(err instanceof ApiError && err.code === 'rate_limited' ? t('account.exportLimited') : t('auth.errors.generic'));
     }
     setBusy(false);
   }
@@ -257,6 +260,18 @@ function BlockedSection() {
         </Row>
       ))}
       {message && <Notice message={message.text} tone={message.tone} />}
+    </Section>
+  );
+}
+
+/** Only for the people listed as moderators on the server. */
+function ModerationSection() {
+  const { t } = useTranslation();
+  if (!useIsModerator()) return null;
+  return (
+    <Section title={t('admin.sectionTitle')}>
+      <Hint>{t('admin.sectionBody')}</Hint>
+      <TextLink href="/admin/reports" label={t('admin.open')} />
     </Section>
   );
 }

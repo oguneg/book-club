@@ -7,7 +7,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
 import type { Database } from './db/client';
 import { edition, progressEvent } from './db/schema';
-import { attachLive } from './live';
+import { attachLive, MAX_SOCKETS_PER_USER } from './live';
 import type { Browser } from './test/helpers';
 import { captureMailer, log, signedInUser, testApp, testDatabase } from './test/helpers';
 
@@ -248,6 +248,17 @@ describe('live updates', () => {
       await new Promise((resolve) => ws.on('open', resolve));
       await start(ann.browser, await anEdition(newWork()));
       expect(await message).toEqual({ type: 'readings' });
+
+      // One account can't hold open an unlimited number of sockets.
+      const more = await Promise.all(
+        Array.from({ length: MAX_SOCKETS_PER_USER - 1 }, async () => {
+          const extra = new WebSocket(url, { headers: { Origin: ctx.env.APP_URL, Cookie: cookie } });
+          await new Promise((resolve) => extra.on('open', resolve));
+          return extra;
+        }),
+      );
+      expect(await status({ Origin: ctx.env.APP_URL, Cookie: cookie })).toBe(429);
+      for (const extra of more) extra.close();
       ws.close();
     } finally {
       await new Promise((resolve) => server.close(resolve));
