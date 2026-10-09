@@ -13,7 +13,8 @@ const result = await build({
   legalComments: 'none',
   metafile: true,
   // Dev-only embedded database and its Drizzle adapter: imported lazily, never loaded in production.
-  external: ['@electric-sql/pglite', 'drizzle-orm/pglite', 'drizzle-orm/pglite/*'],
+  // ws's optional native speedups (bufferutil, utf-8-validate) are required inside try/catch; leave them out.
+  external: ['@electric-sql/pglite', 'drizzle-orm/pglite', 'drizzle-orm/pglite/*', 'bufferutil', 'utf-8-validate'],
   // Some dependencies are CommonJS and call require().
   banner: { js: "import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);" },
   logLevel: 'info',

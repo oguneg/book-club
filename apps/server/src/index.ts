@@ -7,6 +7,8 @@ import { createClubService } from './clubs/service';
 import { connectPglite, connectPostgres } from './db/client';
 import { logMailer, resendMailer } from './email/mailer';
 import { loadEnv } from './env';
+import { attachLive, createLiveHub } from './live';
+import { createReadingService } from './readings/service';
 
 const env = loadEnv();
 const log = pino({ level: env.LOG_LEVEL, base: { env: env.APP_ENV, version: env.GIT_COMMIT } });
@@ -34,10 +36,14 @@ log.info(
 
 const books = createBookService({ db: database.db, fetch, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
 
-const app = createApp({ env, database, auth, books, clubs, log });
+const live = createLiveHub({ db: database.db, log });
+const readings = createReadingService({ db: database.db, live });
+
+const app = createApp({ env, database, auth, books, clubs, readings, live, log });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {
   log.info({ port: info.port }, 'listening');
 });
+const liveSockets = attachLive(server, { auth, hub: live, trustedOrigins: [...new Set([env.APP_URL, env.PUBLIC_URL, ...env.CORS_ORIGINS])], log });
 
 let stopping = false;
 function shutdown(signal: string) {
@@ -47,6 +53,8 @@ function shutdown(signal: string) {
   // Docker sends SIGKILL after 10 s; stop accepting requests, let in-flight ones finish, close the pool.
   const force = setTimeout(() => process.exit(1), 8000);
   force.unref();
+  // 1012 "service restart": the app reconnects as soon as the new version is up.
+  for (const ws of liveSockets.clients) ws.close(1012, 'restarting');
   server.close(() => {
     database.close().finally(() => process.exit(0));
   });

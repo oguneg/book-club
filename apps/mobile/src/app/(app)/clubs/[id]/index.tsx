@@ -5,12 +5,16 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useClub, useClubActions } from '@/api/clubs';
+import { useClubProgress } from '@/api/readings';
+import { authClient } from '@/auth/client';
 import { appUrl } from '@/auth/client';
 import { formatAuthors, publishedYear } from '@/books/format';
 import { clubErrorMessage } from '@/clubs/errors';
 import { formatDate, formatMeetingTime } from '@/clubs/format';
+import { readingLine } from '@/readings/format';
 import { BookCover } from '@/components/BookCover';
 import { BookRow } from '@/components/BookRow';
+import { ClubProgress } from '@/components/ClubProgress';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { BackLink } from '@/components/ui/BackLink';
@@ -44,6 +48,7 @@ export default function ClubPage() {
           )}
           <View style={{ gap: space.lg, marginTop: space.xl }}>
             <CurrentBook club={club} />
+            {club.currentBook && <Progress club={club} book={club.currentBook} />}
             {club.currentBook && <Meetings club={club} book={club.currentBook} />}
             <InviteSection club={club} />
             <Members club={club} />
@@ -75,7 +80,7 @@ function CurrentBook({ club }: { club: ClubDetail }) {
   const [error, setError] = useState<string>();
   const isAdmin = roleAtLeast(club.myRole, 'admin');
   const book = club.currentBook;
-  const pick = () => router.push({ pathname: '/books', params: { pick: club.id } });
+  const pick = () => router.push({ pathname: '/books', params: { pick: `club:${club.id}` } });
 
   if (!book) {
     return (
@@ -220,6 +225,54 @@ function Members({ club }: { club: ClubDetail }) {
           </Text>
         );
       })}
+    </Section>
+  );
+}
+
+function Progress({ club, book }: { club: ClubDetail; book: ClubBook }) {
+  const { t } = useTranslation();
+  const { colors, space } = useTheme();
+  const { data: session } = authClient.useSession();
+  const progress = useClubProgress(club.id);
+  const me = progress.data?.find((m) => m.userId === session?.user.id);
+  const workKey = book.edition.workKey;
+
+  return (
+    <Section title={t('clubs.progress.title')}>
+      {progress.isPending && <ActivityIndicator color={colors.accent} />}
+      {progress.isError && <Notice message={clubErrorMessage(t, progress.error)} />}
+      {progress.data && (
+        <>
+          <View style={{ gap: space.sm }}>
+            {me?.reading ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md, flexWrap: 'wrap' }}>
+                <Hint>{`${t('clubs.progress.myReading')}: ${readingLine(t, me.reading)}`}</Hint>
+                <TextLink href={{ pathname: '/readings/[id]', params: { id: me.reading.id } }} label={t('clubs.progress.openReading')} />
+              </View>
+            ) : (
+              <>
+                <Hint>{t('clubs.progress.notStarted')}</Hint>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.sm }}>
+                  <Button
+                    label={t('clubs.progress.startSame')}
+                    onPress={() => router.push({ pathname: '/readings/new', params: { editionId: book.edition.id, club: club.id } })}
+                  />
+                  <Button
+                    variant="secondary"
+                    label={t('clubs.progress.startOther')}
+                    onPress={() =>
+                      workKey
+                        ? router.push({ pathname: '/books/work/[key]', params: { key: workKey, pick: `read:${club.id}` } })
+                        : router.push({ pathname: '/books', params: { pick: `read:${club.id}` } })
+                    }
+                  />
+                </View>
+              </>
+            )}
+          </View>
+          <ClubProgress book={book} members={progress.data} myUserId={session?.user.id} />
+        </>
+      )}
     </Section>
   );
 }

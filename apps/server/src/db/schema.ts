@@ -200,3 +200,50 @@ export const meeting = pgTable(
   },
   (table) => [index('meeting_club_book_idx').on(table.clubBookId)],
 );
+
+// Reading progress: personal, with or without a club. Clubs show their members' readings of the club book.
+export const reading = pgTable(
+  'reading',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    editionId: text('edition_id')
+      .notNull()
+      .references(() => edition.id, { onDelete: 'restrict' }),
+    /** "w:<work>" or "e:<edition>": which readings are the same book (see bookKeyOf). */
+    bookKey: text('book_key').notNull(),
+    /** The story's pages in this copy: progress is measured between them. */
+    startPage: integer('start_page').notNull(),
+    endPage: integer('end_page').notNull(),
+    /** 0..10000 (see position.ts). */
+    position: integer('position').notNull().default(0),
+    currentPage: integer('current_page'),
+    status: text('status', { enum: ['reading', 'finished', 'stopped'] }).notNull().default('reading'),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index('reading_user_idx').on(table.userId),
+    index('reading_book_key_idx').on(table.bookKey),
+    // Reading the same book twice at once makes no sense (rereading later is fine).
+    uniqueIndex('reading_one_active_uidx').on(table.userId, table.bookKey).where(sql`status = 'reading'`),
+  ],
+);
+
+/** Each logged position, for history and the club's "over time" chart. */
+export const progressEvent = pgTable(
+  'progress_event',
+  {
+    id: text('id').primaryKey(),
+    readingId: text('reading_id')
+      .notNull()
+      .references(() => reading.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull(),
+    page: integer('page'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('progress_event_reading_idx').on(table.readingId, table.createdAt)],
+);

@@ -12,6 +12,8 @@ import { Hono, type Context } from 'hono';
 import type { z } from 'zod';
 import type { Auth } from '../auth';
 import { ClubError, type ClubService } from '../clubs/service';
+import type { LiveHub } from '../live';
+import { ReadingError, type ReadingService } from '../readings/service';
 import { createRateLimiter } from '../rate-limit';
 import { requireSession, type SignedInEnv } from '../session';
 
@@ -29,7 +31,7 @@ function clubId(c: Context): string {
   return id;
 }
 
-export function clubRoutes({ auth, clubs }: { auth: Auth; clubs: ClubService }) {
+export function clubRoutes({ auth, clubs, readings, live }: { auth: Auth; clubs: ClubService; readings: ReadingService; live?: LiveHub }) {
   // Invite codes are guessable only by brute force; these limits make that hopeless.
   const allowPreview = createRateLimiter({ windowMs: 10 * 60_000, max: 60 });
   const allowJoin = createRateLimiter({ windowMs: 10 * 60_000, max: 20 });
@@ -38,6 +40,7 @@ export function clubRoutes({ auth, clubs }: { auth: Auth; clubs: ClubService }) 
   const app = new Hono<SignedInEnv>();
   app.onError((err, c) => {
     if (err instanceof ClubError) return c.json({ error: err.code }, err.status);
+    if (err instanceof ReadingError) return c.json({ error: err.code }, err.status);
     throw err;
   });
 
@@ -56,13 +59,28 @@ export function clubRoutes({ auth, clubs }: { auth: Auth; clubs: ClubService }) 
     if (!allowJoin(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
     const code = normalizeInviteCode(c.req.param('code'));
     if (!code) return c.json({ error: 'not_found' }, 404);
-    return c.json(await clubs.join(code, c.get('user').id));
+    const joined = await clubs.join(code, c.get('user').id);
+    void live?.clubChanged(joined.clubId).catch(() => {});
+    return c.json(joined);
   });
 
   // ---- Clubs ----
 
   app.use('/clubs', signedIn);
   app.use('/clubs/*', signedIn);
+  // After any successful change to a club, its members' open apps refresh it.
+  app.use('/clubs/:id/*', async (c, next) => {
+    await next();
+    const id = c.req.param('id');
+    if (c.req.method !== 'GET' && c.res.status < 400 && id && ID.test(id)) void live?.clubChanged(id).catch(() => {});
+  });
+  app.on(['PATCH', 'DELETE'], '/clubs/:id', async (c, next) => {
+    // Notify before a delete removes the member list.
+    const id = c.req.param('id');
+    if (c.req.method === 'DELETE' && id && ID.test(id)) await live?.clubChanged(id).catch(() => {});
+    await next();
+    if (c.req.method === 'PATCH' && c.res.status < 400 && id && ID.test(id)) void live?.clubChanged(id).catch(() => {});
+  });
 
   app.get('/clubs', async (c) => c.json({ clubs: await clubs.listForUser(c.get('user').id) }));
 
@@ -72,6 +90,8 @@ export function clubRoutes({ auth, clubs }: { auth: Auth; clubs: ClubService }) 
   });
 
   app.get('/clubs/:id', async (c) => c.json({ club: await clubs.detail(clubId(c), c.get('user').id) }));
+
+  app.get('/clubs/:id/progress', async (c) => c.json({ members: await readings.clubProgress(clubId(c), c.get('user').id) }));
 
   app.patch('/clubs/:id', async (c) => c.json({ club: await clubs.update(clubId(c), c.get('user').id, await body(c, updateClubInput)) }));
 

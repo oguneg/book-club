@@ -7,11 +7,14 @@ import type { Logger } from 'pino';
 import type { Auth } from './auth';
 import type { BookService } from './books/service';
 import type { ClubService } from './clubs/service';
+import type { LiveHub } from './live';
+import type { ReadingService } from './readings/service';
 import type { Database } from './db/client';
 import type { Env } from './env';
 import { accountRoutes } from './routes/account';
 import { bookRoutes } from './routes/books';
 import { clubRoutes } from './routes/clubs';
+import { readingRoutes } from './routes/readings';
 
 export interface AppDeps {
   env: Env;
@@ -19,6 +22,8 @@ export interface AppDeps {
   auth: Auth;
   books: BookService;
   clubs: ClubService;
+  readings: ReadingService;
+  live?: LiveHub;
   log: Logger;
 }
 
@@ -30,7 +35,7 @@ function cacheControlFor(path: string): string {
   return 'public, max-age=3600';
 }
 
-export function createApp({ env, database, auth, books, clubs, log }: AppDeps) {
+export function createApp({ env, database, auth, books, clubs, readings, live, log }: AppDeps) {
   const app = new Hono();
 
   app.use(async (c, next) => {
@@ -92,7 +97,8 @@ export function createApp({ env, database, auth, books, clubs, log }: AppDeps) {
 
   app.route('/api/account', accountRoutes({ auth, db: database.db }));
   app.route('/api', bookRoutes({ auth, books }));
-  app.route('/api', clubRoutes({ auth, clubs }));
+  app.route('/api', clubRoutes({ auth, clubs, readings, live }));
+  app.route('/api', readingRoutes({ auth, readings }));
 
   app.all('/api/*', (c) => c.json({ error: 'not_found' }, 404));
 

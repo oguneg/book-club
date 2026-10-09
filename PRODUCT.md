@@ -14,7 +14,7 @@ Expo (React Native + react-native-web) client. Self-hosted TypeScript API + Post
 
 ## Users
 
-Friend groups, colleagues and families who read the same book together and meet to talk about it. They own whatever copy they own: a paperback, a hardcover, a different translation's print run, a Kindle edition. They check in from a phone in bed or on the commute, mostly in short visits: log a page, read what others said, leave a thought. One person in each club (the owner) sets the book and the pace.
+Two groups. **Readers on their own**, who want to track what they read and see what others thought about the same book without spoilers. **Friend groups, colleagues and families** who read the same book together and meet to talk about it. They own whatever copy they own: a paperback, a hardcover, a different translation's print run, a Kindle edition. They check in from a phone in bed or on the commute, mostly in short visits: log a page, read what others said, leave a thought. One person in each club (the owner) sets the book and the pace.
 
 ## Product Purpose
 
@@ -26,14 +26,16 @@ Edition-agnostic by design. Members never have to buy the same printing: progres
 
 ## Operating Context
 
-Core loop: open the club, log your page (or % on an e-reader), see the club chart move, read notes up to where you are, add your own.
+Core loop: log your page (or % on an e-reader) in the book you're reading, read the notes other readers left up to where you are, add your own. In a club, the same log moves the club chart.
+
+- **Reading on your own:** start any book with your own edition, log progress, finish it, keep a shelf of what you've read. No club needed.
 
 - **Sign in:** Google or Apple, on every platform.
 - **Clubs:** private, invite only (link or short code). Owner, admins, members. A user can be in several clubs.
 - **Club book:** the owner picks the book via search or ISBN, optionally with a finish date and meeting dates/milestones. One current book; past books stay browsable.
 - **Your edition:** each member picks their own edition (search, ISBN or barcode scan, or manual entry) and confirms its page count. Formats: print (pages) and e-book (page or %).
 - **Progress:** log a page or percentage; history is kept. The club chart shows every member's position, the pace line (where the club should be today) and progress over time. Updates appear live for everyone.
-- **Notes:** written on a page of your edition and shown to others at the matching position in theirs. Notes ahead of your own position are blurred with a spoiler warning and can be revealed with a tap. Threaded replies and emoji reactions.
+- **Notes:** written on a page of your edition and shown to others at the matching position in theirs. Public notes reach everyone reading the same book (any edition); club notes only the club. Notes ahead of your own position are blurred with a spoiler warning and can be revealed with a tap. Threaded replies and emoji reactions.
 - **Notifications (push):** new notes in a section you have reached, replies to your notes, a member finishing, meeting/milestone reminders. Each type can be switched off. Notifications never carry spoiler text.
 - **Safety:** report a note, block a user, owners/admins remove notes and members. In-app account deletion and data export.
 
@@ -64,7 +66,7 @@ None yet: no users, testimonials or metrics exist, and none may be invented.
 1. The book is the timeline: everything (progress, notes, schedule) is placed by position in the book, never by edition page alone.
 2. Spoilers are opt-in: nothing ahead of you is readable without a deliberate tap, including in notifications.
 3. Logging progress takes one action and must never fail silently (offline queue, visible sync state).
-4. A club is a private room: invite only, no public profiles, no discovery.
+4. A club is a private room: invite only, no discovery. Outside clubs, only what a reader chooses to make public (notes, under their display name) is visible to others.
 5. Calm, not engagement-bait: notifications are useful and few, with no streak pressure and no ads.
 
 ## Accessibility & Inclusion

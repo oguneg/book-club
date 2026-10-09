@@ -5,6 +5,8 @@ import { createAuth } from '../auth';
 import type { Fetch } from '../books/providers';
 import { createBookService } from '../books/service';
 import { createClubService } from '../clubs/service';
+import { createLiveHub } from '../live';
+import { createReadingService } from '../readings/service';
 import { connectPglite, connectPostgres, type Database } from '../db/client';
 import type { EmailMessage, Mailer } from '../email/mailer';
 import { loadEnv } from '../env';
@@ -58,7 +60,9 @@ export function testApp(
   const clubs = createClubService({ db: database.db });
   const auth = createAuth({ env, db: database.db, mailer, log, beforeUserDelete: (userId) => clubs.releaseClubsOf(userId) });
   const books = createBookService({ db: database.db, fetch: fetchFn, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
-  return { env, auth, books, clubs, app: createApp({ env, database, auth, books, clubs, log }) };
+  const live = createLiveHub({ db: database.db, log });
+  const readings = createReadingService({ db: database.db, live });
+  return { env, auth, books, clubs, readings, live, app: createApp({ env, database, auth, books, clubs, readings, live, log }) };
 }
 
 /** A unique address per test, so tests can share one database (CI) without colliding. */
@@ -103,6 +107,11 @@ export class Browser {
       else this.cookies.set(name.trim(), value);
     }
     return res;
+  }
+
+  /** The Cookie header this browser would send (for WebSocket tests). */
+  cookieHeader(): string {
+    return [...this.cookies].map(([k, v]) => `${k}=${v}`).join('; ');
   }
 
   post(path: string, json: unknown = {}) {

@@ -7,6 +7,8 @@ export class ApiError extends Error {
     message: string,
     /** The server's `error` code, e.g. "not_found", "invalid_isbn". */
     readonly code?: string,
+    /** Anything else in the error body (e.g. the id of the reading that already exists). */
+    readonly details: Record<string, unknown> = {},
   ) {
     super(message);
     this.name = 'ApiError';
@@ -25,11 +27,8 @@ async function request<T>(method: Method, path: string, schema: z.ZodType<T>, bo
     signal,
   });
   if (!res.ok) {
-    const code = await res
-      .json()
-      .then((b: { error?: string }) => b.error)
-      .catch(() => undefined);
-    throw new ApiError(res.status, `${method} ${path} failed with ${res.status}`, code);
+    const body = (await res.json().catch(() => ({}))) as { error?: string } & Record<string, unknown>;
+    throw new ApiError(res.status, `${method} ${path} failed with ${res.status}`, body.error, body);
   }
   // 204 No Content (e.g. after deleting): nothing to parse.
   return schema.parse(res.status === 204 ? undefined : await res.json());

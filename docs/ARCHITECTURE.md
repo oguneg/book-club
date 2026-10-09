@@ -57,7 +57,7 @@ deploy/          update.sh, backup scripts, compose files
   - Accounts with the same email are linked only if the existing account confirmed its email (blocks pre-registration takeover). Apple private-relay emails are stored as given.
 - **Email/password** (Better Auth): confirmation required before first sign-in, 10+ character passwords checked against Have I Been Pwned (k-anonymity), rate-limited sign-in, reset links valid 1 hour and single-use, all sessions revoked on reset. Sign-up with a taken address answers like a new sign-up; the owner gets a "you already have an account" email instead.
 - **Email** goes out through Resend from `noreply@mail.ogun.se` (sending-only key); in development it is written to the server log.
-- **Live updates:** one WebSocket per client. The client subscribes to the clubs it belongs to (membership checked on subscribe), and the server publishes after each committed write: `progress`, `note`, `reply`, `reaction`, `member`, `club`. It's in-process now; Postgres LISTEN/NOTIFY is the upgrade path if we ever run more than one process. Clients refetch after reconnecting, so a missed event costs nothing.
+- **Live updates (built):** `GET /api/live` upgrades to a WebSocket for signed-in users from trusted origins only (cookie-authenticated sockets are otherwise open to cross-site hijacking). Events only name what changed (`readings`, `club`, `club-progress`); the app refetches through the normal API, so permissions live in one place. Heartbeat every 25 s; close code 1012 on deploy so apps reconnect immediately. Original design notes: one WebSocket per client. The client subscribes to the clubs it belongs to (membership checked on subscribe), and the server publishes after each committed write: `progress`, `note`, `reply`, `reaction`, `member`, `club`. It's in-process now; Postgres LISTEN/NOTIFY is the upgrade path if we ever run more than one process. Clients refetch after reconnecting, so a missed event costs nothing.
 - **Push:** Expo push service (expo-server-sdk), which needs an APNs key and FCM v1 credentials in EAS. Sends are batched, and receipts are checked to prune dead tokens.
 - **Jobs** (in-process scheduler, single instance): meeting/milestone reminders, receipt checks, cover cache cleanup.
 - **Rate limits:** per user and per IP on writes, book lookups and joining with invite codes (codes are random, 8+ characters and rotatable).
@@ -100,8 +100,8 @@ All of this lives in `packages/shared` with unit tests.
 | `club_member` | club_id + user_id, role (owner/admin/member; one owner per club, enforced by a partial unique index), joined_at |
 | `club_book` | club_id, reference edition_id (must have a page count), status (current/finished; one current per club), start_date, finish_date, finished_at |
 | `meeting` | club_book_id, starts_at, title, location, read_to_page (in the club's edition) |
-| `reading` | club_book_id, user_id, edition_id, format (print/ebook), start_page, end_page, current_position, finished_at |
-| `progress_event` | reading_id, position, page (nullable), created_at — history for the chart |
+| `reading` | user_id, edition_id, book_key (`w:<work>` or `e:<edition>`: which readings are the same book), start_page, end_page, position, current_page, status (reading/finished/stopped; one active per user and book), started_at, finished_at. Personal: clubs show members' readings with the club book's book_key |
+| `progress_event` | reading_id, position, page (null for %), created_at; logs within a minute replace each other |
 | `note` | club_book_id, author_id, reading_id, parent_id (replies, one level), position, page, body (≤ 2000 chars), created/edited/deleted_at |
 | `reaction` | note_id, user_id, emoji (from a fixed set) — unique per user+note+emoji |
 | `report` | reporter_id, note_id, reason, status, created_at |

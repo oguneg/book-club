@@ -6,6 +6,7 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { useEdition } from '@/api/books';
 import { useClub, useClubActions } from '@/api/clubs';
 import { bookErrorMessage } from '@/books/errors';
+import { parsePick } from '@/books/pick';
 import { formatAuthors, languageName } from '@/books/format';
 import { clubErrorMessage } from '@/clubs/errors';
 import { BookCover } from '@/components/BookCover';
@@ -25,6 +26,7 @@ export default function EditionDetails() {
   const query = useEdition(id);
   const edition = query.data?.edition;
   const pickParams = pick ? { pick } : {};
+  const picking = parsePick(pick);
 
   return (
     <Screen>
@@ -51,7 +53,18 @@ export default function EditionDetails() {
           </View>
 
           <View style={{ marginTop: space.xl, gap: space.lg }}>
-            {pick && <ChooseForClub clubId={pick} edition={edition} />}
+            {picking?.kind === 'club' ? (
+              <ChooseForClub clubId={picking.clubId} edition={edition} />
+            ) : (
+              <View style={{ alignSelf: 'flex-start' }}>
+                <Button
+                  label={t('reading.startThis')}
+                  onPress={() =>
+                    router.push({ pathname: '/readings/new', params: { editionId: edition.id, ...(picking?.clubId ? { club: picking.clubId } : {}) } })
+                  }
+                />
+              </View>
+            )}
             <Section title={t('books.edition.details')}>
               <Row label={t('books.edition.pages')} value={edition.pageCount ? String(edition.pageCount) : t('books.pagesUnknown')} />
               {edition.publisher && <Row label={t('books.edition.publisher')} value={edition.publisher} />}
@@ -60,7 +73,6 @@ export default function EditionDetails() {
               {edition.isbn13 && <Row label={t('books.edition.isbn')} value={edition.isbn13} />}
               <Hint>{t(`books.edition.source_${edition.source}`)}</Hint>
             </Section>
-            {!pick && <Hint>{t('books.edition.clubsNote')}</Hint>}
             {edition.workKey && (
               <TextLink href={{ pathname: '/books/work/[key]', params: { key: edition.workKey, ...pickParams } }} label={t('books.edition.otherEditions')} />
             )}

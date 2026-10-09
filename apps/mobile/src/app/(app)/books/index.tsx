@@ -7,6 +7,7 @@ import { lookupIsbn, useBookSearch } from '@/api/books';
 import { useClub } from '@/api/clubs';
 import { ApiError } from '@/api/client';
 import { bookErrorMessage } from '@/books/errors';
+import { parsePick } from '@/books/pick';
 import { formatAuthors } from '@/books/format';
 import { BookRow } from '@/components/BookRow';
 import { PageTitle } from '@/components/PageTitle';
@@ -26,7 +27,8 @@ export default function FindBook() {
   const params = useLocalSearchParams<{ q?: string; pick?: string }>();
   // Picking the book for a club: every link carries the club id along.
   const pick = params.pick ? { pick: params.pick } : {};
-  const pickingFor = useClub(params.pick ?? '', { enabled: Boolean(params.pick) });
+  const picking = parsePick(params.pick);
+  const pickingFor = useClub(picking?.clubId ?? '', { enabled: Boolean(picking?.clubId) });
   const [text, setText] = useState(params.q ?? '');
   const [query, setQuery] = useState(params.q ?? '');
   const [isbnState, setIsbnState] = useState<{ busy: boolean; error?: string; notFound?: string }>({ busy: false });
@@ -67,11 +69,12 @@ export default function FindBook() {
   return (
     <Screen>
       <PageTitle title={t('books.title')} />
-      <BackLink href={params.pick ? { pathname: '/clubs/[id]', params: { id: params.pick } } : '/'} label={pickingFor.data?.name ?? t('appName')} />
+      <BackLink href={picking?.clubId ? { pathname: '/clubs/[id]', params: { id: picking.clubId } } : '/'} label={pickingFor.data?.name ?? t('appName')} />
       <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, color: colors.text }}>
         {t('books.title')}
       </Text>
-      {pickingFor.data && <Hint>{t('books.pickingFor', { club: pickingFor.data.name })}</Hint>}
+      {picking?.kind === 'club' && pickingFor.data && <Hint>{t('books.pickingFor', { club: pickingFor.data.name })}</Hint>}
+      {picking?.kind === 'read' && <Hint>{t('books.pickingForReading')}</Hint>}
       <View style={{ marginTop: space.xl, gap: space.md }}>
         <TextField
           label={t('books.searchLabel')}

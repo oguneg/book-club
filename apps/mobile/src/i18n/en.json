@@ -29,7 +29,11 @@
     "members_one": "{{count}} member",
     "members_other": "{{count}} members",
     "noBookYet": "No book chosen yet",
-    "nextMeeting": "Next meeting {{when}}"
+    "nextMeeting": "Next meeting {{when}}",
+    "readingNow": "Reading now",
+    "notReading": "You're not reading anything right now.",
+    "startBook": "Start a book",
+    "shelf": "Your shelf"
   },
   "auth": {
     "google": "Continue with Google",
@@ -221,7 +225,8 @@
       "required": "Required.",
       "pagesInvalid": "Enter a whole number of pages."
     },
-    "pickingFor": "Choosing the book for {{club}}."
+    "pickingFor": "Choosing the book for {{club}}.",
+    "pickingForReading": "Choose the edition you are reading."
   },
   "clubs": {
     "errors": {
@@ -347,6 +352,77 @@
       "delete": "Delete club",
       "deleteQuestion": "Delete {{name}} for everyone? Its books, meetings and member list are removed. This cannot be undone.",
       "deleteConfirm": "Yes, delete the club"
+    },
+    "progress": {
+      "title": "Progress",
+      "pace": "Pace today: page {{page}} of the club edition ({{percent}}%)",
+      "noPace": "Set a finish date or meeting pages to see the pace.",
+      "you": "you",
+      "overTime": "Over time",
+      "overTimeLabel": "Chart of reading progress over time for {{count}} members, with the pace line.",
+      "paceLegend": "Pace",
+      "youLegend": "You",
+      "othersLegend": "Others",
+      "myReading": "Your reading",
+      "notStarted": "You haven't started the club book yet.",
+      "startSame": "I have the club edition",
+      "startOther": "I have another edition",
+      "openReading": "Log progress",
+      "paceStart": "Pace today: just starting. The line climbs toward the next meeting or the finish date."
+    }
+  },
+  "reading": {
+    "progressLine": "Page {{page}} of {{end}} · {{percent}}%",
+    "progressPercent": "{{percent}}%",
+    "notStarted": "Not started",
+    "finished": "Finished",
+    "stopped": "Stopped",
+    "startTitle": "Start reading",
+    "startSubtitle": "Tell us which pages the story runs over in your copy. Progress and notes line up with other editions through these pages.",
+    "firstPage": "Story starts on page",
+    "firstPageHint": "Usually 1. Higher if your copy has a long introduction you are skipping.",
+    "lastPage": "Story ends on page",
+    "lastPageHint": "The last page of the story itself, before notes or appendices.",
+    "rangeInvalid": "The last page must come after the first.",
+    "start": "Start reading",
+    "startThis": "I'm reading this edition",
+    "alreadyReading": "You are already reading this book.",
+    "openIt": "Open it",
+    "log": "Where are you?",
+    "page": "Page",
+    "percent": "Percent",
+    "logPage": "Page you have read up to",
+    "logPercent": "Percent read (from your e-reader)",
+    "save": "Save",
+    "saved": "Saved.",
+    "pageInvalid": "Enter a page up to {{max}}.",
+    "percentInvalid": "Enter a number from 0 to 100.",
+    "finishIt": "I finished it",
+    "finishQuestion": "Mark the book as finished?",
+    "finishConfirm": "Yes, finished",
+    "stop": "Stop reading",
+    "stopQuestion": "Stop reading this book? It stays on your shelf with your progress, and you can pick it up again.",
+    "stopConfirm": "Yes, stop",
+    "resume": "Read again",
+    "history": "History",
+    "noHistory": "Nothing logged yet.",
+    "pages": "Pages in your copy",
+    "pagesLine": "Story from page {{start}} to {{end}}",
+    "changePages": "Change pages",
+    "savePages": "Save pages",
+    "remove": "Remove from shelf",
+    "removeQuestion": "Remove this book and its history from your shelf?",
+    "removeConfirm": "Yes, remove",
+    "started": "Started {{date}}",
+    "finishedOn": "Finished {{date}}",
+    "shelfTitle": "Your shelf",
+    "shelfEmpty": "Books you finish or stop reading show up here.",
+    "errors": {
+      "already_reading": "You are already reading this book.",
+      "not_reading": "This book is not in progress. Read it again first.",
+      "page_out_of_range": "That page is past the end of the story in your copy.",
+      "different_book": "That edition is a different book.",
+      "invalid_range": "The last page must come after the first."
     }
   }
 }
