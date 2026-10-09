@@ -4,6 +4,7 @@ import { createApp } from '../app';
 import { createAuth } from '../auth';
 import type { Fetch } from '../books/providers';
 import { createBookService } from '../books/service';
+import { createClubService } from '../clubs/service';
 import { connectPglite, connectPostgres, type Database } from '../db/client';
 import type { EmailMessage, Mailer } from '../email/mailer';
 import { loadEnv } from '../env';
@@ -54,9 +55,10 @@ export function testApp(
   fetchFn: Fetch = noNetwork,
 ) {
   const env = loadEnv({ APP_ENV: 'test', GIT_COMMIT: 'abc1234', ...vars });
-  const auth = createAuth({ env, db: database.db, mailer, log });
+  const clubs = createClubService({ db: database.db });
+  const auth = createAuth({ env, db: database.db, mailer, log, beforeUserDelete: (userId) => clubs.releaseClubsOf(userId) });
   const books = createBookService({ db: database.db, fetch: fetchFn, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
-  return { env, auth, books, app: createApp({ env, database, auth, books, log }) };
+  return { env, auth, books, clubs, app: createApp({ env, database, auth, books, clubs, log }) };
 }
 
 /** A unique address per test, so tests can share one database (CI) without colliding. */
@@ -111,4 +113,20 @@ export class Browser {
     const res = await this.request('/api/auth/get-session');
     return (await res.json()) as { user: { id: string; email: string; name: string; emailVerified: boolean } } | null;
   }
+}
+
+/** Signs up a new user, confirms the email, and returns a browser signed in as them. */
+export async function signedInUser(
+  app: ReturnType<typeof createApp>,
+  appUrl: string,
+  mail: ReturnType<typeof captureMailer>,
+  name = 'Reader',
+): Promise<{ browser: Browser; email: string; userId: string }> {
+  const email = uniqueEmail(name.toLowerCase().replace(/\W+/g, '-'));
+  const browser = new Browser(app, appUrl);
+  await browser.post('/api/auth/sign-up/email', { email, password: 'correct horse battery', name, callbackURL: `${appUrl}/` });
+  await browser.request(linkIn(await mail.lastTo(email)));
+  const session = await browser.session();
+  if (!session) throw new Error(`could not sign in ${email}`);
+  return { browser, email, userId: session.user.id };
 }

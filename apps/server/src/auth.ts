@@ -17,7 +17,16 @@ export function cleanName(name: string | undefined, email: string): string {
   return trimmed || email.split('@')[0] || 'Reader';
 }
 
-export function createAuth({ env, db, mailer, log }: { env: Env; db: Db; mailer: Mailer; log: Logger }) {
+export interface AuthDeps {
+  env: Env;
+  db: Db;
+  mailer: Mailer;
+  log: Logger;
+  /** Runs before an account is deleted, e.g. to hand over the clubs it owns. */
+  beforeUserDelete?: (userId: string) => Promise<void>;
+}
+
+export function createAuth({ env, db, mailer, log, beforeUserDelete }: AuthDeps) {
   return betterAuth({
     appName: 'Bookclub',
     baseURL: env.PUBLIC_URL,
@@ -75,8 +84,11 @@ export function createAuth({ env, db, mailer, log }: { env: Env; db: Db; mailer:
     user: {
       deleteUser: {
         enabled: true,
-        // Rows owned by the user (sessions, sign-in methods) go with it through ON DELETE CASCADE.
-        // Clubs they own are handed over in the clubs step.
+        // Rows owned by the user (sessions, sign-in methods, memberships) go with it through ON DELETE
+        // CASCADE; clubs it owns are handed over first.
+        beforeDelete: async (user) => {
+          await beforeUserDelete?.(user.id);
+        },
         afterDelete: async (user) => {
           sendInBackground(mailer, log, accountDeletedMessage({ to: user.email, name: user.name }));
         },

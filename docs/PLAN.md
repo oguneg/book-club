@@ -14,8 +14,8 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 
 ## Phase B: the book club (web)
 
-- [ ] **5. Books:** search by title (Open Library works → their editions) or ISBN (Google Books, then Open Library), all cached; cover proxy; manual entry. ISBN is typed on web; the barcode scanner comes with iOS. Confirming your copy's page numbers moved to step 7, where it's saved with your reading.
-- [ ] **6. Clubs:** create, invite link and code (rotate), join, members and roles, remove a member, leave, transfer ownership, set the club book, finish date and meetings, past books.
+- [x] **5. Books:** search by title (Open Library works → their editions) or ISBN (Google Books, then Open Library), all cached; cover proxy; manual entry. ISBN is typed on web; the barcode scanner comes with iOS. Confirming your copy's page numbers moved to step 7, where it's saved with your reading.
+- [ ] **6. Clubs:** create, invite link and code (rotate), join (the invite survives signing up), members and roles (owner / admins / members), remove a member, leave, transfer ownership, set the club book through the book search in picking mode, start and finish dates, meetings with "read up to page N", past books. Deleting an account hands owned clubs to an admin or the longest-standing member.
 - [ ] **7. Progress:** pick your edition and confirm its page numbers (first and last page of the story), log a page or %, offline queue, history, club chart (positions + pace line + over time, with a text equivalent), live updates over WebSocket.
 - [ ] **8. Notes:** notes on a page, list by position with "≈ p.N" mapping, spoiler blur and tap to reveal, replies, reactions, edit/delete, report, block, owner moderation. Activity shows in the app; no push or email notifications on web for now.
 

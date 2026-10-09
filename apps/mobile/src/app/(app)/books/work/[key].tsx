@@ -20,7 +20,8 @@ import { useTheme } from '@/theme';
 export default function WorkEditions() {
   const { colors, fonts, fontSize, space } = useTheme();
   const { t } = useTranslation();
-  const { key } = useLocalSearchParams<{ key: string }>();
+  const { key, pick: pickId } = useLocalSearchParams<{ key: string; pick?: string }>();
+  const pick = pickId ? { pick: pickId } : {};
   const work = useWork(key);
   const [filter, setFilter] = useState('');
 
@@ -35,7 +36,7 @@ export default function WorkEditions() {
   return (
     <Screen>
       <PageTitle title={summary?.title ?? t('books.workTitle')} />
-      <BackLink href="/books" label={t('books.title')} />
+      <BackLink href={{ pathname: '/books', params: pick }} label={t('books.title')} />
       {work.isPending && <ActivityIndicator color={colors.accent} />}
       {work.isError && <Notice message={bookErrorMessage(t, work.error)} />}
       {summary && (
@@ -58,7 +59,7 @@ export default function WorkEditions() {
             {editions.map((e) => (
               <BookRow
                 key={e.id}
-                href={{ pathname: '/books/edition/[id]', params: { id: e.id } }}
+                href={{ pathname: '/books/edition/[id]', params: { id: e.id, ...pick } }}
                 cover={e.cover}
                 title={e.title}
                 lines={[
@@ -72,9 +73,9 @@ export default function WorkEditions() {
           </View>
           <View style={{ marginTop: space.xl, gap: space.xs }}>
             <Hint>{t('books.notListed')}</Hint>
-            <TextLink href="/books" label={t('books.searchIsbn')} />
+            <TextLink href={{ pathname: '/books', params: pick }} label={t('books.searchIsbn')} />
             <TextLink
-              href={{ pathname: '/books/new', params: { title: summary.title, authors: summary.authors.join(', '), workKey: summary.key } }}
+              href={{ pathname: '/books/new', params: { title: summary.title, authors: summary.authors.join(', '), workKey: summary.key, ...pick } }}
               label={t('books.addManually')}
             />
           </View>

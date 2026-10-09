@@ -10,6 +10,7 @@ import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
+import { ServerStatus } from '@/components/ServerStatus';
 import { BackLink } from '@/components/ui/BackLink';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
@@ -53,6 +54,7 @@ export default function Account() {
           <View style={{ alignSelf: 'flex-start' }}>
             <Button variant="secondary" label={t('account.signOut')} onPress={() => void authClient.signOut()} />
           </View>
+          <ServerStatus />
         </View>
       )}
     </Screen>

@@ -96,10 +96,10 @@ All of this lives in `packages/shared` with unit tests.
 | `edition` | source (openlibrary/google/manual) + source_id (unique), isbn13, title, subtitle, authors[], publisher, published, page_count, language (ISO 639-2), work_key, cover, created_by |
 | `book_cache` | key (`search:…`, `work:…`, `editions:…`, `isbn-missing:…`), value, fetched_at |
 | `cover` | key, content_type, bytes (null = provider has none), fetched_at |
-| `club` | name, description, owner_id, invite_code, member_cap, created_at |
-| `club_member` | club_id, user_id, role (owner/admin/member), joined_at, left_at |
-| `club_book` | club_id, reference edition_id, status (upcoming/current/finished), start_date, finish_date |
-| `milestone` | club_book_id, date, label, target_position, is_meeting |
+| `club` | name, description, invite_code (unique, 8 chars without look-alikes), member_cap, created_by |
+| `club_member` | club_id + user_id, role (owner/admin/member; one owner per club, enforced by a partial unique index), joined_at |
+| `club_book` | club_id, reference edition_id (must have a page count), status (current/finished; one current per club), start_date, finish_date, finished_at |
+| `meeting` | club_book_id, starts_at, title, location, read_to_page (in the club's edition) |
 | `reading` | club_book_id, user_id, edition_id, format (print/ebook), start_page, end_page, current_position, finished_at |
 | `progress_event` | reading_id, position, page (nullable), created_at — history for the chart |
 | `note` | club_book_id, author_id, reading_id, parent_id (replies, one level), position, page, body (≤ 2000 chars), created/edited/deleted_at |

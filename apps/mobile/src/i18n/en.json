@@ -13,15 +13,23 @@
     "hidePassword": "Hide password",
     "back": "Back",
     "save": "Save",
-    "saved": "Saved."
+    "saved": "Saved.",
+    "cancel": "Cancel",
+    "delete": "Delete"
   },
   "home": {
     "greeting": "Hi, {{name}}",
-    "emptyTitle": "Your clubs will live here",
-    "emptyBody": "Creating and joining clubs comes in a later step. For now you're signed in, and that's what this step is for.",
     "signOut": "Sign out",
     "account": "Account",
-    "findBook": "Find a book"
+    "findBook": "Find a book",
+    "yourClubs": "Your clubs",
+    "noClubs": "No clubs yet. Start one and invite your friends, or join with an invite link or code.",
+    "createClub": "Start a club",
+    "joinClub": "Join with a code",
+    "members_one": "{{count}} member",
+    "members_other": "{{count}} members",
+    "noBookYet": "No book chosen yet",
+    "nextMeeting": "Next meeting {{when}}"
   },
   "auth": {
     "google": "Continue with Google",
@@ -195,7 +203,7 @@
       "source_google": "Book data from Google Books.",
       "source_manual": "Added by hand by a reader.",
       "otherEditions": "Other editions of this book",
-      "clubsNote": "Clubs come in the next step: there you'll choose this edition for a club, and confirm its page numbers when you start reading.",
+      "clubsNote": "Pick this edition for a club from the club page: \"Choose the book\" opens this search in picking mode.",
       "details": "This edition"
     },
     "manual": {
@@ -212,6 +220,133 @@
       "submit": "Add book",
       "required": "Required.",
       "pagesInvalid": "Enter a whole number of pages."
+    },
+    "pickingFor": "Choosing the book for {{club}}."
+  },
+  "clubs": {
+    "errors": {
+      "not_found": "This club doesn't exist, or you're not a member.",
+      "forbidden": "Only the club's owner or admins can do that.",
+      "club_full": "This club is full.",
+      "owner_cannot_leave": "Hand the club to someone else before you leave.",
+      "too_many_clubs": "You already own 20 clubs, which is the limit.",
+      "edition_without_pages": "This edition has no page count. Pick another edition, or add yours by hand with its page count.",
+      "page_out_of_range": "That page isn't in the club's edition.",
+      "finish_before_start": "The finish date is before the start date.",
+      "no_current_book": "Choose a book first.",
+      "rate_limited": "Too many attempts. Wait a few minutes and try again."
+    },
+    "create": {
+      "title": "Start a club",
+      "subtitle": "You'll be the owner. Invite people afterwards with a link.",
+      "name": "Club name",
+      "description": "Description (optional)",
+      "descriptionHint": "What you read, when you meet: anything new members should know.",
+      "submit": "Start club"
+    },
+    "join": {
+      "title": "Join a club",
+      "subtitle": "Paste the invite link, or type the code someone gave you.",
+      "code": "Invite link or code",
+      "invalid": "That doesn't look like an invite code. Codes have 8 letters and digits, like ABCD-EFGH.",
+      "submit": "Continue"
+    },
+    "invite": {
+      "title": "You're invited",
+      "reading": "Reading {{title}}",
+      "join": "Join {{name}}",
+      "open": "Open club",
+      "alreadyMember": "You're already a member.",
+      "full": "This club is full, so it can't take new members right now.",
+      "invalid": "This invite link doesn't work. It may have been replaced by a newer one: ask for a fresh link.",
+      "signInFirst": "Sign in or create an account to join. We will bring you back here."
+    },
+    "club": {
+      "currentBook": "Reading now",
+      "noBook": "No book chosen yet.",
+      "chooseBook": "Choose the book",
+      "changeBook": "Change book or edition",
+      "changeDates": "Change dates",
+      "started": "Started {{date}}",
+      "finishBy": "Finish by {{date}}",
+      "finish": "Mark as finished",
+      "finishQuestion": "Mark this book as finished? It moves to past books, and you can choose the next one.",
+      "finishConfirm": "Yes, finished",
+      "meetings": "Meetings",
+      "noMeetings": "No meetings planned.",
+      "planMeeting": "Plan a meeting",
+      "readTo": "Read to page {{page}}",
+      "past": "Past",
+      "invite": "Invite friends",
+      "inviteBody": "Anyone with this link can join while there is room ({{count}} of {{cap}} places taken).",
+      "copyLink": "Copy invite link",
+      "copied": "Copied",
+      "code": "Code: {{code}}",
+      "newLink": "Make a new link",
+      "newLinkQuestion": "Make a new invite link? The old link and code stop working.",
+      "newLinkConfirm": "Yes, new link",
+      "members": "Members",
+      "pastBooks": "Past books",
+      "finishedOn": "Finished {{date}}",
+      "settings": "Club settings",
+      "you": "you"
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "book": {
+      "title": "Book dates",
+      "start": "Started on",
+      "finish": "Finish by (optional)",
+      "finishHint": "The pace line in the reading chart aims for this date.",
+      "clearFinish": "No finish date",
+      "save": "Save dates",
+      "chooseFor": "Choose for {{club}}",
+      "chosen": "This is the club book now."
+    },
+    "meeting": {
+      "newTitle": "Plan a meeting",
+      "editTitle": "Edit meeting",
+      "date": "Date",
+      "time": "Time",
+      "name": "Title",
+      "namePlaceholder": "First meeting",
+      "location": "Place or video link (optional)",
+      "readTo": "Read up to page (optional)",
+      "readToHint": "In the club edition, {{edition}}, which has {{pages}} pages.",
+      "save": "Save meeting",
+      "delete": "Delete meeting",
+      "deleteQuestion": "Delete this meeting?",
+      "invalidDateTime": "Choose a date and a time.",
+      "pageInvalid": "Enter a page between 1 and {{max}}.",
+      "titleRequired": "Give the meeting a title."
+    },
+    "member": {
+      "joined": "Joined {{date}}",
+      "makeAdmin": "Make admin",
+      "removeAdmin": "Remove admin role",
+      "adminHint": "Admins can edit the club, choose the book, plan meetings and remove members.",
+      "makeOwner": "Make owner",
+      "makeOwnerQuestion": "Make {{name}} the owner? You become an admin, and only the new owner can undo this.",
+      "makeOwnerConfirm": "Yes, make owner",
+      "remove": "Remove from club",
+      "removeQuestion": "Remove {{name}} from the club? They can rejoin with the invite link unless you make a new one.",
+      "removeConfirm": "Yes, remove",
+      "noActions": "Nothing to change here."
+    },
+    "settings": {
+      "title": "Club settings",
+      "details": "Name and description",
+      "save": "Save",
+      "leave": "Leave club",
+      "leaveQuestion": "Leave {{name}}? You can rejoin with an invite link.",
+      "leaveConfirm": "Yes, leave",
+      "ownerLeaveHint": "As the owner, hand the club to another member (on their member page) before you leave.",
+      "delete": "Delete club",
+      "deleteQuestion": "Delete {{name}} for everyone? Its books, meetings and member list are removed. This cannot be undone.",
+      "deleteConfirm": "Yes, delete the club"
     }
   }
 }

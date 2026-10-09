@@ -13,7 +13,9 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(method: 'GET' | 'POST', path: string, schema: z.ZodType<T>, body?: unknown, signal?: AbortSignal): Promise<T> {
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+async function request<T>(method: Method, path: string, schema: z.ZodType<T>, body?: unknown, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method,
     // The session cookie; in development the API is on another port of the same site.
@@ -29,7 +31,8 @@ async function request<T>(method: 'GET' | 'POST', path: string, schema: z.ZodTyp
       .catch(() => undefined);
     throw new ApiError(res.status, `${method} ${path} failed with ${res.status}`, code);
   }
-  return schema.parse(await res.json());
+  // 204 No Content (e.g. after deleting): nothing to parse.
+  return schema.parse(res.status === 204 ? undefined : await res.json());
 }
 
 /** GET a JSON endpoint and validate the response, so a server/app mismatch fails loudly here. */
@@ -39,6 +42,18 @@ export function apiGet<T>(path: string, schema: z.ZodType<T>, signal?: AbortSign
 
 export function apiPost<T>(path: string, body: unknown, schema: z.ZodType<T>): Promise<T> {
   return request('POST', path, schema, body);
+}
+
+export function apiPut<T>(path: string, body: unknown, schema: z.ZodType<T>): Promise<T> {
+  return request('PUT', path, schema, body);
+}
+
+export function apiPatch<T>(path: string, body: unknown, schema: z.ZodType<T>): Promise<T> {
+  return request('PATCH', path, schema, body);
+}
+
+export function apiDelete<T>(path: string, schema: z.ZodType<T>): Promise<T> {
+  return request('DELETE', path, schema);
 }
 
 /** URL of a cover image served by our API (keys come from the server). */

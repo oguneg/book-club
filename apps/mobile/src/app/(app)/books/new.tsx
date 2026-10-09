@@ -14,7 +14,7 @@ type Field = 'title' | 'authors' | 'pageCount' | 'isbn';
 
 export default function AddBookByHand() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ title?: string; authors?: string; isbn?: string; workKey?: string }>();
+  const params = useLocalSearchParams<{ title?: string; authors?: string; isbn?: string; workKey?: string; pick?: string }>();
   const [title, setTitle] = useState(params.title ?? '');
   const [authors, setAuthors] = useState(params.authors ?? '');
   const [pages, setPages] = useState('');
@@ -49,7 +49,7 @@ export default function AddBookByHand() {
     setError(undefined);
     try {
       const edition = await createManualEdition(input);
-      router.replace({ pathname: '/books/edition/[id]', params: { id: edition.id } });
+      router.replace({ pathname: '/books/edition/[id]', params: { id: edition.id, ...(params.pick ? { pick: params.pick } : {}) } });
     } catch (err) {
       setError(bookErrorMessage(t, err));
       setBusy(false);
@@ -81,7 +81,7 @@ export default function AddBookByHand() {
       <TextField label={t('books.manual.year')} value={year} onChangeText={setYear} inputMode="numeric" maxLength={40} />
       <TextField label={t('books.manual.isbn')} value={isbn} onChangeText={setIsbn} error={errors.isbn} inputMode="numeric" maxLength={20} />
       <Button label={t('books.manual.submit')} onPress={submit} loading={busy} />
-      <TextLink href="/books" label={t('books.title')} />
+      <TextLink href={{ pathname: '/books', params: params.pick ? { pick: params.pick } : {} }} label={t('books.title')} />
     </FormLayout>
   );
 }

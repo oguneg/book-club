@@ -1,7 +1,7 @@
 // Drizzle schema. Tables arrive stage by stage; see docs/ARCHITECTURE.md, "Data model".
 // After changing it, run `npm run db:generate -w @bookclub/server` and commit the new migration.
 import { sql } from 'drizzle-orm';
-import { boolean, customType, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, customType, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 const bytea = customType<{ data: Buffer; driverData: Buffer | Uint8Array }>({
   dataType: () => 'bytea',
@@ -126,3 +126,77 @@ export const cover = pgTable('cover', {
   bytes: bytea('bytes'),
   fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Clubs. Membership roles: exactly one owner per club (partial unique index), any number of admins.
+export const club = pgTable(
+  'club',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    description: text('description'),
+    inviteCode: text('invite_code').notNull(),
+    memberCap: integer('member_cap').notNull(),
+    createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex('club_invite_code_uidx').on(table.inviteCode)],
+);
+
+export const clubMember = pgTable(
+  'club_member',
+  {
+    clubId: text('club_id')
+      .notNull()
+      .references(() => club.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    role: text('role', { enum: ['owner', 'admin', 'member'] }).notNull(),
+    joinedAt: timestamp('joined_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.clubId, table.userId] }),
+    index('club_member_user_idx').on(table.userId),
+    uniqueIndex('club_member_one_owner_uidx').on(table.clubId).where(sql`role = 'owner'`),
+  ],
+);
+
+/** A book the club reads: one current at a time, the rest finished (past books). */
+export const clubBook = pgTable(
+  'club_book',
+  {
+    id: text('id').primaryKey(),
+    clubId: text('club_id')
+      .notNull()
+      .references(() => club.id, { onDelete: 'cascade' }),
+    /** The club's reference edition: meeting pages are in this edition. */
+    editionId: text('edition_id')
+      .notNull()
+      .references(() => edition.id, { onDelete: 'restrict' }),
+    status: text('status', { enum: ['current', 'finished'] }).notNull(),
+    startDate: date('start_date', { mode: 'string' }).notNull(),
+    finishDate: date('finish_date', { mode: 'string' }),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index('club_book_club_idx').on(table.clubId),
+    uniqueIndex('club_book_one_current_uidx').on(table.clubId).where(sql`status = 'current'`),
+  ],
+);
+
+export const meeting = pgTable(
+  'meeting',
+  {
+    id: text('id').primaryKey(),
+    clubBookId: text('club_book_id')
+      .notNull()
+      .references(() => clubBook.id, { onDelete: 'cascade' }),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    title: text('title').notNull(),
+    location: text('location'),
+    readToPage: integer('read_to_page'),
+    ...timestamps,
+  },
+  (table) => [index('meeting_club_book_idx').on(table.clubBookId)],
+);

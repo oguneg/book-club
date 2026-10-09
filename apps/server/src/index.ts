@@ -3,6 +3,7 @@ import pino from 'pino';
 import { createApp } from './app';
 import { createAuth } from './auth';
 import { createBookService } from './books/service';
+import { createClubService } from './clubs/service';
 import { connectPglite, connectPostgres } from './db/client';
 import { logMailer, resendMailer } from './email/mailer';
 import { loadEnv } from './env';
@@ -18,7 +19,8 @@ const mailer =
   env.EMAIL_TRANSPORT === 'resend' && env.RESEND_API_KEY
     ? resendMailer({ apiKey: env.RESEND_API_KEY, from: env.EMAIL_FROM, log })
     : logMailer(log);
-const auth = createAuth({ env, db: database.db, mailer, log });
+const clubs = createClubService({ db: database.db });
+const auth = createAuth({ env, db: database.db, mailer, log, beforeUserDelete: (userId) => clubs.releaseClubsOf(userId) });
 log.info(
   {
     email: env.EMAIL_TRANSPORT,
@@ -32,7 +34,7 @@ log.info(
 
 const books = createBookService({ db: database.db, fetch, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
 
-const app = createApp({ env, database, auth, books, log });
+const app = createApp({ env, database, auth, books, clubs, log });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {
   log.info({ port: info.port }, 'listening');
 });

@@ -65,9 +65,10 @@ function Navigator() {
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
-        {/* Reached from emailed links, signed in or not. */}
+        {/* Reached from emailed or shared links, signed in or not. */}
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="email-confirmed" />
+        <Stack.Screen name="join/[code]" />
       </Stack>
     </>
   );
