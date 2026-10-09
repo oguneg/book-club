@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
+import { authClient } from '@/auth/client';
+import { LegalLinks } from '@/components/LegalPage';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { useTheme } from '@/theme';
@@ -9,6 +11,8 @@ import { useTheme } from '@/theme';
 export function FormLayout({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { colors, fonts, fontSize, space } = useTheme();
   const { t } = useTranslation();
+  // Signed-out visitors (sign-in, sign-up, invites) see where the privacy policy and terms are.
+  const { data: session, isPending } = authClient.useSession();
   return (
     <Screen width="narrow">
       <PageTitle title={title} />
@@ -25,6 +29,11 @@ export function FormLayout({ title, subtitle, children }: { title: string; subti
         </Text>
       )}
       <View style={{ marginTop: space.xl, gap: space.lg }}>{children}</View>
+      {!isPending && !session && (
+        <View style={{ marginTop: space.xxl }}>
+          <LegalLinks />
+        </View>
+      )}
     </Screen>
   );
 }

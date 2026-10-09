@@ -69,6 +69,9 @@ function Navigator() {
         <Stack.Screen name="reset-password" />
         <Stack.Screen name="email-confirmed" />
         <Stack.Screen name="join/[code]" />
+        <Stack.Screen name="privacy" />
+        <Stack.Screen name="terms" />
+        <Stack.Screen name="help" />
       </Stack>
     </>
   );

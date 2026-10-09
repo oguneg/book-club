@@ -2,7 +2,9 @@ import { bookSearchResponse, editionResponse, workEditionsResponse } from '@book
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Fetch } from './books/providers';
 import { normalizeQuery } from './books/service';
+import { inArray } from 'drizzle-orm';
 import type { Database } from './db/client';
+import { bookCache, cover } from './db/schema';
 import { Browser, captureMailer, linkIn, testApp, testDatabase, uniqueEmail } from './test/helpers';
 
 let database: Database;
@@ -68,12 +70,12 @@ async function setup(routes: [RegExp, () => Response | Promise<Response>][], var
   const n = ++counter + Math.floor(Math.random() * 1e6) * 100;
   const net = fakeNetwork(routes);
   const mail = captureMailer();
-  const { app, env } = testApp(database, vars, mail.mailer, net.fetchFn);
+  const { app, env, books } = testApp(database, vars, mail.mailer, net.fetchFn);
   const browser = new Browser(app, env.APP_URL);
   const email = uniqueEmail();
   await browser.post('/api/auth/sign-up/email', { email, password: 'correct horse battery', name: 'Ann', callbackURL: `${env.APP_URL}/` });
   await browser.request(linkIn(await mail.lastTo(email)));
-  return { browser, calls: net.calls, app, env, n };
+  return { browser, calls: net.calls, app, env, books, n };
 }
 
 describe('book search', () => {
@@ -249,6 +251,30 @@ describe('covers', () => {
     const id = randomId();
     const ctx = await setup([[/covers\.openlibrary\.org/, () => new Response('<html>', { headers: { 'Content-Type': 'text/html' } })]]);
     expect((await ctx.browser.request(`/api/covers/ol-${id}-M`)).status).toBe(404);
+  });
+});
+
+describe('cache housekeeping', () => {
+  it('drops lookups past a month and covers past six months, keeping fresher ones', async () => {
+    const ctx = await setup([]);
+    const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const lookup = (suffix: string) => `search:housekeeping-${ctx.n}-${suffix}`;
+    const coverKey = (suffix: number) => `ol-${ctx.n}${suffix}-M`;
+    await database.db.insert(bookCache).values([
+      { key: lookup('old'), value: { v: [] }, fetchedAt: daysAgo(31) },
+      { key: lookup('fresh'), value: { v: [] }, fetchedAt: daysAgo(29) },
+    ]);
+    await database.db.insert(cover).values([
+      { key: coverKey(1), contentType: 'image/jpeg', bytes: Buffer.from(JPEG), fetchedAt: daysAgo(181) },
+      { key: coverKey(2), contentType: 'image/jpeg', bytes: Buffer.from(JPEG), fetchedAt: daysAgo(179) },
+    ]);
+
+    await ctx.books.prune();
+
+    const lookups = await database.db.select({ key: bookCache.key }).from(bookCache).where(inArray(bookCache.key, [lookup('old'), lookup('fresh')]));
+    const covers = await database.db.select({ key: cover.key }).from(cover).where(inArray(cover.key, [coverKey(1), coverKey(2)]));
+    expect(lookups.map((r) => r.key)).toEqual([lookup('fresh')]);
+    expect(covers.map((r) => r.key)).toEqual([coverKey(2)]);
   });
 });
 

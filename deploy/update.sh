@@ -27,7 +27,7 @@ main() {
   # Build first while the old container keeps serving, then swap (a few seconds of restart).
   # The app applies database migrations on start, before it reports healthy.
   export GIT_COMMIT="$commit"
-  docker compose build --quiet app
+  docker compose build --quiet
   docker compose up -d --remove-orphans
 
   for _ in $(seq 1 60); do

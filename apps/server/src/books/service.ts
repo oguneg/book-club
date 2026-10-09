@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { normalizeIsbn, type Edition, type ManualEditionInput, type WorkSummary } from '@bookclub/shared';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, lt, sql } from 'drizzle-orm';
 import type { Logger } from 'pino';
 import type { Db } from '../db/client';
 import { bookCache, cover, edition } from '../db/schema';
@@ -15,6 +15,12 @@ const TTL = {
   isbnMissing: 7 * DAY_MS,
   coverMissing: 30 * DAY_MS,
 };
+
+/**
+ * The cache tables grow with every book anyone looks at, so they're pruned: cached lookups past the longest
+ * TTL are stale anyway, and covers come back from the provider the next time someone looks.
+ */
+const KEEP = { lookups: 30 * DAY_MS, covers: 180 * DAY_MS };
 
 type EditionRow = typeof edition.$inferSelect;
 
@@ -191,6 +197,19 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
         .values({ key, contentType: image?.contentType ?? null, bytes: image?.bytes ?? null })
         .onConflictDoUpdate({ target: cover.key, set: { contentType: image?.contentType ?? null, bytes: image?.bytes ?? null, fetchedAt: new Date() } });
       return image;
+    },
+
+    /** Deletes stale cached lookups and old covers (run daily). */
+    async prune(now = new Date()): Promise<{ lookups: number; covers: number }> {
+      const lookups = await db
+        .delete(bookCache)
+        .where(lt(bookCache.fetchedAt, new Date(now.getTime() - KEEP.lookups)))
+        .returning({ key: bookCache.key });
+      const covers = await db
+        .delete(cover)
+        .where(lt(cover.fetchedAt, new Date(now.getTime() - KEEP.covers)))
+        .returning({ key: cover.key });
+      return { lookups: lookups.length, covers: covers.length };
     },
   };
 }

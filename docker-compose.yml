@@ -63,9 +63,38 @@ services:
         max-size: 10m
         max-file: "3"
 
+  # Nightly encrypted backups to object storage (deploy/backup). Idles until RESTIC_* are set in .env.
+  backup:
+    build: ./deploy/backup
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: bookclub
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      PGDATABASE: bookclub
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
+    volumes:
+      - backup-cache:/root/.cache/restic
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 256m
+    networks:
+      - default
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
 networks:
   web:
     external: true
 
 volumes:
   db-data:
+  backup-cache:

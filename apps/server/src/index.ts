@@ -49,6 +49,17 @@ const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT 
 });
 const liveSockets = attachLive(server, { auth, hub: live, trustedOrigins: [...new Set([env.APP_URL, env.PUBLIC_URL, ...env.CORS_ORIGINS])], log });
 
+// Daily housekeeping, first a minute after start so a deploy isn't slowed down.
+const housekeeping = () =>
+  books
+    .prune()
+    .then((removed) => log.info(removed, 'pruned book cache'))
+    .catch((err: unknown) => log.error({ err }, 'pruning the book cache failed'));
+const firstRun = setTimeout(housekeeping, 60_000);
+const daily = setInterval(housekeeping, 24 * 60 * 60 * 1000);
+firstRun.unref();
+daily.unref();
+
 let stopping = false;
 function shutdown(signal: string) {
   if (stopping) return;

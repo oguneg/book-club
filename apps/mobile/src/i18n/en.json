@@ -54,7 +54,8 @@
       "passwordHint": "At least {{min}} characters.",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
-      "signIn": "Sign in"
+      "signIn": "Sign in",
+      "agree": "By creating an account you accept the terms of use and the privacy policy, linked below."
     },
     "forgot": {
       "title": "Forgot your password?",
@@ -532,5 +533,12 @@
     "sectionTitle": "Moderation",
     "sectionBody": "You review notes that readers report.",
     "open": "Review reported notes"
+  },
+  "legal": {
+    "updated": "Last updated {{date}}",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "help": "Help and contact",
+    "linksLabel": "About Bookclub"
   }
 }

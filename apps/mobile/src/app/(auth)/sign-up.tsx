@@ -11,6 +11,7 @@ import { GoogleButton } from '@/components/GoogleButton';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { TextField } from '@/components/ui/TextField';
+import { Hint } from '@/components/ui/Section';
 import { TextLink } from '@/components/ui/TextLink';
 
 interface FieldErrors {
@@ -120,6 +121,7 @@ export default function SignUp() {
         onSubmitEditing={submit}
       />
       <Button label={t('auth.signUp.submit')} onPress={submit} loading={busy} />
+      <Hint>{t('auth.signUp.agree')}</Hint>
       <TextLink href="/sign-in" label={`${t('auth.signUp.haveAccount')} ${t('auth.signUp.signIn')}`} />
     </FormLayout>
   );

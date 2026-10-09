@@ -11,6 +11,7 @@ import { useBlockActions, useBlocks } from '@/api/notes';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
+import { LegalLinks } from '@/components/LegalPage';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { ServerStatus } from '@/components/ServerStatus';
@@ -60,6 +61,7 @@ export default function Account() {
           <View style={{ alignSelf: 'flex-start' }}>
             <Button variant="secondary" label={t('account.signOut')} onPress={() => void authClient.signOut()} />
           </View>
+          <LegalLinks />
           <ServerStatus />
         </View>
       )}

@@ -42,6 +42,22 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
+      # The nightly backup, end to end: back up what the tests left in the database, restore it into a
+      # fresh one, and check every table came back (the cache tables are left out on purpose).
+      - name: Back up and restore the database
+        run: |
+          docker build --quiet --tag bookclub-backup deploy/backup
+          backup() {
+            docker run --rm --network host -v "$RUNNER_TEMP/restic:/repo" \
+              -e PGHOST=localhost -e PGUSER=bookclub -e PGPASSWORD=bookclub -e PGDATABASE=bookclub_test \
+              -e RESTIC_REPOSITORY=/repo -e RESTIC_PASSWORD=ci-only bookclub-backup "$@"
+          }
+          backup backup.sh
+          backup counts.sh > original.txt
+          backup restore.sh > restored.txt
+          cat restored.txt
+          test "$(wc -l < original.txt)" -gt 10
+          diff original.txt restored.txt
       - run: npm run build -w @bookclub/server
       - name: Bundle the app for web, iOS and Android
         working-directory: apps/mobile
