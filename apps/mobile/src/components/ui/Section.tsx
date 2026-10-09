@@ -2,25 +2,35 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/theme';
 
-/** A titled card on settings-style pages. */
-export function Section({ title, children, tone = 'normal' }: { title: string; children: ReactNode; tone?: 'normal' | 'danger' }) {
-  const { colors, fonts, fontSize, radius, space } = useTheme();
+/**
+ * A section of a page, set like a book rather than boxed: a hairline rule, a small-caps heading, then the
+ * content. `action` sits at the end of the heading line (e.g. "Manage").
+ */
+export function Section({
+  title,
+  children,
+  tone = 'normal',
+  action,
+}: {
+  title: string;
+  children: ReactNode;
+  tone?: 'normal' | 'danger';
+  action?: ReactNode;
+}) {
+  const { colors, fonts, fontSize, space } = useTheme();
+  const color = tone === 'danger' ? colors.danger : colors.textMuted;
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor: colors.surface,
-          borderColor: tone === 'danger' ? colors.danger : colors.border,
-          borderRadius: radius.lg,
-          padding: space.lg,
-          gap: space.md,
-        },
-      ]}
-    >
-      <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: tone === 'danger' ? colors.danger : colors.text }}>
-        {title}
-      </Text>
+    <View style={{ gap: space.md, paddingTop: space.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: tone === 'danger' ? colors.danger : colors.border }}>
+      <View style={styles.headingLine}>
+        <Text
+          accessibilityRole="header"
+          aria-level={2}
+          style={{ fontFamily: fonts.heading, fontSize: fontSize.sm, letterSpacing: 1.4, textTransform: 'uppercase', color }}
+        >
+          {title}
+        </Text>
+        {action}
+      </View>
       {children}
     </View>
   );
@@ -47,6 +57,6 @@ export function Hint({ children }: { children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderWidth: StyleSheet.hairlineWidth },
+  headingLine: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 12, flexWrap: 'wrap' },
 });

@@ -58,14 +58,7 @@ export default function EditionDetails() {
             {picking?.kind === 'club' ? (
               <ChooseForClub clubId={picking.clubId} edition={edition} />
             ) : (
-              <View style={{ alignSelf: 'flex-start' }}>
-                <Button
-                  label={t('reading.startThis')}
-                  onPress={() =>
-                    router.push({ pathname: '/readings/new', params: { editionId: edition.id, ...(picking?.clubId ? { club: picking.clubId } : {}) } })
-                  }
-                />
-              </View>
+              <StartOrOpen edition={edition} clubId={picking?.clubId ?? undefined} />
             )}
             <Section title={t('books.edition.details')}>
               <Row label={t('books.edition.pages')} value={edition.pageCount ? String(edition.pageCount) : t('books.pagesUnknown')} />
@@ -128,4 +121,26 @@ function BookNotes({ edition }: { edition: Edition }) {
   const bookKey = bookKeyOf(edition);
   const reading = useReadings().data?.find((r) => r.bookKey === bookKey);
   return <Notes bookKey={bookKey} readingId={reading?.id} publicOnly />;
+}
+
+/** Start reading this edition, or, if you're already reading this book, go to your reading. */
+function StartOrOpen({ edition, clubId }: { edition: Edition; clubId?: string }) {
+  const { t } = useTranslation();
+  const bookKey = bookKeyOf(edition);
+  const mine = useReadings().data?.find((r) => r.bookKey === bookKey && r.status === 'reading');
+  if (mine && !clubId) {
+    return (
+      <View style={{ alignSelf: 'flex-start' }}>
+        <TextLink href={{ pathname: '/readings/[id]', params: { id: mine.id } }} label={t('reading.openYours')} />
+      </View>
+    );
+  }
+  return (
+    <View style={{ alignSelf: 'flex-start' }}>
+      <Button
+        label={t('reading.startThis')}
+        onPress={() => router.push({ pathname: '/readings/new', params: { editionId: edition.id, ...(clubId ? { club: clubId } : {}) } })}
+      />
+    </View>
+  );
 }

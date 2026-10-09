@@ -21,7 +21,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 
 ## Phase C: go live on web
 
-- [ ] **9. Hardening:**
+- [x] **9. Hardening:**
   - [x] Rate limits reviewed: 64 KB request bodies, club writes and new clubs, data export, live sockets per account.
   - [x] Reviewing reported notes: moderators listed in `ADMIN_EMAILS` keep or remove them, and get an email when one is hidden.
   - [x] Accessibility pass: axe on every screen in light and dark (no violations), 3:1 borders on form controls, one h1 per page with h2 sections, a main landmark, labelled progress bars, decorative covers hidden. A screen-reader pass on a phone comes with iOS.
@@ -30,7 +30,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
   - [x] Error tracking: server errors and app crashes, through our server, to Sentry (EU, two projects); live on staging.
   - [x] Uptime check on `/api/health` and a heartbeat from the nightly backup, in Better Stack.
   - [x] Privacy policy, terms and help pages (`/privacy`, `/terms`, `/help`), linked from sign-in, sign-up and the account page. support@ogun.se needs forwarding set up.
-  - [ ] Design pass (warm & bookish).
+  - [x] Design pass, "reading journal": home is the book you’re in with a one-step page log on the only raised surface; notes carry page numbers in the margin; a bookmark ribbon shows where you are; sections are set in type instead of boxed cards; owner tools sit together under Manage; a side rail from 1024px. Recorded in `apps/mobile/DESIGN.md`.
 - [ ] **10. Production** at bookclub.ogun.se: deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving (unlike staging today). Google consent screen published.
 
 ## Later

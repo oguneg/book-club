@@ -1,6 +1,6 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
-import { fontSize, fonts, minTouch, palettes, radius, space, type Palette } from './tokens';
+import { fontSize, fonts, layout, minTouch, palettes, radius, space, type Palette } from './tokens';
 
 export interface Theme {
   scheme: 'light' | 'dark';
@@ -10,10 +10,11 @@ export interface Theme {
   space: typeof space;
   radius: typeof radius;
   minTouch: number;
+  layout: typeof layout;
 }
 
 function themeFor(scheme: 'light' | 'dark'): Theme {
-  return { scheme, colors: palettes[scheme], fonts, fontSize, space, radius, minTouch };
+  return { scheme, colors: palettes[scheme], fonts, fontSize, space, radius, minTouch, layout };
 }
 
 const themes = { light: themeFor('light'), dark: themeFor('dark') };

@@ -8,3 +8,9 @@ coverage/
 apps/server/.data/
 # Deploy marker written on the VPS
 .deployed
+
+# Impeccable (design tool): machine-local state; DESIGN.md, design.json, critiques and surface briefs are committed.
+apps/mobile/.impeccable/live/
+apps/mobile/.impeccable/review/
+apps/mobile/.impeccable/hook.cache.json
+apps/mobile/.impeccable/config.local.json

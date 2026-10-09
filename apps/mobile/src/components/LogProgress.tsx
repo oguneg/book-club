@@ -1,28 +1,35 @@
 import type { ReadingDetail } from '@bookclub/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { useReadingActions } from '@/api/readings';
 import { readingErrorMessage } from '@/readings/errors';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
-import { TextField } from '@/components/ui/TextField';
+import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
 
-/** "Where are you?": a page in this copy, or a percentage for e-readers. One tap to save. */
-export function LogProgress({ reading }: { reading: ReadingDetail }) {
+type LoggableReading = Pick<ReadingDetail, 'id' | 'endPage' | 'currentPage'> & { history?: ReadingDetail['history'] };
+
+/**
+ * "I'm on page [ 160 ] of 320 · Save": moving your bookmark is one sentence and one tap. E-book readers
+ * switch to a percentage once; if their last log was a percentage, that's what they get next time.
+ */
+export function LogProgress({ reading }: { reading: LoggableReading }) {
   const { t } = useTranslation();
-  const { colors, fontSize, radius, space, minTouch } = useTheme();
+  const { colors, fonts, fontSize, radius, space, minTouch } = useTheme();
   const actions = useReadingActions(reading.id);
-  // E-book readers who logged a percentage last time probably want the percentage again.
-  const lastWasPercent = reading.history.length > 0 && reading.history[reading.history.length - 1]?.page === null;
+  const history = reading.history ?? [];
+  const lastWasPercent = history.length > 0 && history[history.length - 1]?.page === null;
   const [mode, setMode] = useState<'page' | 'percent'>(lastWasPercent ? 'percent' : 'page');
   const [value, setValue] = useState('');
+  const [focused, setFocused] = useState(false);
   const [message, setMessage] = useState<{ text: string; tone: 'error' | 'info' }>();
   const [busy, setBusy] = useState(false);
 
   async function save() {
     const n = Number(value.replace(',', '.'));
+    if (!value) return;
     if (mode === 'page' && (!Number.isInteger(n) || n < 0 || n > reading.endPage)) {
       setMessage({ text: t('reading.pageInvalid', { max: reading.endPage }), tone: 'error' });
       return;
@@ -42,50 +49,59 @@ export function LogProgress({ reading }: { reading: ReadingDetail }) {
     setBusy(false);
   }
 
-  const tab = (key: 'page' | 'percent', label: string) => (
-    <Pressable
-      accessibilityRole="tab"
-      accessibilityState={{ selected: mode === key }}
-      onPress={() => {
-        setMode(key);
-        setMessage(undefined);
-      }}
-      style={{
-        minHeight: minTouch - 8,
-        paddingHorizontal: space.md,
-        justifyContent: 'center',
-        borderRadius: radius.sm,
-        backgroundColor: mode === key ? colors.surface : 'transparent',
-        borderWidth: 1,
-        borderColor: mode === key ? colors.control : 'transparent',
-      }}
-    >
-      <Text style={{ color: mode === key ? colors.text : colors.textMuted, fontSize: fontSize.sm, fontWeight: '600' }}>{label}</Text>
-    </Pressable>
-  );
-
+  const words = { color: colors.text, fontSize: fontSize.md };
   return (
-    <View style={{ gap: space.md }}>
-      <View accessibilityRole="tablist" style={{ flexDirection: 'row', gap: space.xs }}>
-        {tab('page', t('reading.page'))}
-        {tab('percent', t('reading.percent'))}
+    <View style={{ gap: space.sm }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 6, rowGap: space.sm }}>
+        <Text style={words}>{mode === 'page' ? t('reading.onPage') : t('reading.atPercent')}</Text>
+        <TextInput
+          accessibilityLabel={mode === 'page' ? t('reading.logPage') : t('reading.logPercent')}
+          aria-invalid={message?.tone === 'error'}
+          value={value}
+          onChangeText={(v) => {
+            setValue(mode === 'page' ? v.replace(/\D/g, '') : v.replace(/[^\d.,]/g, ''));
+            setMessage(undefined);
+          }}
+          placeholder={mode === 'page' && reading.currentPage ? String(reading.currentPage) : undefined}
+          placeholderTextColor={colors.textMuted}
+          inputMode={mode === 'page' ? 'numeric' : 'decimal'}
+          maxLength={5}
+          returnKeyType="done"
+          onSubmitEditing={() => void save()}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          style={[
+            {
+              width: 76,
+              minHeight: minTouch,
+              borderWidth: 1,
+              borderRadius: radius.md,
+              borderColor: message?.tone === 'error' ? colors.danger : focused ? colors.accent : colors.control,
+              backgroundColor: colors.background,
+              color: colors.text,
+              fontFamily: fonts.reading,
+              fontSize: fontSize.lg,
+              fontVariant: ['tabular-nums'],
+              textAlign: 'center',
+              outlineStyle: 'none',
+            } as object,
+            focused && { boxShadow: `0 0 0 1px ${colors.accent}` },
+          ]}
+        />
+        <Text style={words}>{mode === 'page' ? t('reading.ofPages', { end: reading.endPage }) : t('reading.percentSign')}</Text>
+        <Button label={t('reading.save')} onPress={() => void save()} loading={busy} disabled={!value} />
       </View>
-      <TextField
-        label={mode === 'page' ? t('reading.logPage') : t('reading.logPercent')}
-        value={value}
-        onChangeText={(v) => {
-          setValue(mode === 'page' ? v.replace(/\D/g, '') : v.replace(/[^\d.,]/g, ''));
-          setMessage(undefined);
-        }}
-        placeholder={mode === 'page' && reading.currentPage ? String(reading.currentPage) : undefined}
-        inputMode={mode === 'page' ? 'numeric' : 'decimal'}
-        maxLength={mode === 'page' ? 5 : 5}
-        returnKeyType="done"
-        onSubmitEditing={save}
-      />
       {message && <Notice message={message.text} tone={message.tone} />}
       <View style={{ alignSelf: 'flex-start' }}>
-        <Button label={t('reading.save')} onPress={save} loading={busy} disabled={!value} />
+        <TextButton
+          tone="muted"
+          label={mode === 'page' ? t('reading.usePercent') : t('reading.usePage')}
+          onPress={() => {
+            setMode(mode === 'page' ? 'percent' : 'page');
+            setValue('');
+            setMessage(undefined);
+          }}
+        />
       </View>
     </View>
   );

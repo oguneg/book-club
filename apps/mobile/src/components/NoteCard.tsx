@@ -1,4 +1,4 @@
-import { isSpoilerFor, MAX_NOTE_LENGTH, REACTIONS, type Note, type NoteReply, type NoteViewer } from '@bookclub/shared';
+import { isSpoilerFor, MAX_NOTE_LENGTH, notePlace, REACTIONS, type Note, type NoteReply, type NoteViewer } from '@bookclub/shared';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -27,24 +27,54 @@ export function NoteCard({ note, viewer, ...shared }: Shared & { note: Note; vie
   const [replying, setReplying] = useState(false);
   const hidden = !note.mine && isSpoilerFor(note.position, viewer) && !revealed;
   const audience = note.visibility === 'club' ? (note.club?.name ?? t('notes.audience_club')) : t(`notes.audience_${note.visibility}`);
+  const place = placeLabel(t, note, viewer);
 
   return (
-    <View style={{ gap: space.md }}>
-      <Entry
-        {...shared}
-        entry={note}
-        details={[placeLabel(t, note, viewer), audience]}
-        spoiler={hidden ? (viewer ? t('notes.spoilerAhead') : t('notes.spoilerUnknown')) : undefined}
-        onReveal={() => setRevealed(true)}
-        onReply={note.body !== null ? () => setReplying((r) => !r) : undefined}
-      />
-      {!hidden && (note.replies.length > 0 || replying) && (
-        <View style={{ marginLeft: space.sm, paddingLeft: space.md, borderLeftWidth: 2, borderLeftColor: colors.border, gap: space.md }}>
-          {note.replies.map((r) => (
-            <Entry key={r.id} {...shared} entry={r} details={[]} />
-          ))}
-          {replying && <ReplyForm noteId={note.id} bookKey={shared.bookKey} onDone={() => setReplying(false)} />}
-        </View>
+    <View style={{ flexDirection: 'row', gap: space.md }}>
+      <MarginFigure note={note} viewer={viewer} />
+      <View style={{ flex: 1, minWidth: 0, gap: space.md }}>
+        <Entry
+          {...shared}
+          entry={note}
+          details={[audience]}
+          place={place}
+          spoiler={hidden ? (viewer ? t('notes.spoilerAhead') : t('notes.spoilerUnknown')) : undefined}
+          onReveal={() => setRevealed(true)}
+          onReply={note.body !== null ? () => setReplying((r) => !r) : undefined}
+        />
+        {!hidden && (note.replies.length > 0 || replying) && (
+          <View style={{ paddingLeft: space.md, borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: colors.control, gap: space.md }}>
+            {note.replies.map((r) => (
+              <Entry key={r.id} {...shared} entry={r} details={[]} />
+            ))}
+            {replying && <ReplyForm noteId={note.id} bookKey={shared.bookKey} onDone={() => setReplying(false)} />}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+/** Width of the margin where page numbers sit, beside notes and the "you are here" ribbon. */
+export const MARGIN = 48;
+
+/**
+ * The note's place, set in the margin like a reader's pencilled page number: the page in your own copy,
+ * "≈" when converted from another edition, or a percentage when we can't know your page.
+ */
+function MarginFigure({ note, viewer }: { note: Note; viewer: NoteViewer | null }) {
+  const { colors, fonts, fontSize } = useTheme();
+  const place = notePlace(note, viewer);
+  const figure = { fontFamily: fonts.reading, color: colors.text, fontVariant: ['oldstyle-nums' as const], textAlign: 'right' as const };
+  return (
+    <View aria-hidden style={{ width: MARGIN, alignItems: 'flex-end', paddingTop: 1 }}>
+      {place.page !== null ? (
+        <>
+          <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>{place.approximate ? '≈ p.' : 'p.'}</Text>
+          <Text style={[figure, { fontSize: fontSize.lg, lineHeight: fontSize.lg * 1.1 }]}>{place.page}</Text>
+        </>
+      ) : (
+        <Text style={[figure, { fontSize: fontSize.md }]}>{`${place.percent}%`}</Text>
       )}
     </View>
   );
@@ -57,6 +87,7 @@ const REPORT_REASONS: ReportReason[] = ['spoiler', 'offensive', 'spam', 'other']
 function Entry({
   entry,
   details,
+  place,
   spoiler,
   onReveal,
   onReply,
@@ -65,8 +96,10 @@ function Entry({
   onMessage,
 }: Shared & {
   entry: NoteReply;
-  /** Shown after the author: the place in the book and the audience (top-level notes only). */
+  /** Shown after the author: the audience (top-level notes only). */
   details: string[];
+  /** Where in the book (drawn in the margin; read out here for screen readers). */
+  place?: string;
   /** Set when the text is covered as a spoiler: what the cover says. */
   spoiler?: string;
   onReveal?: () => void;
@@ -112,13 +145,13 @@ function Entry({
 
   return (
     <View style={{ gap: space.xs }}>
-      <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
+      <Text accessibilityLabel={place ? `${name}, ${place} · ${meta}` : undefined} style={{ color: colors.textMuted, fontSize: fontSize.sm }}>
         <Text style={{ color: colors.text, fontWeight: '600' }}>{name}</Text>
         {` · ${meta}`}
       </Text>
 
       {spoiler !== undefined ? (
-        <SpoilerCover preview={entry.body ?? t('notes.deleted')} label={spoiler} place={details[0] ?? ''} onReveal={onReveal} />
+        <SpoilerCover preview={entry.body ?? t('notes.deleted')} label={spoiler} place={place ?? ''} onReveal={onReveal} />
       ) : entry.body === null ? (
         <Text style={{ color: colors.textMuted, fontSize: fontSize.md, fontStyle: 'italic' }}>{t('notes.deleted')}</Text>
       ) : panel === 'edit' ? (

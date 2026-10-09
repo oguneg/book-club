@@ -3,8 +3,8 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 
-/** Page wrapper: safe areas, theme background, and a readable column width on tablets and web. */
-export function Screen({ children, width = 'default' }: { children: ReactNode; width?: 'default' | 'narrow' }) {
+/** Page wrapper: safe areas, theme background, and a readable column width (`wide` leaves room for a side rail). */
+export function Screen({ children, width = 'default' }: { children: ReactNode; width?: 'default' | 'narrow' | 'wide' }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
@@ -20,7 +20,7 @@ export function Screen({ children, width = 'default' }: { children: ReactNode; w
         },
       ]}
     >
-      <View role="main" style={[styles.column, { maxWidth: width === 'narrow' ? 420 : 560 }]}>
+      <View role="main" style={[styles.column, { maxWidth: theme.layout[width === 'default' ? 'column' : width] }]}>
         {children}
       </View>
     </ScrollView>

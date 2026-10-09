@@ -33,7 +33,10 @@
     "readingNow": "Reading now",
     "notReading": "You're not reading anything right now.",
     "startBook": "Start a book",
-    "shelf": "Your shelf"
+    "shelf": "Your shelf",
+    "alsoReading": "Also reading",
+    "startAnother": "Start another book",
+    "openReading": "Notes, history and your copy"
   },
   "auth": {
     "google": "Continue with Google",
@@ -302,7 +305,12 @@
       "pastBooks": "Past books",
       "finishedOn": "Finished {{date}}",
       "settings": "Club settings",
-      "you": "you"
+      "you": "you",
+      "aboutClub": "About the club",
+      "nextMeetingIs": "Next meeting {{when}}",
+      "manage": "Manage",
+      "membersCount_one": "{{count}} member",
+      "membersCount_other": "{{count}} members"
     },
     "roles": {
       "owner": "Owner",
@@ -334,7 +342,9 @@
       "deleteQuestion": "Delete this meeting?",
       "invalidDateTime": "Choose a date and a time.",
       "pageInvalid": "Enter a page between 1 and {{max}}.",
-      "titleRequired": "Give the meeting a title."
+      "titleRequired": "Give the meeting a title.",
+      "editShort": "Edit",
+      "editLabel": "Edit meeting: {{title}}"
     },
     "member": {
       "joined": "Joined {{date}}",
@@ -362,8 +372,8 @@
       "deleteConfirm": "Yes, delete the club"
     },
     "progress": {
-      "title": "Progress",
-      "pace": "Pace today: page {{page}} of the club edition ({{percent}}%)",
+      "title": "Where everyone is",
+      "pace": "Pace today: {{percent}}% of the book (p. {{page}} in the club’s copy)",
       "noPace": "Set a finish date or meeting pages to see the pace.",
       "you": "you",
       "overTime": "Over time",
@@ -431,7 +441,21 @@
       "page_out_of_range": "That page is past the end of the story in your copy.",
       "different_book": "That edition is a different book.",
       "invalid_range": "The last page must come after the first."
-    }
+    },
+    "onPage": "I'm on page",
+    "ofPages": "of {{end}}",
+    "atPercent": "I'm",
+    "percentSign": "% of the way through",
+    "usePercent": "My e-reader shows a percentage",
+    "usePage": "Use page numbers instead",
+    "record": "Your record of this book",
+    "thisBook": "This book",
+    "showAllHistory": "Show all {{count}}",
+    "closedFinished": "You finished this book. Pick it up again any time.",
+    "closedStopped": "You stopped reading this book. Your place is kept if you come back to it.",
+    "openYours": "You're reading this book. Open your copy",
+    "shelfFinished": "Finished {{date}}",
+    "shelfStopped": "Stopped at {{progress}}"
   },
   "notes": {
     "title": "Notes",

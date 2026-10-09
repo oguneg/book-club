@@ -25,9 +25,10 @@ export function ProgressBar({
       accessibilityRole="progressbar"
       accessibilityLabel={label}
       accessibilityValue={{ min: 0, max: 100, now: Math.round((position / POSITION_SCALE) * 100) }}
-      style={{ height: 8, borderRadius: 4, backgroundColor: colors.border, justifyContent: 'center' }}
+      style={{ height: 10, justifyContent: 'center' }}
     >
-      <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: pct(position), borderRadius: 4, backgroundColor: emphasis ? colors.accent : colors.textMuted }} />
+      <View style={{ position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: colors.control }} />
+      <View style={{ position: 'absolute', left: 0, height: 4, borderRadius: 2, width: pct(position), backgroundColor: emphasis ? colors.accent : colors.textMuted }} />
       {marker !== null && marker !== undefined && (
         <View
           aria-hidden

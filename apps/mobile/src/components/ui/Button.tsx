@@ -16,8 +16,10 @@ interface ButtonProps {
 export function Button({ label, onPress, variant = 'primary', loading = false, disabled = false, icon, accessibilityHint }: ButtonProps) {
   const { colors, fontSize, radius, space, minTouch } = useTheme();
   const inactive = disabled || loading;
-  const fill = variant === 'primary' ? colors.accent : variant === 'danger' ? colors.danger : undefined;
-  const textColor = fill ? colors.onAccent : colors.text;
+  // Disabled (not busy) buttons go neutral: a faded red still looks like a red button.
+  const filled = variant === 'primary' || variant === 'danger';
+  const fill = filled && disabled && !loading ? colors.border : variant === 'primary' ? colors.accent : variant === 'danger' ? colors.danger : undefined;
+  const textColor = filled && disabled && !loading ? colors.textMuted : fill ? colors.onAccent : colors.text;
 
   return (
     <Pressable
@@ -34,7 +36,7 @@ export function Button({ label, onPress, variant = 'primary', loading = false, d
           paddingHorizontal: space.lg,
           backgroundColor: fill ?? colors.surface,
           borderColor: fill ?? colors.control,
-          opacity: inactive ? 0.6 : pressed ? 0.85 : 1,
+          opacity: loading ? 0.75 : disabled && !filled ? 0.55 : pressed ? 0.85 : 1,
         },
       ]}
     >

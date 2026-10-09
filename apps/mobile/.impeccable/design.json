@@ -1,0 +1,500 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-09T12:54:32.681Z",
+  "title": "Design System: Bookclub",
+  "extensions": {
+    "colorMeta": {
+      "bookcloth": {
+        "role": "primary",
+        "displayName": "Bookcloth Red",
+        "canonical": "#8A3B2E",
+        "oklch": "oklch(45.6% 0.111 31.2)",
+        "tonalRamp": [
+          "#210000",
+          "#4C0300",
+          "#712519",
+          "#964638",
+          "#BB6758",
+          "#E28A7A",
+          "#FFB3A5",
+          "#FFE9E4"
+        ]
+      },
+      "bookcloth-dark": {
+        "role": "primary",
+        "displayName": "Bookcloth Red (dark)",
+        "canonical": "#D9876F",
+        "oklch": "oklch(70.4% 0.107 37.1)",
+        "tonalRamp": [
+          "#1F0100",
+          "#470D00",
+          "#6F2812",
+          "#944832",
+          "#B96A53",
+          "#DF8D74",
+          "#FFB49E",
+          "#FFE9E3"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Warm Paper",
+        "canonical": "#F6F0E4",
+        "oklch": "oklch(95.7% 0.017 84.6)",
+        "tonalRamp": [
+          "#0F0B04",
+          "#29241C",
+          "#464138",
+          "#666156",
+          "#878277",
+          "#AAA499",
+          "#CEC8BD",
+          "#F4EEE2"
+        ]
+      },
+      "paper-dark": {
+        "role": "neutral",
+        "displayName": "Warm Paper (dark)",
+        "canonical": "#1B1814",
+        "oklch": "oklch(21.1% 0.009 75.1)",
+        "tonalRamp": [
+          "#0D0B07",
+          "#282420",
+          "#45413D",
+          "#64615C",
+          "#86827C",
+          "#A8A49F",
+          "#CDC8C3",
+          "#F2EEE8"
+        ]
+      },
+      "paper-raised": {
+        "role": "neutral",
+        "displayName": "Raised Paper",
+        "canonical": "#FBF7EE",
+        "oklch": "oklch(97.7% 0.013 86.8)",
+        "tonalRamp": [
+          "#0D0B06",
+          "#28251E",
+          "#45423A",
+          "#646159",
+          "#86827A",
+          "#A8A59C",
+          "#CDC9C0",
+          "#F2EEE5"
+        ]
+      },
+      "paper-raised-dark": {
+        "role": "neutral",
+        "displayName": "Raised Paper (dark)",
+        "canonical": "#24201A",
+        "oklch": "oklch(24.6% 0.013 78.0)",
+        "tonalRamp": [
+          "#0E0B06",
+          "#28241E",
+          "#46413B",
+          "#656059",
+          "#87827A",
+          "#A9A49C",
+          "#CEC8C0",
+          "#F3EEE5"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#2A2119",
+        "oklch": "oklch(25.6% 0.020 63.4)",
+        "tonalRamp": [
+          "#110904",
+          "#2C231B",
+          "#4A4037",
+          "#6A5F56",
+          "#8B8076",
+          "#AEA398",
+          "#D3C7BC",
+          "#F9ECE1"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Ink (dark)",
+        "canonical": "#EEE5D5",
+        "oklch": "oklch(92.5% 0.023 82.1)",
+        "tonalRamp": [
+          "#100A02",
+          "#2B2418",
+          "#484134",
+          "#686052",
+          "#898173",
+          "#ACA495",
+          "#D1C8B8",
+          "#F6EDDD"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "#6B5D4F",
+        "oklch": "oklch(48.8% 0.028 67.1)",
+        "tonalRamp": [
+          "#130901",
+          "#2E2216",
+          "#4C3F32",
+          "#6C5E50",
+          "#8E7F71",
+          "#B2A293",
+          "#D6C6B6",
+          "#FCEBDB"
+        ]
+      },
+      "ink-muted-dark": {
+        "role": "neutral",
+        "displayName": "Faded Ink (dark)",
+        "canonical": "#B3A693",
+        "oklch": "oklch(73.1% 0.031 77.5)",
+        "tonalRamp": [
+          "#120900",
+          "#2D2314",
+          "#4B4030",
+          "#6B5F4E",
+          "#8D806E",
+          "#B0A390",
+          "#D5C7B4",
+          "#FAECD8"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#E2D7C3",
+        "oklch": "oklch(88.3% 0.029 82.6)",
+        "tonalRamp": [
+          "#110A00",
+          "#2C2414",
+          "#4A4130",
+          "#6A604E",
+          "#8B816F",
+          "#AEA491",
+          "#D3C8B4",
+          "#F8EDD9"
+        ]
+      },
+      "hairline-dark": {
+        "role": "neutral",
+        "displayName": "Hairline (dark)",
+        "canonical": "#3A332A",
+        "oklch": "oklch(32.6% 0.018 74.0)",
+        "tonalRamp": [
+          "#100A04",
+          "#2A241B",
+          "#484137",
+          "#686056",
+          "#898177",
+          "#ACA499",
+          "#D0C8BC",
+          "#F6EDE1"
+        ]
+      },
+      "control-edge": {
+        "role": "neutral",
+        "displayName": "Control Edge",
+        "canonical": "#958676",
+        "oklch": "oklch(62.9% 0.030 69.1)",
+        "tonalRamp": [
+          "#130901",
+          "#2F2215",
+          "#4D3F31",
+          "#6D5E4F",
+          "#8E8070",
+          "#B2A292",
+          "#D6C6B5",
+          "#FCEBDA"
+        ]
+      },
+      "control-edge-dark": {
+        "role": "neutral",
+        "displayName": "Control Edge (dark)",
+        "canonical": "#766A5C",
+        "oklch": "oklch(53.1% 0.026 71.5)",
+        "tonalRamp": [
+          "#120902",
+          "#2D2317",
+          "#4B4033",
+          "#6B5F51",
+          "#8C8072",
+          "#B0A394",
+          "#D4C7B7",
+          "#FAECDC"
+        ]
+      },
+      "on-bookcloth": {
+        "role": "neutral",
+        "displayName": "Text on Bookcloth",
+        "canonical": "#FFFFFF",
+        "oklch": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#A5A5A5",
+          "#C9C9C9",
+          "#EEEEEE"
+        ]
+      },
+      "on-bookcloth-dark": {
+        "role": "neutral",
+        "displayName": "Text on Bookcloth (dark)",
+        "canonical": "#1B1814",
+        "oklch": "oklch(21.1% 0.009 75.1)",
+        "tonalRamp": [
+          "#0D0B07",
+          "#282420",
+          "#45413D",
+          "#64615C",
+          "#86827C",
+          "#A8A49F",
+          "#CDC8C3",
+          "#F2EEE8"
+        ]
+      },
+      "moss": {
+        "role": "tertiary",
+        "displayName": "Moss",
+        "canonical": "#3F6B4A",
+        "oklch": "oklch(48.6% 0.072 151.0)",
+        "tonalRamp": [
+          "#001003",
+          "#002E11",
+          "#214D2D",
+          "#416D4C",
+          "#628F6C",
+          "#84B28E",
+          "#A7D7B1",
+          "#CCFDD6"
+        ]
+      },
+      "moss-dark": {
+        "role": "tertiary",
+        "displayName": "Moss (dark)",
+        "canonical": "#8DBF96",
+        "oklch": "oklch(75.8% 0.079 149.7)",
+        "tonalRamp": [
+          "#001002",
+          "#002E0F",
+          "#1E4D2A",
+          "#3F6E49",
+          "#609069",
+          "#82B38B",
+          "#A5D8AE",
+          "#CAFED3"
+        ]
+      },
+      "madder": {
+        "role": "tertiary",
+        "displayName": "Madder",
+        "canonical": "#A2322A",
+        "oklch": "oklch(48.4% 0.149 28.1)",
+        "tonalRamp": [
+          "#200000",
+          "#4D0001",
+          "#7F0809",
+          "#A5352D",
+          "#CC594D",
+          "#F47D6F",
+          "#FEB3A9",
+          "#FEE9E6"
+        ]
+      },
+      "madder-dark": {
+        "role": "tertiary",
+        "displayName": "Madder (dark)",
+        "canonical": "#E8857C",
+        "oklch": "oklch(72.1% 0.123 26.0)",
+        "tonalRamp": [
+          "#200000",
+          "#4D0004",
+          "#761D1C",
+          "#9B403B",
+          "#C1625B",
+          "#E8857C",
+          "#FEB3AB",
+          "#FEE9E6"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles; one h1 per page."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The book you are in."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "A club's book; the page field's figures."
+      },
+      "section-head": {
+        "displayName": "Section head",
+        "purpose": "Small-caps h2 over a hairline rule."
+      },
+      "reading": {
+        "displayName": "Reading",
+        "purpose": "Note bodies and long-form text."
+      },
+      "margin-figure": {
+        "displayName": "Margin figure",
+        "purpose": "Page numbers and meeting days in the 48px margin, old-style figures."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "UI text and metadata."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons and field labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "desk",
+        "value": "0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28)",
+        "purpose": "The one raised surface per screen (light)."
+      },
+      {
+        "name": "desk-dark",
+        "value": "0px 1px 2px rgba(0,0,0,0.5), 0px 12px 30px -14px rgba(0,0,0,0.7)",
+        "purpose": "The one raised surface per screen (dark)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ribbon-slide",
+        "value": "700ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The ribbon and read portion moving to a newly logged page; off under reduced motion."
+      },
+      {
+        "name": "cover-fade",
+        "value": "150ms",
+        "purpose": "Covers fading in as they load."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "wide",
+        "value": "1024px",
+        "purpose": "Main column plus a 320px side rail."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one filled action on a screen.",
+      "html": "<button class=\"ds-btn-primary\">Save</button>",
+      "css": ".ds-btn-primary { background: #8A3B2E; color: #FFFFFF; height: 48px; padding: 0 16px; border: 1px solid #8A3B2E; border-radius: 10px; font: 600 16px system-ui, sans-serif; cursor: pointer; transition: opacity .15s; } .ds-btn-primary:hover { opacity: .9; } .ds-btn-primary:focus-visible { outline: 2px solid #8A3B2E; outline-offset: 2px; } .ds-btn-primary:disabled { background: #E2D7C3; border-color: #E2D7C3; color: #6B5D4F; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Every other button.",
+      "html": "<button class=\"ds-btn-secondary\">Write a note</button>",
+      "css": ".ds-btn-secondary { background: #FBF7EE; color: #2A2119; height: 48px; padding: 0 16px; border: 1px solid #958676; border-radius: 10px; font: 600 16px system-ui, sans-serif; cursor: pointer; } .ds-btn-secondary:hover { border-color: #8A3B2E; } .ds-btn-secondary:focus-visible { outline: 2px solid #8A3B2E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Log sentence on the desk",
+      "kind": "input",
+      "refersTo": "desk",
+      "description": "The one raised surface: \"I'm on page [ ] of 320 · Save\".",
+      "html": "<div class=\"ds-desk\"><span>I’m on page</span><input class=\"ds-page\" placeholder=\"142\" aria-label=\"Page you have read up to\"><span>of 320</span><button class=\"ds-save\">Save</button></div>",
+      "css": ".ds-desk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: #FBF7EE; border: 1px solid #E2D7C3; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28); color: #2A2119; font: 16px system-ui, sans-serif; } .ds-page { width: 76px; height: 48px; text-align: center; font: 20px Literata, Georgia, serif; font-variant-numeric: tabular-nums; background: #F6F0E4; color: #2A2119; border: 1px solid #958676; border-radius: 10px; } .ds-page:focus { outline: none; border-color: #8A3B2E; box-shadow: 0 0 0 1px #8A3B2E; } .ds-save { height: 48px; padding: 0 16px; background: #8A3B2E; color: #FFFFFF; border: 0; border-radius: 10px; font-weight: 600; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Note scopes (tabs) and audiences (radios).",
+      "html": "<div class=\"ds-chips\"><button class=\"ds-chip\" aria-pressed=\"true\">All</button><button class=\"ds-chip\">Everyone’s</button><button class=\"ds-chip\">Mine</button></div>",
+      "css": ".ds-chips { display: flex; gap: 4px; } .ds-chip { height: 40px; padding: 0 12px; background: transparent; color: #6B5D4F; border: 1px solid #958676; border-radius: 6px; font: 600 14px system-ui, sans-serif; cursor: pointer; } .ds-chip[aria-pressed=true] { background: #F6F0E4; color: #2A2119; border-color: #8A3B2E; } .ds-chip:focus-visible { outline: 2px solid #8A3B2E; outline-offset: 2px; }"
+    },
+    {
+      "name": "Section head",
+      "kind": "custom",
+      "description": "Small-caps heading over a hairline rule, in place of a boxed card.",
+      "html": "<section class=\"ds-section\"><h2>Meetings</h2><p>Riddles in the dark · Fri 18:30</p></section>",
+      "css": ".ds-section { border-top: 1px solid #E2D7C3; padding-top: 12px; } .ds-section h2 { margin: 0 0 12px; font: 600 14px Literata, Georgia, serif; letter-spacing: 1.4px; text-transform: uppercase; color: #6B5D4F; } .ds-section p { margin: 0; font: 16px system-ui, sans-serif; color: #2A2119; }"
+    },
+    {
+      "name": "Marginal note",
+      "kind": "custom",
+      "description": "The page number in the margin, the reader's words in Literata.",
+      "html": "<div class=\"ds-note\"><div class=\"ds-fig\"><small>p.</small>98</div><div><div class=\"ds-meta\"><b>You</b> · Everyone · 1 min ago</div><p>Bilbo choosing to answer fairly is such a quiet bit of character.</p></div></div>",
+      "css": ".ds-note { display: flex; gap: 12px; } .ds-fig { width: 48px; flex: none; text-align: right; font: 20px/1.1 Literata, Georgia, serif; font-variant-numeric: oldstyle-nums; color: #2A2119; } .ds-fig small { display: block; font: 12px system-ui, sans-serif; color: #6B5D4F; } .ds-meta { font: 14px system-ui, sans-serif; color: #6B5D4F; } .ds-meta b { color: #2A2119; } .ds-note p { margin: 4px 0 0; font: 16px/1.6 Literata, Georgia, serif; color: #2A2119; }"
+    },
+    {
+      "name": "Book span",
+      "kind": "custom",
+      "description": "The book from first to last page, with the ribbon at your place.",
+      "html": "<div class=\"ds-span\" role=\"progressbar\" aria-valuenow=\"44\" aria-label=\"Page 142 of 320\"><div class=\"ds-line\"></div><div class=\"ds-read\"></div><svg class=\"ds-ribbon\" width=\"12\" height=\"26\" viewBox=\"0 0 12 26\" aria-hidden=\"true\"><path d=\"M0 0H12V26L6 20L0 26Z\" fill=\"#8A3B2E\"/></svg></div>",
+      "css": ".ds-span { position: relative; height: 34px; width: 280px; } .ds-line { position: absolute; left: 0; right: 0; top: 22px; height: 1px; background: #958676; } .ds-read { position: absolute; left: 0; top: 21px; height: 3px; width: 44%; border-radius: 2px; background: #8A3B2E; } .ds-ribbon { position: absolute; top: 2px; left: calc(44% - 6px); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Reading Journal",
+    "overview": "Every screen is a page of a well-kept reading journal. The book's own span is the organizing line: progress is drawn from the first page to the last with a bookcloth-red ribbon at your place, notes carry their page number in the margin like pencilled marginalia, and a \"you are here\" rule divides what you've read from what's ahead. The page is set in type, not boxed: small-caps section heads over hairline rules, generous space between sections, and exactly one raised surface (the desk) for the thing you came to do.\n\nIt is calm and dense in the way a good book is: one reading column with a narrow side rail on wide screens, warm paper in light, a dark study in dark mode, and nothing that blinks for attention. Color is almost entirely ink on paper; bookcloth red is spent on the ribbon, on \"you\", and on the single primary action of a screen.",
+    "keyCharacteristics": [
+      "Page numbers and dates live in a 48px margin column, in Literata with old-style figures.",
+      "One raised desk per screen; every other section is flat type over a hairline rule.",
+      "Bookcloth red marks where you are (ribbon, read portion, \"you\") and the one primary button.",
+      "Literata for headings, note text and figures; the system UI face for controls and metadata.",
+      "Light and dark are both first-class, from the same roles."
+    ],
+    "rules": [
+      {
+        "name": "The Ribbon Rule",
+        "body": "Bookcloth red means \"where you are\" or \"the one thing to do here\". If a screen has two filled red buttons, one of them is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Edges Rule",
+        "body": "Decoration takes the hairline; anything you can press or type into takes the control edge. Never swap them.",
+        "section": "colors"
+      },
+      {
+        "name": "The Marginalia Rule",
+        "body": "Page numbers and dates sit in the 48px left margin, right-aligned, in Literata old-style figures; they are never buried in a metadata line.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Eyebrow Rule",
+        "body": "No small label above a heading. A section head is the heading; a book title is its own heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Desk Rule",
+        "body": "A screen has at most one raised surface. If you're reaching for a second card, set it in type with a section head instead.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do give every screen one job on the desk and set everything else as flat sections under small-caps heads.",
+      "Do put page numbers, percentages and meeting dates in the margin column, in Literata old-style figures.",
+      "Do keep control edges at 3:1 and text at 4.5:1 in both themes; check with axe after changes.",
+      "Do draw icons and marks as SVG in the bookcloth/madder/moss roles."
+    ],
+    "donts": [
+      "Don't box sections in bordered cards or nest cards.",
+      "Don't put a label or eyebrow above a heading.",
+      "Don't use a colored side stripe on messages, list items or callouts; messages get a hairline edge and a drawn mark.",
+      "Don't use Unicode arrows or emoji as icons (emoji reactions are content, not icons).",
+      "Don't spend bookcloth red on more than the ribbon, \"you\" and one primary action per screen."
+    ]
+  }
+}

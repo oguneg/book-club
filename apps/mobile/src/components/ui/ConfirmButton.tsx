@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
+import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
 
 /** A button that asks before it acts: the first press shows the question and a confirm/cancel pair. */
@@ -12,6 +13,7 @@ export function ConfirmButton({
   onConfirm,
   variant = 'secondary',
   danger = false,
+  quiet = false,
 }: {
   label: string;
   question: string;
@@ -19,6 +21,8 @@ export function ConfirmButton({
   onConfirm: () => Promise<unknown>;
   variant?: 'primary' | 'secondary';
   danger?: boolean;
+  /** A text-style trigger, for rare actions that shouldn't look like buttons on the page. */
+  quiet?: boolean;
 }) {
   const { colors, fontSize, space } = useTheme();
   const { t } = useTranslation();
@@ -28,7 +32,11 @@ export function ConfirmButton({
   if (!asking) {
     return (
       <View style={{ alignSelf: 'flex-start' }}>
-        <Button variant={variant} label={label} onPress={() => setAsking(true)} />
+        {quiet ? (
+          <TextButton tone={danger ? 'danger' : 'accent'} label={label} onPress={() => setAsking(true)} />
+        ) : (
+          <Button variant={variant} label={label} onPress={() => setAsking(true)} />
+        )}
       </View>
     );
   }

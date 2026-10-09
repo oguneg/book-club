@@ -1,5 +1,6 @@
-// Design tokens: warm paper and ink, bookcloth red accent, Literata for reading text.
-// The full design pass comes later (docs/PLAN.md); screens use these tokens, never raw values.
+// Design tokens: a reading journal. Warm paper and ink, bookcloth red for the ribbon (where you are), "you" and
+// the one primary action per screen, Literata for headings, notes and marginal figures. Screens use these
+// tokens, never raw values.
 
 export interface Palette {
   background: string;
@@ -14,6 +15,10 @@ export interface Palette {
   onAccent: string;
   success: string;
   danger: string;
+  /** The one raised surface per screen (the "desk"): an offset, softly blurred shadow. */
+  deskShadow: string;
+  /** Selected text on the web. */
+  selection: string;
 }
 
 export const palettes: Record<'light' | 'dark', Palette> = {
@@ -28,6 +33,8 @@ export const palettes: Record<'light' | 'dark', Palette> = {
     onAccent: '#FFFFFF',
     success: '#3F6B4A',
     danger: '#A2322A',
+    deskShadow: '0px 1px 2px rgba(42, 33, 25, 0.06), 0px 10px 28px -14px rgba(42, 33, 25, 0.28)',
+    selection: 'rgba(138, 59, 46, 0.22)',
   },
   dark: {
     background: '#1B1814',
@@ -40,6 +47,8 @@ export const palettes: Record<'light' | 'dark', Palette> = {
     onAccent: '#1B1814',
     success: '#8DBF96',
     danger: '#E8857C',
+    deskShadow: '0px 1px 2px rgba(0, 0, 0, 0.5), 0px 12px 30px -14px rgba(0, 0, 0, 0.7)',
+    selection: 'rgba(217, 135, 111, 0.32)',
   },
 };
 
@@ -59,3 +68,6 @@ export const radius = { sm: 6, md: 10, lg: 16 } as const;
 
 /** Minimum touch target (iOS 44pt, Android 48dp). */
 export const minTouch = 48;
+
+/** Column widths: one reading column; on screens 1024px and wider, a main column with a side rail. */
+export const layout = { column: 600, narrow: 420, wide: 1060, rail: 320, wideFrom: 1024 } as const;

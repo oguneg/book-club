@@ -1,11 +1,12 @@
 import { isSpoilerFor, positionToPage, type NoteViewer } from '@bookclub/shared';
 import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useClubs } from '@/api/clubs';
 import { useNotes, type NoteScope } from '@/api/notes';
 import { noteErrorMessage } from '@/notes/errors';
-import { NoteCard } from '@/components/NoteCard';
+import Svg, { Path } from 'react-native-svg';
+import { MARGIN, NoteCard } from '@/components/NoteCard';
 import { NoteComposer, type Audience } from '@/components/NoteComposer';
 import { Button } from '@/components/ui/Button';
 import { Choice } from '@/components/ui/Choice';
@@ -72,6 +73,7 @@ export function Notes({ bookKey, readingId, club, publicOnly = false }: NotesPro
         ) : (
           <View style={{ alignSelf: 'flex-start' }}>
             <Button
+              variant="secondary"
               label={t('notes.write')}
               onPress={() => {
                 setMessage(undefined);
@@ -114,7 +116,7 @@ function NoteList({
   onMessage: (text: string) => void;
 }) {
   const { t } = useTranslation();
-  const { colors, space } = useTheme();
+  const { space } = useTheme();
   if (notes.length === 0) return <Hint>{empty}</Hint>;
   const firstAhead = viewer ? notes.findIndex((n) => isSpoilerFor(n.position, viewer)) : -1;
 
@@ -124,7 +126,7 @@ function NoteList({
       {notes.map((n, i) => (
         <Fragment key={n.id}>
           {i === firstAhead && viewer && <YouAreHere viewer={viewer} />}
-          <View style={{ paddingVertical: space.md, borderTopWidth: i === 0 || i === firstAhead ? 0 : StyleSheet.hairlineWidth, borderTopColor: colors.border }}>
+          <View style={{ paddingVertical: space.md }}>
             <NoteCard note={n} viewer={viewer} {...shared} />
           </View>
         </Fragment>
@@ -133,18 +135,23 @@ function NoteList({
   );
 }
 
-/** The line between notes the viewer has reached and notes ahead of them. */
+/** Where the viewer is: the bookmark ribbon in the margin, and a red line across the page. Notes below it are ahead. */
 function YouAreHere({ viewer }: { viewer: NoteViewer }) {
   const { t } = useTranslation();
-  const { colors, fontSize, space } = useTheme();
-  const rule = { flex: 1, height: 1, backgroundColor: colors.accent, opacity: 0.5 };
+  const { colors, fonts, fontSize, space } = useTheme();
   return (
-    <View accessibilityRole="header" aria-level={3} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginVertical: space.sm }}>
-      <View style={rule} />
-      <Text style={{ color: colors.accent, fontSize: fontSize.xs, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' }}>
-        {t('notes.youAreHere', { page: positionToPage(viewer.position, viewer) })}
-      </Text>
-      <View style={rule} />
+    <View accessibilityRole="header" aria-level={3} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, marginVertical: space.sm }}>
+      <View aria-hidden style={{ width: MARGIN, alignItems: 'flex-end' }}>
+        <Svg width={12} height={22} viewBox="0 0 12 22">
+          <Path d="M0 0 H12 V22 L6 17 L0 22 Z" fill={colors.accent} />
+        </Svg>
+      </View>
+      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+        <Text style={{ color: colors.accent, fontFamily: fonts.heading, fontSize: fontSize.sm, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+          {t('notes.youAreHere', { page: positionToPage(viewer.position, viewer) })}
+        </Text>
+        <View aria-hidden style={{ flex: 1, height: 1, backgroundColor: colors.accent }} />
+      </View>
     </View>
   );
 }

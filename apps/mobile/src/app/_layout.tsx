@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { authClient } from '@/auth/client';
 import { CrashScreen } from '@/components/CrashScreen';
+import { WebChrome } from '@/components/WebChrome';
 import { installCrashReporting } from '@/monitoring/crashes';
 import { ThemeProvider, useTheme } from '@/theme';
 
@@ -66,6 +67,7 @@ function Navigator() {
   return (
     <>
       <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
+      <WebChrome />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.colors.background } }}>
         <Stack.Protected guard={signedIn}>
           <Stack.Screen name="(app)" />
