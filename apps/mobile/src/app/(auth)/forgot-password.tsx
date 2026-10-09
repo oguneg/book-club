@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage } from '@/auth/errors';
-import { AuthLayout } from '@/components/AuthLayout';
+import { FormLayout } from '@/components/FormLayout';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { TextField } from '@/components/ui/TextField';
@@ -36,7 +36,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <AuthLayout title={t('auth.forgot.title')} subtitle={t('auth.forgot.subtitle')}>
+    <FormLayout title={t('auth.forgot.title')} subtitle={t('auth.forgot.subtitle')}>
       {error && <Notice message={error} />}
       <TextField
         label={t('common.email')}
@@ -53,6 +53,6 @@ export default function ForgotPassword() {
       />
       <Button label={t('auth.forgot.submit')} onPress={submit} loading={busy} disabled={!email} />
       <TextLink href="/sign-in" label={t('common.backToSignIn')} />
-    </AuthLayout>
+    </FormLayout>
   );
 }

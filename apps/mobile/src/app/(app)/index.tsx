@@ -44,6 +44,10 @@ export default function Home() {
         <Text style={{ fontSize: fontSize.md, lineHeight: fontSize.md * 1.5, color: colors.textMuted }}>{t('home.emptyBody')}</Text>
       </View>
 
+      <View style={{ marginTop: space.lg }}>
+        <TextLink href="/books" label={t('home.findBook')} />
+      </View>
+
       <View style={{ marginTop: space.xl, alignSelf: 'flex-start' }}>
         <Button
           label={t('home.signOut')}

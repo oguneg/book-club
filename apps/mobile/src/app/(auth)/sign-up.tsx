@@ -6,7 +6,7 @@ import type { TextInput } from 'react-native';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage } from '@/auth/errors';
-import { AuthLayout, OrDivider } from '@/components/AuthLayout';
+import { FormLayout, OrDivider } from '@/components/FormLayout';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
@@ -71,7 +71,7 @@ export default function SignUp() {
   }
 
   return (
-    <AuthLayout title={t('auth.signUp.title')} subtitle={t('auth.signUp.subtitle')}>
+    <FormLayout title={t('auth.signUp.title')} subtitle={t('auth.signUp.subtitle')}>
       {error && <Notice message={error} />}
       {config.data?.google && (
         <>
@@ -121,6 +121,6 @@ export default function SignUp() {
       />
       <Button label={t('auth.signUp.submit')} onPress={submit} loading={busy} />
       <TextLink href="/sign-in" label={`${t('auth.signUp.haveAccount')} ${t('auth.signUp.signIn')}`} />
-    </AuthLayout>
+    </FormLayout>
   );
 }

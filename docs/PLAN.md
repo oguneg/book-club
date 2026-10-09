@@ -10,13 +10,13 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 - [x] **1. Email + password:** sign up, sign in, sign out, confirm email, forgot password, display name. 10+ character passwords, leaked-password check, rate-limited sign-in. Locally, emails are written to the server log.
 - [x] **2. Real email on staging:** Resend, sending from `noreply@mail.ogun.se`.
 - [x] **3. Google sign-in:** same account when the email matches an existing one.
-- [ ] **4. Account management:** change password, download my data, delete my account.
+- [x] **4. Account management:** change password, download my data, delete my account.
 
 ## Phase B: the book club (web)
 
-- [ ] **5. Books:** search by title/ISBN with cache (Google Books, Open Library fallback), cover proxy, manual entry, edition picker with page-count confirmation. ISBN is typed on web; the barcode scanner comes with iOS.
+- [ ] **5. Books:** search by title (Open Library works → their editions) or ISBN (Google Books, then Open Library), all cached; cover proxy; manual entry. ISBN is typed on web; the barcode scanner comes with iOS. Confirming your copy's page numbers moved to step 7, where it's saved with your reading.
 - [ ] **6. Clubs:** create, invite link and code (rotate), join, members and roles, remove a member, leave, transfer ownership, set the club book, finish date and meetings, past books.
-- [ ] **7. Progress:** pick your edition, log a page or %, offline queue, history, club chart (positions + pace line + over time, with a text equivalent), live updates over WebSocket.
+- [ ] **7. Progress:** pick your edition and confirm its page numbers (first and last page of the story), log a page or %, offline queue, history, club chart (positions + pace line + over time, with a text equivalent), live updates over WebSocket.
 - [ ] **8. Notes:** notes on a page, list by position with "≈ p.N" mapping, spoiler blur and tap to reveal, replies, reactions, edit/delete, report, block, owner moderation. Activity shows in the app; no push or email notifications on web for now.
 
 ## Phase C: go live on web
@@ -35,7 +35,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 - [x] Expo account, project linked.
 - [x] Resend account; sending-only API key on the VPS.
 - [x] Google Cloud project: consent screen (Testing, test users added), web OAuth client; secret on the VPS.
-- [ ] Google Books API key, same Cloud project (step 5).
+- [ ] Google Books API key, same Cloud project (step 5): enable the Books API, create a key restricted to it, put it on the VPS as `GOOGLE_BOOKS_API_KEY`.
 - [ ] Object storage bucket for backups (step 9).
 - [ ] Error tracking account, e.g. Sentry free tier (step 9).
 - [ ] Later: Apple Developer setup (iOS), Google Play Console (Android).

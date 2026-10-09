@@ -64,10 +64,13 @@ deploy/          update.sh, backup scripts, compose files
 
 ## Books and editions
 
-- `GET /api/books/search?q=` and `GET /api/books/isbn/:isbn`: the server calls Google Books (API key stays on the server), falls back to Open Library, and **caches every result** (including "not found") in the `edition` table. That cache is what keeps us under Google's default quota of about 1,000 requests a day.
-- Cover images are proxied and cached on disk by the server, so clients never hotlink third parties.
-- Manual entry (title, author, page count) when a lookup fails.
-- The barcode scanner reads EAN-13 codes starting with 978/979. On web, ISBN entry is typed (scanning only where the browser supports it).
+- **Search** (`GET /api/books/search?q=`) asks Open Library for *works* (a book across all its editions), so the next step can list a work's editions (`GET /api/books/works/:key`, up to 100, stored as `edition` rows with our own ids). The app sorts editions in the reader's languages first and filters them as you type.
+- **ISBN** (`GET /api/books/isbn/:isbn`, ISBN-10 or -13, checksum validated): known locally, else Google Books (key stays on the server, ~1,000 requests a day by default), else Open Library. "Nobody knows this ISBN" is remembered for a week.
+- **Caching:** provider answers live in `book_cache` (searches and edition lists for 7 days, work summaries 30), editions in `edition`. Repeat questions never reach a provider.
+- **Covers** (`GET /api/covers/:key`): keys are `ol-<id>-<S|M|L>` or `g-<volumeId>`, validated before the server builds the provider URL itself (no user-supplied URLs, so no SSRF). Images are fetched once, stored in Postgres (`cover`, so backups include them), and served with immutable cache headers. Only JPEG/PNG/GIF/WebP up to 2 MB.
+- **Manual entry** (`POST /api/books/editions`) when no source knows the book: title, authors, page count, optional publisher/year/ISBN.
+- Book routes need a session and are rate-limited per user (60 requests and 300 covers a minute), protecting the providers' quotas.
+- The barcode scanner (EAN-13, 978/979) comes with the iOS step; on web the ISBN is typed.
 
 ## Position model (the core idea)
 
@@ -90,7 +93,9 @@ All of this lives in `packages/shared` with unit tests.
 | Table | Key columns |
 |---|---|
 | `user`, `session`, `account`, `verification` | Better Auth's tables; `user` also has display name and avatar |
-| `edition` | isbn13 (unique, nullable for manual), isbn10, title, subtitle, authors[], publisher, published, page_count, cover, language, source + source_id, work_key, fetched_at |
+| `edition` | source (openlibrary/google/manual) + source_id (unique), isbn13, title, subtitle, authors[], publisher, published, page_count, language (ISO 639-2), work_key, cover, created_by |
+| `book_cache` | key (`search:…`, `work:…`, `editions:…`, `isbn-missing:…`), value, fetched_at |
+| `cover` | key, content_type, bytes (null = provider has none), fetched_at |
 | `club` | name, description, owner_id, invite_code, member_cap, created_at |
 | `club_member` | club_id, user_id, role (owner/admin/member), joined_at, left_at |
 | `club_book` | club_id, reference edition_id, status (upcoming/current/finished), start_date, finish_date |

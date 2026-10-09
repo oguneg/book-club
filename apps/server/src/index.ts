@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server';
 import pino from 'pino';
 import { createApp } from './app';
 import { createAuth } from './auth';
+import { createBookService } from './books/service';
 import { connectPglite, connectPostgres } from './db/client';
 import { logMailer, resendMailer } from './email/mailer';
 import { loadEnv } from './env';
@@ -19,11 +20,19 @@ const mailer =
     : logMailer(log);
 const auth = createAuth({ env, db: database.db, mailer, log });
 log.info(
-  { email: env.EMAIL_TRANSPORT, google: Boolean(env.GOOGLE_CLIENT_ID), publicUrl: env.PUBLIC_URL, appUrl: env.APP_URL },
+  {
+    email: env.EMAIL_TRANSPORT,
+    google: Boolean(env.GOOGLE_CLIENT_ID),
+    googleBooks: Boolean(env.GOOGLE_BOOKS_API_KEY),
+    publicUrl: env.PUBLIC_URL,
+    appUrl: env.APP_URL,
+  },
   'auth ready',
 );
 
-const app = createApp({ env, database, auth, log });
+const books = createBookService({ db: database.db, fetch, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
+
+const app = createApp({ env, database, auth, books, log });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {
   log.info({ port: info.port }, 'listening');
 });

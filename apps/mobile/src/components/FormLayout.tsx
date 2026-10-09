@@ -5,8 +5,8 @@ import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { useTheme } from '@/theme';
 
-/** Frame for the signed-out pages: brand, page title, optional subtitle, then the form. */
-export function AuthLayout({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+/** Frame for single-form pages (sign-in, recovery, adding a book): brand, page title, optional subtitle, then the form. */
+export function FormLayout({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { colors, fonts, fontSize, space } = useTheme();
   const { t } = useTranslation();
   return (

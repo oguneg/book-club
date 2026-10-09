@@ -7,7 +7,7 @@ import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
 import { takeFlash } from '@/auth/flash';
-import { AuthLayout, OrDivider } from '@/components/AuthLayout';
+import { FormLayout, OrDivider } from '@/components/FormLayout';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
@@ -61,7 +61,7 @@ export default function SignIn() {
   }
 
   return (
-    <AuthLayout title={t('auth.signIn.title')} subtitle={t('auth.signIn.subtitle')}>
+    <FormLayout title={t('auth.signIn.title')} subtitle={t('auth.signIn.subtitle')}>
       {deleted && <Notice tone="info" message={t('auth.signIn.accountDeleted')} />}
       {error && <Notice message={error} />}
       {config.data?.google && (
@@ -99,6 +99,6 @@ export default function SignIn() {
         <TextLink href={{ pathname: '/forgot-password', params: email ? { email } : {} }} label={t('auth.signIn.forgot')} />
         <TextLink href="/sign-up" label={`${t('auth.signIn.noAccount')} ${t('auth.signIn.createAccount')}`} />
       </View>
-    </AuthLayout>
+    </FormLayout>
   );
 }

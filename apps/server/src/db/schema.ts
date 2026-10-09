@@ -1,6 +1,12 @@
 // Drizzle schema. Tables arrive stage by stage; see docs/ARCHITECTURE.md, "Data model".
 // After changing it, run `npm run db:generate -w @bookclub/server` and commit the new migration.
-import { boolean, index, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { boolean, customType, index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+
+const bytea = customType<{ data: Buffer; driverData: Buffer | Uint8Array }>({
+  dataType: () => 'bytea',
+  fromDriver: (value) => Buffer.from(value),
+});
 
 // Accounts: the tables Better Auth expects (property names are its field names).
 const timestamps = {
@@ -74,3 +80,49 @@ export const verification = pgTable(
   },
   (table) => [index('verification_identifier_idx').on(table.identifier)],
 );
+
+// Books. Editions are what members hold; rows come from Open Library, Google Books or manual entry.
+export const edition = pgTable(
+  'edition',
+  {
+    id: text('id').primaryKey(),
+    source: text('source', { enum: ['openlibrary', 'google', 'manual'] }).notNull(),
+    /** The provider's id (Open Library edition "OL…M", Google volume id); null for manual entries. */
+    sourceId: text('source_id'),
+    isbn13: text('isbn13'),
+    title: text('title').notNull(),
+    subtitle: text('subtitle'),
+    authors: text('authors').array().notNull().default(sql`'{}'::text[]`),
+    publisher: text('publisher'),
+    published: text('published'),
+    pageCount: integer('page_count'),
+    language: text('language'),
+    /** Open Library work ("OL…W") this edition belongs to, when known. */
+    workKey: text('work_key'),
+    /** Key for /api/covers/:key, or null. */
+    cover: text('cover'),
+    /** Who typed in a manual entry. */
+    createdBy: text('created_by').references(() => user.id, { onDelete: 'set null' }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex('edition_source_uidx').on(table.source, table.sourceId),
+    index('edition_isbn13_idx').on(table.isbn13),
+    index('edition_work_key_idx').on(table.workKey),
+  ],
+);
+
+/** Provider answers (searches, edition lists, ISBN lookups), so repeat questions never reach the quota. */
+export const bookCache = pgTable('book_cache', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Cover images, fetched once from the provider and served from here. `bytes` null = the provider has none. */
+export const cover = pgTable('cover', {
+  key: text('key').primaryKey(),
+  contentType: text('content_type'),
+  bytes: bytea('bytes'),
+  fetchedAt: timestamp('fetched_at', { withTimezone: true }).notNull().defaultNow(),
+});

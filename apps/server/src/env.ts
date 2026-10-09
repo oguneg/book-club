@@ -32,6 +32,8 @@ const schema = z
     BETTER_AUTH_SECRET: z.string().min(32).optional(),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
+    /** Google Books API key (ISBN lookups). Without it, ISBNs are looked up on Open Library only. */
+    GOOGLE_BOOKS_API_KEY: z.string().optional(),
     /** `log` writes emails (with their links) to the server log; `resend` sends them. */
     EMAIL_TRANSPORT: z.enum(['log', 'resend']).optional(),
     RESEND_API_KEY: z.string().optional(),

@@ -5,14 +5,17 @@ import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import type { Logger } from 'pino';
 import type { Auth } from './auth';
+import type { BookService } from './books/service';
 import type { Database } from './db/client';
 import type { Env } from './env';
 import { accountRoutes } from './routes/account';
+import { bookRoutes } from './routes/books';
 
 export interface AppDeps {
   env: Env;
   database: Database;
   auth: Auth;
+  books: BookService;
   log: Logger;
 }
 
@@ -24,7 +27,7 @@ function cacheControlFor(path: string): string {
   return 'public, max-age=3600';
 }
 
-export function createApp({ env, database, auth, log }: AppDeps) {
+export function createApp({ env, database, auth, books, log }: AppDeps) {
   const app = new Hono();
 
   app.use(async (c, next) => {
@@ -42,6 +45,8 @@ export function createApp({ env, database, auth, log }: AppDeps) {
 
   app.use(
     secureHeaders({
+      // same-site, not same-origin: in development the web app (:8081) loads covers from the API (:8787).
+      crossOriginResourcePolicy: 'same-site',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],
         scriptSrc: ["'self'"],
@@ -83,6 +88,7 @@ export function createApp({ env, database, auth, log }: AppDeps) {
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 
   app.route('/api/account', accountRoutes({ auth, db: database.db }));
+  app.route('/api', bookRoutes({ auth, books }));
 
   app.all('/api/*', (c) => c.json({ error: 'not_found' }, 404));
 

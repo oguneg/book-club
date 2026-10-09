@@ -20,7 +20,8 @@
     "emptyTitle": "Your clubs will live here",
     "emptyBody": "Creating and joining clubs comes in a later step. For now you're signed in, and that's what this step is for.",
     "signOut": "Sign out",
-    "account": "Account"
+    "account": "Account",
+    "findBook": "Find a book"
   },
   "auth": {
     "google": "Continue with Google",
@@ -158,5 +159,59 @@
     "reauthTitle": "Sign in again first",
     "reauthBody": "For your security, deleting an account without a password needs a sign-in from the last 24 hours. Sign out, sign in with Google again, then come back here.",
     "reauthAction": "Sign out now"
+  },
+  "books": {
+    "title": "Find a book",
+    "searchLabel": "Title, author or ISBN",
+    "searchHint": "The ISBN is on the back cover, above the barcode.",
+    "searching": "Searching…",
+    "noResults": "No books found for \"{{query}}\".",
+    "isbnNotFound": "No book found with ISBN {{isbn}}.",
+    "isbnInvalid": "That ISBN isn't valid. Check the digits.",
+    "providerDown": "The book catalogue isn't answering right now. Try again in a minute.",
+    "rateLimited": "Slow down a little, then try again.",
+    "editions_one": "{{count}} edition",
+    "editions_other": "{{count}} editions",
+    "firstPublished": "First published {{year}}",
+    "addManually": "Add a book by hand",
+    "cantFind": "Can't find it?",
+    "workTitle": "Editions",
+    "chooseEdition": "Which edition do you have? Different editions have different page numbers.",
+    "filterLabel": "Filter by publisher, year, language or ISBN",
+    "noEditions": "No editions match.",
+    "notListed": "Don't see yours? Search for its ISBN instead, or add it by hand.",
+    "searchIsbn": "Search by ISBN",
+    "pages_one": "{{count}} page",
+    "pages_other": "{{count}} pages",
+    "pagesUnknown": "Page count unknown",
+    "edition": {
+      "by": "by {{authors}}",
+      "publisher": "Publisher",
+      "published": "Published",
+      "pages": "Pages",
+      "isbn": "ISBN",
+      "language": "Language",
+      "source_openlibrary": "Book data from Open Library.",
+      "source_google": "Book data from Google Books.",
+      "source_manual": "Added by hand by a reader.",
+      "otherEditions": "Other editions of this book",
+      "clubsNote": "Clubs come in the next step: there you'll choose this edition for a club, and confirm its page numbers when you start reading.",
+      "details": "This edition"
+    },
+    "manual": {
+      "title": "Add a book by hand",
+      "subtitle": "For books the catalogues don't know. Other readers can find it by its ISBN afterwards.",
+      "bookTitle": "Title",
+      "authors": "Author(s)",
+      "authorsHint": "Separate several authors with commas.",
+      "pageCount": "Number of pages",
+      "pageCountHint": "The last numbered page of the story.",
+      "publisher": "Publisher (optional)",
+      "year": "Year (optional)",
+      "isbn": "ISBN (optional)",
+      "submit": "Add book",
+      "required": "Required.",
+      "pagesInvalid": "Enter a whole number of pages."
+    }
   }
 }

@@ -49,6 +49,7 @@ describe('api', () => {
     const res = await appWith().request('/api/health');
     expect(res.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
     expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('cross-origin-resource-policy')).toBe('same-site');
   });
 
   it('keeps staging out of search engines', async () => {

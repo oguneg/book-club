@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { authClient } from '@/auth/client';
 import { authErrorMessage } from '@/auth/errors';
-import { AuthLayout } from '@/components/AuthLayout';
+import { FormLayout } from '@/components/FormLayout';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { TextLink } from '@/components/ui/TextLink';
@@ -35,22 +35,22 @@ export default function ResetPassword() {
 
   if (state === 'invalid') {
     return (
-      <AuthLayout title={t('auth.reset.invalidTitle')} subtitle={t('auth.reset.invalidBody')}>
+      <FormLayout title={t('auth.reset.invalidTitle')} subtitle={t('auth.reset.invalidBody')}>
         <Button label={t('auth.reset.askAgain')} onPress={() => router.replace('/forgot-password')} />
-      </AuthLayout>
+      </FormLayout>
     );
   }
 
   if (state === 'done') {
     return (
-      <AuthLayout title={t('auth.reset.doneTitle')} subtitle={t('auth.reset.doneBody')}>
+      <FormLayout title={t('auth.reset.doneTitle')} subtitle={t('auth.reset.doneBody')}>
         <Button label={t('auth.signIn.submit')} onPress={() => router.replace('/sign-in')} />
-      </AuthLayout>
+      </FormLayout>
     );
   }
 
   return (
-    <AuthLayout title={t('auth.reset.title')}>
+    <FormLayout title={t('auth.reset.title')}>
       <TextField
         label={t('auth.reset.newPassword')}
         hint={t('auth.signUp.passwordHint', { min: MIN_PASSWORD_LENGTH })}
@@ -65,6 +65,6 @@ export default function ResetPassword() {
       />
       <Button label={t('auth.reset.submit')} onPress={submit} loading={busy} disabled={!password} />
       <TextLink href="/sign-in" label={t('common.backToSignIn')} />
-    </AuthLayout>
+    </FormLayout>
   );
 }

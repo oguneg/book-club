@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import pino from 'pino';
 import { createApp } from '../app';
 import { createAuth } from '../auth';
+import type { Fetch } from '../books/providers';
+import { createBookService } from '../books/service';
 import { connectPglite, connectPostgres, type Database } from '../db/client';
 import type { EmailMessage, Mailer } from '../email/mailer';
 import { loadEnv } from '../env';
@@ -40,10 +42,21 @@ export function captureMailer() {
   return { sent, mailer, lastTo };
 }
 
-export function testApp(database: Database, vars: Record<string, string> = {}, mailer: Mailer = captureMailer().mailer) {
+/** Tests never reach real book providers: unless a test passes its own fetch, any call fails loudly. */
+const noNetwork: Fetch = async (input) => {
+  throw new Error(`unexpected network call in test: ${String(input)}`);
+};
+
+export function testApp(
+  database: Database,
+  vars: Record<string, string> = {},
+  mailer: Mailer = captureMailer().mailer,
+  fetchFn: Fetch = noNetwork,
+) {
   const env = loadEnv({ APP_ENV: 'test', GIT_COMMIT: 'abc1234', ...vars });
   const auth = createAuth({ env, db: database.db, mailer, log });
-  return { env, auth, app: createApp({ env, database, auth, log }) };
+  const books = createBookService({ db: database.db, fetch: fetchFn, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
+  return { env, auth, books, app: createApp({ env, database, auth, books, log }) };
 }
 
 /** A unique address per test, so tests can share one database (CI) without colliding. */

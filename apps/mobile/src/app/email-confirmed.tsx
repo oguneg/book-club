@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { AuthLayout } from '@/components/AuthLayout';
+import { FormLayout } from '@/components/FormLayout';
 import { Button } from '@/components/ui/Button';
 
 // The confirmation link in the sign-up email lands here, already signed in (or with ?error= when the
@@ -11,15 +11,15 @@ export default function EmailConfirmed() {
 
   if (error) {
     return (
-      <AuthLayout title={t('auth.confirmed.invalidTitle')} subtitle={t('auth.confirmed.invalidBody')}>
+      <FormLayout title={t('auth.confirmed.invalidTitle')} subtitle={t('auth.confirmed.invalidBody')}>
         <Button label={t('auth.signIn.submit')} onPress={() => router.replace('/sign-in')} />
-      </AuthLayout>
+      </FormLayout>
     );
   }
 
   return (
-    <AuthLayout title={t('auth.confirmed.title')} subtitle={t('auth.confirmed.body')}>
+    <FormLayout title={t('auth.confirmed.title')} subtitle={t('auth.confirmed.body')}>
       <Button label={t('common.continue')} onPress={() => router.replace('/')} />
-    </AuthLayout>
+    </FormLayout>
   );
 }

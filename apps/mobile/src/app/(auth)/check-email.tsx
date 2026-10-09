@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Text } from 'react-native';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage } from '@/auth/errors';
-import { AuthLayout } from '@/components/AuthLayout';
+import { FormLayout } from '@/components/FormLayout';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { TextLink } from '@/components/ui/TextLink';
@@ -42,7 +42,7 @@ export default function CheckEmail() {
   }
 
   return (
-    <AuthLayout title={t('auth.checkEmail.title')} subtitle={t(`auth.checkEmail.${reason}`, { email })}>
+    <FormLayout title={t('auth.checkEmail.title')} subtitle={t(`auth.checkEmail.${reason}`, { email })}>
       {notice && <Notice message={notice.message} tone={notice.tone} />}
       <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{t('auth.checkEmail.spam')}</Text>
       {canResend && (
@@ -55,6 +55,6 @@ export default function CheckEmail() {
         />
       )}
       <TextLink href={{ pathname: '/sign-in', params: email ? { email } : {} }} label={t('common.backToSignIn')} />
-    </AuthLayout>
+    </FormLayout>
   );
 }
