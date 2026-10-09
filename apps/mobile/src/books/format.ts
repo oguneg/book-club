@@ -50,3 +50,18 @@ export function sortByLanguage<T extends { language: string | null }>(editions: 
   };
   return [...editions].sort((a, b) => rank(a) - rank(b));
 }
+
+/**
+ * From editions already in preference order, a typical copy to read: among those with a page count in the
+ * first such edition's language, the one closest to the book's median length, so an abridged edition or an
+ * omnibus isn't the default. The median counts every language: translations run about as long, and a
+ * reader's own language often has only a couple of editions with a page count. Ties keep the given order.
+ */
+export function typicalEdition<T extends { language: string | null; pageCount: number | null }>(sorted: T[]): T | undefined {
+  const counted = sorted.filter((e) => e.pageCount);
+  if (counted.length === 0) return sorted[0];
+  const same = counted.filter((e) => e.language === counted[0]!.language);
+  const pages = counted.map((e) => e.pageCount!).sort((a, b) => a - b);
+  const median = pages[Math.floor((pages.length - 1) / 2)]!;
+  return same.reduce((best, e) => (Math.abs(e.pageCount! - median) < Math.abs(best.pageCount! - median) ? e : best));
+}

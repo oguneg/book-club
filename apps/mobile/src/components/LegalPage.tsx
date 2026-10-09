@@ -4,7 +4,7 @@ import { Linking, Text, View } from 'react-native';
 import { CONTACT_EMAIL, type LegalDocument } from '@/legal/content';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
-import { BackLink } from '@/components/ui/BackLink';
+import { BackButton } from '@/components/ui/BackButton';
 import { TextLink } from '@/components/ui/TextLink';
 import { useTheme } from '@/theme';
 
@@ -17,7 +17,7 @@ export function LegalPage({ doc }: { doc: LegalDocument }) {
   return (
     <Screen>
       <PageTitle title={doc.title} />
-      <BackLink href="/" label={t('appName')} />
+      <BackButton label={t('common.back')} fallback="/" />
       <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, color: colors.text }}>
         {doc.title}
       </Text>

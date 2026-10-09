@@ -102,7 +102,7 @@ export function Notes({ bookKey, readingId, club, publicOnly = false }: NotesPro
   );
 }
 
-function NoteList({
+export function NoteList({
   viewer,
   notes,
   empty,
@@ -152,6 +152,31 @@ function YouAreHere({ viewer }: { viewer: NoteViewer }) {
         </Text>
         <View aria-hidden style={{ flex: 1, height: 1, backgroundColor: colors.accent }} />
       </View>
+    </View>
+  );
+}
+
+/**
+ * Every note you may see on a book (or one club's), in book order with your place marked. No filters, no
+ * composer: writing happens in the "+ Note" sheet.
+ */
+export function NotesFeed({ bookKey, scope, title }: { bookKey: string; scope: NoteScope; title: string }) {
+  const { t } = useTranslation();
+  const { colors, fonts, fontSize, space } = useTheme();
+  const query = useNotes(bookKey, scope);
+  const [message, setMessage] = useState<string>();
+  const count = query.data?.notes.length ?? 0;
+  return (
+    <View style={{ gap: space.sm }}>
+      <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text }}>
+        {count > 0 ? `${title} · ${count}` : title}
+      </Text>
+      {message && <Notice tone="info" message={message} />}
+      {query.isPending && <ActivityIndicator color={colors.accent} />}
+      {query.isError && <Notice message={noteErrorMessage(t, query.error)} />}
+      {query.data && (
+        <NoteList {...query.data} bookKey={bookKey} now={query.dataUpdatedAt} onMessage={setMessage} empty={t('notes.feed.empty')} />
+      )}
     </View>
   );
 }

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmButton } from '@/components/ui/ConfirmButton';
 import { Notice } from '@/components/ui/Notice';
 import { Hint, Section } from '@/components/ui/Section';
+import { TextButton } from '@/components/ui/TextButton';
 import { TextField } from '@/components/ui/TextField';
 import { useTheme } from '@/theme';
 
@@ -32,6 +33,7 @@ export default function ClubSettings() {
       {club.isError && <Notice message={clubErrorMessage(t, club.error)} />}
       {club.data && (
         <View style={{ gap: space.lg, marginTop: space.xl }}>
+          {roleAtLeast(club.data.myRole, 'admin') && <BookTools club={club.data} />}
           {roleAtLeast(club.data.myRole, 'admin') && <Details key={club.data.id} club={club.data} />}
           <LeaveOrDelete club={club.data} />
         </View>
@@ -109,6 +111,37 @@ function LeaveOrDelete({ club }: { club: ClubDetail }) {
           onConfirm={attempt(actions.leave)}
         />
       )}
+    </Section>
+  );
+}
+
+/** The club's book and schedule, for owners and admins: choose or change the book, its dates, meetings, finish it. */
+function BookTools({ club }: { club: ClubDetail }) {
+  const { t } = useTranslation();
+  const { space } = useTheme();
+  const actions = useClubActions(club.id);
+  const [error, setError] = useState<string>();
+  const pick = () => router.push({ pathname: '/books', params: { pick: `club:${club.id}` } });
+  return (
+    <Section title={t('clubs.settings.book')}>
+      {error && <Notice message={error} />}
+      <View style={{ gap: space.xs, alignItems: 'flex-start' }}>
+        <TextButton label={club.currentBook ? t('clubs.club.changeBook') : t('clubs.club.chooseBook')} onPress={pick} />
+        {club.currentBook && (
+          <>
+            <TextButton label={t('clubs.club.changeDates')} onPress={() => router.push({ pathname: '/clubs/[id]/book', params: { id: club.id } })} />
+            <TextButton label={t('clubs.club.planMeeting')} onPress={() => router.push({ pathname: '/clubs/[id]/meeting', params: { id: club.id } })} />
+            <ConfirmButton
+              quiet
+              label={t('clubs.club.finish')}
+              question={t('clubs.club.finishQuestion')}
+              confirmLabel={t('clubs.club.finishConfirm')}
+              onConfirm={() => actions.finishBook().catch((err) => setError(clubErrorMessage(t, err)))}
+            />
+          </>
+        )}
+        <ConfirmButton quiet label={t('clubs.club.newLink')} question={t('clubs.club.newLinkQuestion')} confirmLabel={t('clubs.club.newLinkConfirm')} onConfirm={() => actions.rotateInvite()} />
+      </View>
     </Section>
   );
 }

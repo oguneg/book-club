@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatAuthors, preferredLanguages, publishedYear, sortByLanguage } from './format';
+import { formatAuthors, preferredLanguages, publishedYear, sortByLanguage, typicalEdition } from './format';
 
 describe('book formatting', () => {
   it('shortens long author lists', () => {
@@ -28,5 +28,34 @@ describe('book formatting', () => {
       preferred,
     );
     expect(sorted.map((e) => e.id)).toEqual([4, 2, 5, 1, 3]);
+  });
+
+  it('starts you on a typical edition, not an abridged one or an omnibus', () => {
+    const pick = (editions: { id: number; language: string | null; pageCount: number | null }[]) => typicalEdition(editions)?.id;
+    expect(
+      pick([
+        { id: 1, language: 'eng', pageCount: 114 },
+        { id: 2, language: 'eng', pageCount: 280 },
+        { id: 3, language: 'eng', pageCount: null },
+        { id: 4, language: 'eng', pageCount: 1024 },
+        { id: 5, language: 'eng', pageCount: 266 },
+        { id: 6, language: 'fre', pageCount: 270 },
+      ]),
+    ).toBe(5);
+    // Two English editions with a page count (an abridged 114 and a full 201): translations settle it.
+    expect(
+      pick([
+        { id: 1, language: 'eng', pageCount: 114 },
+        { id: 2, language: 'eng', pageCount: 201 },
+        { id: 3, language: 'fre', pageCount: 320 },
+        { id: 4, language: 'ger', pageCount: 272 },
+        { id: 5, language: 'por', pageCount: 336 },
+      ]),
+    ).toBe(2);
+    // Ties keep the server's order; other languages only when yours has no page counts.
+    expect(pick([{ id: 1, language: 'eng', pageCount: 300 }, { id: 2, language: 'eng', pageCount: 300 }])).toBe(1);
+    expect(pick([{ id: 1, language: 'eng', pageCount: null }, { id: 2, language: 'fre', pageCount: 270 }])).toBe(2);
+    expect(pick([{ id: 1, language: 'eng', pageCount: null }])).toBe(1);
+    expect(pick([])).toBeUndefined();
   });
 });

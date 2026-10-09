@@ -25,7 +25,7 @@ export default function Shelf() {
   return (
     <Screen width="wide">
       <PageTitle title={t('reading.shelfTitle')} />
-      <BackLink href="/" label={t('appName')} />
+      <BackLink href="/you" label={t('tabs.you')} />
       <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, color: colors.text }}>
         {t('reading.shelfTitle')}
       </Text>

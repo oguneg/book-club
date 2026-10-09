@@ -69,7 +69,7 @@ export default function FindBook() {
   return (
     <Screen>
       <PageTitle title={t('books.title')} />
-      <BackLink href={picking?.clubId ? { pathname: '/clubs/[id]', params: { id: picking.clubId } } : '/'} label={pickingFor.data?.name ?? t('appName')} />
+      <BackLink href={picking?.clubId ? { pathname: '/clubs/[id]', params: { id: picking.clubId } } : '/'} label={pickingFor.data?.name ?? t('tabs.reading')} />
       <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, color: colors.text }}>
         {t('books.title')}
       </Text>

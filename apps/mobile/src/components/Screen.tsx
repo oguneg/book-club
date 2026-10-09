@@ -3,31 +3,49 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 
-/** Page wrapper: safe areas, theme background, and a readable column width (`wide` leaves room for a side rail). */
-export function Screen({ children, width = 'default' }: { children: ReactNode; width?: 'default' | 'narrow' | 'wide' }) {
+/**
+ * Page wrapper: safe areas, theme background, and a readable column width (`wide` leaves room for a side
+ * rail). `overlay` stays put while the page scrolls (a floating "+ Note"); the page leaves room for it.
+ */
+export function Screen({ children, width = 'default', overlay }: { children: ReactNode; width?: 'default' | 'narrow' | 'wide'; overlay?: ReactNode }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      style={{ backgroundColor: theme.colors.background }}
-      contentContainerStyle={[
-        styles.content,
-        {
-          paddingTop: insets.top + theme.space.xl,
-          paddingBottom: insets.bottom + theme.space.xl,
-          paddingHorizontal: theme.space.lg,
-        },
-      ]}
-    >
-      <View role="main" style={[styles.column, { maxWidth: theme.layout[width === 'default' ? 'column' : width] }]}>
-        {children}
-      </View>
-    </ScrollView>
+    <View style={styles.fill}>
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={{ backgroundColor: theme.colors.background }}
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: insets.top + theme.space.xl,
+            paddingBottom: insets.bottom + theme.space.xl + (overlay ? 72 : 0),
+            paddingHorizontal: theme.space.lg,
+          },
+        ]}
+      >
+        <View role="main" style={[styles.column, { maxWidth: theme.layout[width === 'default' ? 'column' : width] }]}>
+          {children}
+        </View>
+      </ScrollView>
+      {overlay && (
+        // Lined up with the column, so on a wide screen the button stays by the page, not the window's edge.
+        <View
+          pointerEvents="box-none"
+          style={[styles.overlay, { paddingBottom: insets.bottom + theme.space.lg, paddingHorizontal: theme.space.lg }]}
+        >
+          <View pointerEvents="box-none" style={[styles.column, { maxWidth: theme.layout[width === 'default' ? 'column' : width], alignItems: 'flex-end' }]}>
+            {overlay}
+          </View>
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  fill: { flex: 1 },
   content: { flexGrow: 1, alignItems: 'center' },
   column: { width: '100%' },
+  overlay: { position: 'absolute', left: 0, right: 0, bottom: 0, alignItems: 'center' },
 });

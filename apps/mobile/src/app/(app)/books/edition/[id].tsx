@@ -8,6 +8,7 @@ import { useClub, useClubActions } from '@/api/clubs';
 import { useReadings } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { parsePick } from '@/books/pick';
+import { useStartReading } from '@/books/start';
 import { formatAuthors, languageName } from '@/books/format';
 import { clubErrorMessage } from '@/clubs/errors';
 import { BookCover } from '@/components/BookCover';
@@ -135,12 +136,34 @@ function StartOrOpen({ edition, clubId }: { edition: Edition; clubId?: string })
       </View>
     );
   }
+  return <StartThis edition={edition} clubId={clubId} />;
+}
+
+/** One tap: start reading this edition (we ask for pages only if the edition doesn't say). */
+function StartThis({ edition, clubId }: { edition: Edition; clubId?: string }) {
+  const { t } = useTranslation();
+  const start = useStartReading();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
   return (
-    <View style={{ alignSelf: 'flex-start' }}>
-      <Button
-        label={t('reading.startThis')}
-        onPress={() => router.push({ pathname: '/readings/new', params: { editionId: edition.id, ...(clubId ? { club: clubId } : {}) } })}
-      />
+    <View style={{ gap: 8 }}>
+      {error && <Notice message={error} />}
+      <View style={{ alignSelf: 'flex-start' }}>
+        <Button
+          label={t('reading.startThis')}
+          loading={busy}
+          onPress={async () => {
+            setBusy(true);
+            setError(undefined);
+            try {
+              await start(edition, clubId);
+            } catch (err) {
+              setError(bookErrorMessage(t, err));
+              setBusy(false);
+            }
+          }}
+        />
+      </View>
     </View>
   );
 }

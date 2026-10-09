@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-09T12:54:32.681Z",
+  "generatedAt": "2026-10-09T16:59:51.000Z",
   "title": "Design System: Bookclub",
   "extensions": {
     "colorMeta": {
@@ -361,14 +361,19 @@
     },
     "shadows": [
       {
-        "name": "desk",
+        "name": "sheet",
         "value": "0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28)",
-        "purpose": "The one raised surface per screen (light)."
+        "purpose": "Sheets, wide-screen dialogs and the note preview (light)."
       },
       {
-        "name": "desk-dark",
+        "name": "sheet-dark",
         "value": "0px 1px 2px rgba(0,0,0,0.5), 0px 12px 30px -14px rgba(0,0,0,0.7)",
-        "purpose": "The one raised surface per screen (dark)."
+        "purpose": "Sheets, wide-screen dialogs and the note preview (dark)."
+      },
+      {
+        "name": "float",
+        "value": "0px 2px 4px rgba(0,0,0,0.16), 0px 10px 24px -8px rgba(0,0,0,0.35)",
+        "purpose": "The floating \"+ Note\" button."
       }
     ],
     "motion": [
@@ -409,12 +414,12 @@
       "css": ".ds-btn-secondary { background: #FBF7EE; color: #2A2119; height: 48px; padding: 0 16px; border: 1px solid #958676; border-radius: 10px; font: 600 16px system-ui, sans-serif; cursor: pointer; } .ds-btn-secondary:hover { border-color: #8A3B2E; } .ds-btn-secondary:focus-visible { outline: 2px solid #8A3B2E; outline-offset: 2px; }"
     },
     {
-      "name": "Log sentence on the desk",
-      "kind": "input",
-      "refersTo": "desk",
-      "description": "The one raised surface: \"I'm on page [ ] of 320 · Save\".",
-      "html": "<div class=\"ds-desk\"><span>I’m on page</span><input class=\"ds-page\" placeholder=\"142\" aria-label=\"Page you have read up to\"><span>of 320</span><button class=\"ds-save\">Save</button></div>",
-      "css": ".ds-desk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; background: #FBF7EE; border: 1px solid #E2D7C3; border-radius: 16px; padding: 16px; box-shadow: 0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28); color: #2A2119; font: 16px system-ui, sans-serif; } .ds-page { width: 76px; height: 48px; text-align: center; font: 20px Literata, Georgia, serif; font-variant-numeric: tabular-nums; background: #F6F0E4; color: #2A2119; border: 1px solid #958676; border-radius: 10px; } .ds-page:focus { outline: none; border-color: #8A3B2E; box-shadow: 0 0 0 1px #8A3B2E; } .ds-save { height: 48px; padding: 0 16px; background: #8A3B2E; color: #FFFFFF; border: 0; border-radius: 10px; font-weight: 600; }"
+      "name": "Update page sheet",
+      "kind": "custom",
+      "refersTo": "sheet",
+      "description": "Where are you? A big page figure, +5 / +10 / +25, Save.",
+      "html": "<div class=\"ds-sheet\" role=\"dialog\" aria-label=\"Where are you?\"><div class=\"ds-grab\"></div><h2>Where are you?</h2><div class=\"ds-pagerow\"><span>Page</span><input value=\"178\" inputmode=\"numeric\" aria-label=\"Page\"><span>of 320</span></div><div class=\"ds-steps\"><button>+5</button><button>+10</button><button>+25</button></div><button class=\"ds-save\">Save</button></div>",
+      "css": ".ds-sheet { width: 340px; background: #FBF7EE; border-radius: 20px 20px 0 0; padding: 8px 16px 16px; box-shadow: 0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28); font-family: system-ui, sans-serif; } .ds-grab { width: 36px; height: 4px; border-radius: 2px; background: #E2D7C3; margin: 0 auto 8px; } .ds-sheet h2 { margin: 0 0 12px; font: 600 20px Literata, Georgia, serif; color: #2A2119; } .ds-pagerow { display: flex; align-items: center; justify-content: center; gap: 12px; color: #6B5D4F; } .ds-pagerow input { width: 140px; height: 64px; text-align: center; font: 700 34px Literata, Georgia, serif; font-variant-numeric: tabular-nums; border: 1px solid #958676; border-radius: 10px; background: #FBF7EE; color: #2A2119; } .ds-steps { display: flex; gap: 8px; margin: 16px 0 12px; } .ds-steps button { flex: 1; height: 48px; border: 1px solid #958676; border-radius: 10px; background: #FBF7EE; font: 600 16px system-ui, sans-serif; color: #2A2119; } .ds-save { width: 100%; height: 48px; border: 0; border-radius: 10px; background: #8A3B2E; color: #FFF; font: 600 16px system-ui, sans-serif; }"
     },
     {
       "name": "Chip",
@@ -439,62 +444,88 @@
       "css": ".ds-note { display: flex; gap: 12px; } .ds-fig { width: 48px; flex: none; text-align: right; font: 20px/1.1 Literata, Georgia, serif; font-variant-numeric: oldstyle-nums; color: #2A2119; } .ds-fig small { display: block; font: 12px system-ui, sans-serif; color: #6B5D4F; } .ds-meta { font: 14px system-ui, sans-serif; color: #6B5D4F; } .ds-meta b { color: #2A2119; } .ds-note p { margin: 4px 0 0; font: 16px/1.6 Literata, Georgia, serif; color: #2A2119; }"
     },
     {
-      "name": "Book span",
+      "name": "Book line",
       "kind": "custom",
-      "description": "The book from first to last page, with the ribbon at your place.",
-      "html": "<div class=\"ds-span\" role=\"progressbar\" aria-valuenow=\"44\" aria-label=\"Page 142 of 320\"><div class=\"ds-line\"></div><div class=\"ds-read\"></div><svg class=\"ds-ribbon\" width=\"12\" height=\"26\" viewBox=\"0 0 12 26\" aria-hidden=\"true\"><path d=\"M0 0H12V26L6 20L0 26Z\" fill=\"#8A3B2E\"/></svg></div>",
-      "css": ".ds-span { position: relative; height: 34px; width: 280px; } .ds-line { position: absolute; left: 0; right: 0; top: 22px; height: 1px; background: #958676; } .ds-read { position: absolute; left: 0; top: 21px; height: 3px; width: 44%; border-radius: 2px; background: #8A3B2E; } .ds-ribbon { position: absolute; top: 2px; left: calc(44% - 6px); }"
+      "description": "The book first page to last: what you've read, the club's faces above, note bubbles below.",
+      "html": "<div class=\"ds-bl\" role=\"img\" aria-label=\"You are on page 178 of 320; notes at pages 22, 40 and 250\"><div class=\"ds-line\"></div><div class=\"ds-read\"></div><span class=\"ds-face ds-me\" style=\"left:56%\">RR</span><span class=\"ds-face\" style=\"left:19%\">LB</span><span class=\"ds-bub\" style=\"left:7%\"></span><span class=\"ds-bub\" style=\"left:13%\"><b>2</b></span><span class=\"ds-bub ds-ahead\" style=\"left:78%\"></span></div>",
+      "css": ".ds-bl { position: relative; width: 320px; height: 84px; font-family: system-ui, sans-serif; } .ds-line { position: absolute; left: 0; right: 0; top: 42px; height: 1px; background: #958676; } .ds-read { position: absolute; left: 0; top: 41px; width: 56%; height: 3px; border-radius: 2px; background: #8A3B2E; } .ds-face { position: absolute; top: 6px; width: 28px; height: 28px; margin-left: -14px; border-radius: 14px; border: 1px solid #958676; background: #FBF7EE; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #2A2119; } .ds-me { border: 0; background: #8A3B2E; color: #FFF; } .ds-bub { position: absolute; top: 56px; width: 26px; height: 26px; margin-left: -13px; border-radius: 13px; border: 1px solid #958676; background: #FBF7EE; } .ds-bub b { position: absolute; right: -6px; top: -6px; min-width: 16px; height: 16px; border-radius: 8px; background: #2A2119; color: #F6F0E4; font-size: 10px; text-align: center; line-height: 16px; } .ds-ahead { border-style: dashed; background: transparent; }"
+    },
+    {
+      "name": "Segmented control",
+      "kind": "tabs",
+      "refersTo": "segmented",
+      "description": "A club's Notes · Meetings · Members, or who sees a note: Club · Everyone · Only me.",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\" aria-label=\"Who sees this\"><button role=\"radio\" aria-checked=\"true\">Club</button><button role=\"radio\" aria-checked=\"false\">Everyone</button><button role=\"radio\" aria-checked=\"false\">Only me</button></div>",
+      "css": ".ds-seg { display: flex; gap: 3px; padding: 3px; width: 320px; border: 1px solid #E2D7C3; border-radius: 12px; background: #F6F0E4; } .ds-seg button { flex: 1; min-height: 40px; border: 1px solid transparent; border-radius: 10px; background: transparent; font: 600 14px system-ui, sans-serif; color: #6B5D4F; } .ds-seg button[aria-checked=\"true\"] { background: #FBF7EE; border-color: #958676; color: #2A2119; box-shadow: 0px 1px 2px rgba(0,0,0,0.12); }"
+    },
+    {
+      "name": "Floating note button",
+      "kind": "button",
+      "refersTo": "fab",
+      "description": "Write a note, from wherever you can write.",
+      "html": "<button class=\"ds-fab\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14M12 5v14\"/></svg>Note</button>",
+      "css": ".ds-fab { display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 18px; border: 0; border-radius: 26px; background: #8A3B2E; color: #FFFFFF; font: 700 16px system-ui, sans-serif; box-shadow: 0px 2px 4px rgba(0,0,0,0.16), 0px 10px 24px -8px rgba(0,0,0,0.35); }"
+    },
+    {
+      "name": "Tab bar",
+      "kind": "navigation",
+      "refersTo": "tab-bar",
+      "description": "Reading · Clubs · You, icon over label, at the bottom of a phone.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Main\"><a aria-current=\"page\"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" aria-hidden=\"true\"><path d=\"M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z\"/></svg>Reading</a><a><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" aria-hidden=\"true\"><path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75\"/></svg>Clubs</a><a><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"10\" r=\"3\"/><path d=\"M7 20.66V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.66\"/></svg>You</a></nav>",
+      "css": ".ds-tabs { display: flex; width: 360px; height: 64px; background: #FBF7EE; border-top: 1px solid #E2D7C3; } .ds-tabs a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 600 12px/16px system-ui, sans-serif; color: #6B5D4F; text-decoration: none; } .ds-tabs a[aria-current=\"page\"] { color: #8A3B2E; }"
     }
   ],
   "narrative": {
-    "northStar": "The Reading Journal",
-    "overview": "Every screen is a page of a well-kept reading journal. The book's own span is the organizing line: progress is drawn from the first page to the last with a bookcloth-red ribbon at your place, notes carry their page number in the margin like pencilled marginalia, and a \"you are here\" rule divides what you've read from what's ahead. The page is set in type, not boxed: small-caps section heads over hairline rules, generous space between sections, and exactly one raised surface (the desk) for the thing you came to do.\n\nIt is calm and dense in the way a good book is: one reading column with a narrow side rail on wide screens, warm paper in light, a dark study in dark mode, and nothing that blinks for attention. Color is almost entirely ink on paper; bookcloth red is spent on the ribbon, on \"you\", and on the single primary action of a screen.",
+    "northStar": "The Reading Journal, one tap deep",
+    "overview": "Every screen is a page of a well-kept reading journal, and every common job is one tap from it. Three places live in the tab bar: Reading (the book you're in), Clubs, and You. The book itself is the organizing line: first page to last, bookcloth red for what you've read, the faces of your club above it and note bubbles below it, like comments along a track. Updating your page, writing a note and reading the notes at a place each open a sheet over the page and close back to it. Rare actions wait behind a ⋯ or a gear.",
     "keyCharacteristics": [
-      "Page numbers and dates live in a 48px margin column, in Literata with old-style figures.",
-      "One raised desk per screen; every other section is flat type over a hairline rule.",
-      "Bookcloth red marks where you are (ribbon, read portion, \"you\") and the one primary button.",
-      "Literata for headings, note text and figures; the system UI face for controls and metadata.",
+      "A tab bar with icons and labels (Reading · Clubs · You) on phones; the same three as a slim sidebar from 1024px.",
+      "The book line: progress, the club's faces and the notes on one drawing; tap a bubble to read what was said there.",
+      "Everyday jobs in sheets: Update page (with +5 / +10 / +25), + Note (one box and who sees it), notes at a place.",
+      "One floating \"+ Note\" button wherever you can write; one filled button per screen.",
+      "Literata for titles, note text and figures; the system UI face for controls and metadata. Lucide line icons.",
       "Light and dark are both first-class, from the same roles."
     ],
     "rules": [
       {
         "name": "The Ribbon Rule",
-        "body": "Bookcloth red means \"where you are\" or \"the one thing to do here\". If a screen has two filled red buttons, one of them is wrong.",
-        "section": "colors"
+        "section": "colors",
+        "body": "Bookcloth red means \"you\" or \"the one thing to do here\". If a screen has two filled red buttons, one of them is wrong (the floating \"+ Note\" counts as the screen's one when it is there)."
       },
       {
         "name": "The Two Edges Rule",
-        "body": "Decoration takes the hairline; anything you can press or type into takes the control edge. Never swap them.",
-        "section": "colors"
+        "section": "colors",
+        "body": "Decoration takes the hairline; anything you can press or type into takes the control edge. Never swap them."
       },
       {
-        "name": "The Marginalia Rule",
-        "body": "Page numbers and dates sit in the 48px left margin, right-aligned, in Literata old-style figures; they are never buried in a metadata line.",
-        "section": "typography"
+        "name": "The One-Line Rule",
+        "section": "typography",
+        "body": "Copy says one thing in one line: \"Page 178 of 320 · 56%\". If a control needs a second line to explain it, the control is wrong."
       },
       {
         "name": "The No-Eyebrow Rule",
-        "body": "No small label above a heading. A section head is the heading; a book title is its own heading.",
-        "section": "typography"
+        "section": "typography",
+        "body": "No small label above a heading."
       },
       {
-        "name": "The One Desk Rule",
-        "body": "A screen has at most one raised surface. If you're reaching for a second card, set it in type with a section head instead.",
-        "section": "elevation"
+        "name": "The One Task Rule",
+        "section": "elevation",
+        "body": "A sheet does one job and closes back to the page: Escape, the scrim and the × all close it. If a sheet needs a second sheet, the first was doing two jobs."
       }
     ],
     "dos": [
-      "Do give every screen one job on the desk and set everything else as flat sections under small-caps heads.",
-      "Do put page numbers, percentages and meeting dates in the margin column, in Literata old-style figures.",
-      "Do keep control edges at 3:1 and text at 4.5:1 in both themes; check with axe after changes.",
-      "Do draw icons and marks as SVG in the bookcloth/madder/moss roles."
+      "Do put the everyday job one tap from the page: a sheet, not a new screen.",
+      "Do keep rare and owner actions behind ⋯ or the gear.",
+      "Do say it in one line; numbers in Literata, tabular where they change.",
+      "Do keep control edges at 3:1 and text at 4.5:1 in both themes; check with axe at 375px and 1280px, with sheets open.",
+      "Do expose state with aria-selected, aria-checked, aria-busy and aria-disabled (react-native-web ignores accessibilityState except disabled)."
     ],
     "donts": [
       "Don't box sections in bordered cards or nest cards.",
-      "Don't put a label or eyebrow above a heading.",
-      "Don't use a colored side stripe on messages, list items or callouts; messages get a hairline edge and a drawn mark.",
+      "Don't add a second filled red button beside the floating one.",
+      "Don't stack sheets, or put a form in a sheet whose button needs scrolling to reach on a phone.",
       "Don't use Unicode arrows or emoji as icons (emoji reactions are content, not icons).",
-      "Don't spend bookcloth red on more than the ribbon, \"you\" and one primary action per screen."
+      "Don't use a colored side stripe on messages, list items or callouts."
     ]
   }
 }

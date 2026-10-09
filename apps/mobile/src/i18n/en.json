@@ -15,7 +15,8 @@
     "save": "Save",
     "saved": "Saved.",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "close": "Close"
   },
   "home": {
     "greeting": "Hi, {{name}}",
@@ -237,7 +238,16 @@
       "pagesInvalid": "Enter a whole number of pages."
     },
     "pickingFor": "Choosing the book for {{club}}.",
-    "pickingForReading": "Choose the edition you are reading."
+    "pickingForReading": "Tap a book to start reading it.",
+    "book": {
+      "start": "Start reading",
+      "openYours": "Open your book",
+      "chooseFor": "Choose for {{club}}",
+      "usingEdition": "We'll use the {{edition}} edition ({{pages}} pages). You can change it later.",
+      "pagesAsked": "We'll ask how many pages your copy has.",
+      "differentEdition": "Different edition?",
+      "hideEditions": "Hide editions"
+    }
   },
   "clubs": {
     "errors": {
@@ -275,7 +285,9 @@
       "alreadyMember": "You're already a member.",
       "full": "This club is full, so it can't take new members right now.",
       "invalid": "This invite link doesn't work. It may have been replaced by a newer one: ask for a fresh link.",
-      "signInFirst": "Sign in or create an account to join. We will bring you back here."
+      "signInFirst": "Sign in or create an account to join. We will bring you back here.",
+      "sheetBody": "Send this link to friends you'd like to read with. It opens the club and lets them join.",
+      "orCode": "Or tell them the code"
     },
     "club": {
       "currentBook": "Reading now",
@@ -310,7 +322,15 @@
       "nextMeetingIs": "Next meeting {{when}}",
       "manage": "Manage",
       "membersCount_one": "{{count}} member",
-      "membersCount_other": "{{count}} members"
+      "membersCount_other": "{{count}} members",
+      "sections": "Club sections",
+      "tabNotes": "Notes",
+      "paceToday": "On pace today: p. {{page}}",
+      "youAre": "You: {{where}}",
+      "yourBook": "Your book",
+      "startBook": "Start reading the book",
+      "nextMeetingLabel": "Next meeting",
+      "noBookAdmin": "Choose the book the club will read first."
     },
     "roles": {
       "owner": "Owner",
@@ -369,7 +389,8 @@
       "ownerLeaveHint": "As the owner, hand the club to another member (on their member page) before you leave.",
       "delete": "Delete club",
       "deleteQuestion": "Delete {{name}} for everyone? Its books, meetings and member list are removed. This cannot be undone.",
-      "deleteConfirm": "Yes, delete the club"
+      "deleteConfirm": "Yes, delete the club",
+      "book": "The book"
     },
     "progress": {
       "title": "Where everyone is",
@@ -387,6 +408,9 @@
       "startOther": "I have another edition",
       "openReading": "Log progress",
       "paceStart": "Pace today: just starting. The line climbs toward the next meeting or the finish date."
+    },
+    "tab": {
+      "empty": "You're not in a club yet. Start one and invite friends, or join one with an invite code."
     }
   },
   "reading": {
@@ -455,7 +479,29 @@
     "closedStopped": "You stopped reading this book. Your place is kept if you come back to it.",
     "openYours": "You're reading this book. Open your copy",
     "shelfFinished": "Finished {{date}}",
-    "shelfStopped": "Stopped at {{progress}}"
+    "shelfStopped": "Stopped at {{progress}}",
+    "switcher": "Your books",
+    "update": {
+      "button": "Update page",
+      "title": "Where are you?",
+      "page": "Page",
+      "percent": "% of the way",
+      "stepLabel": "Add {{count}} pages",
+      "endTitle": "The last page!",
+      "endBody": "That's the end of the book. Mark it as finished?",
+      "markFinished": "Yes, I finished it",
+      "notYet": "Not yet"
+    },
+    "menu": {
+      "label": "More for this book",
+      "otherEdition": "Switch to another edition"
+    },
+    "empty": {
+      "title": "What are you reading?",
+      "body": "Find your book and keep your place in it. Notes and clubs build on that.",
+      "find": "Find the book",
+      "invite": "Got an invite? Join a club"
+    }
   },
   "notes": {
     "title": "Notes",
@@ -553,6 +599,22 @@
       "markAhead": ", ahead of where you are",
       "previewAhead": "Ahead of where you are · {{place}}",
       "you": "you"
+    },
+    "sheet": {
+      "title": "Note at p. {{page}}",
+      "changePage": "Change page",
+      "post": "Post",
+      "fab": "Note"
+    },
+    "line": {
+      "label": "Notes along the book",
+      "you": "you",
+      "at": "{{percent}}% through",
+      "markLabel": "{{notes}} at {{place}} by {{names}}",
+      "sheetTitle": "Notes at {{place}}"
+    },
+    "feed": {
+      "empty": "No notes yet. Tap + Note to leave the first one."
     }
   },
   "admin": {
@@ -584,5 +646,17 @@
     "body": "This page broke. We've been told about it. Try again, or start over from the beginning.",
     "retry": "Try again",
     "home": "Go to the start"
+  },
+  "tabs": {
+    "reading": "Reading",
+    "clubs": "Clubs",
+    "you": "You",
+    "label": "Main"
+  },
+  "you": {
+    "books": "Your shelf",
+    "seeAll": "See all",
+    "account": "Account",
+    "accountDetail": "Name, sign-in, devices, your data"
   }
 }

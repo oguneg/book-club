@@ -1,6 +1,6 @@
 ---
 name: Bookclub
-description: A reading journal you share with your club. Paper, ink, a bookcloth ribbon, and page numbers in the margin.
+description: A reading journal you share with your club. Paper, ink, a bookcloth line through the book, and everything one tap away.
 colors:
   paper: "#F6F0E4"
   paper-raised: "#FBF7EE"
@@ -95,12 +95,12 @@ components:
     padding: "0 16px"
     height: "48px"
   page-field:
-    backgroundColor: "{colors.paper}"
+    backgroundColor: "{colors.paper-raised}"
     textColor: "{colors.ink}"
-    typography: "{typography.title}"
+    typography: "{typography.display}"
     rounded: "{rounded.md}"
-    width: "76px"
-    height: "48px"
+    width: "140px"
+    height: "64px"
   text-field:
     backgroundColor: "{colors.paper-raised}"
     textColor: "{colors.ink}"
@@ -118,27 +118,57 @@ components:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.ink}"
     rounded: "{rounded.sm}"
-  desk:
+  segmented:
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink-muted}"
+    typography: "{typography.label}"
+    rounded: "12px"
+    padding: "3px"
+  segmented-selected:
     backgroundColor: "{colors.paper-raised}"
-    rounded: "{rounded.lg}"
-    padding: "16px"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.md}"
+    height: "40px"
+  icon-button:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink}"
+    rounded: "22px"
+    size: "44px"
+  fab:
+    backgroundColor: "{colors.bookcloth}"
+    textColor: "{colors.on-bookcloth}"
+    typography: "{typography.body}"
+    rounded: "26px"
+    padding: "0 18px"
+    height: "52px"
+  sheet:
+    backgroundColor: "{colors.paper-raised}"
+    rounded: "20px"
+    padding: "0 16px 16px"
+    width: "480px"
+  tab-bar:
+    backgroundColor: "{colors.paper-raised}"
+    textColor: "{colors.ink-muted}"
+    height: "64px"
+    width: "220px"
 ---
 
 # Design System: Bookclub
 
 ## Overview
 
-**Creative North Star: "The Reading Journal"**
+**Creative North Star: "The Reading Journal, one tap deep"**
 
-Every screen is a page of a well-kept reading journal. The book's own span is the organizing line: progress is drawn from the first page to the last with a bookcloth-red ribbon at your place, notes carry their page number in the margin like pencilled marginalia, and a "you are here" rule divides what you've read from what's ahead. The page is set in type, not boxed: small-caps section heads over hairline rules, generous space between sections, and exactly one raised surface (the desk) for the thing you came to do.
+Every screen is a page of a well-kept reading journal, and every common job is one tap from it. Three places live in the tab bar: **Reading** (the book you're in), **Clubs**, and **You**. The book itself is the organizing line: first page to last, bookcloth red for what you've read, the faces of your club above it and note bubbles below it, like comments along a track. Updating your page, writing a note and reading the notes at a place each open a sheet over the page and close back to it; nothing sends you to another screen to do the everyday things.
 
-It is calm and dense in the way a good book is: one reading column with a narrow side rail on wide screens, warm paper in light, a dark study in dark mode, and nothing that blinks for attention. Color is almost entirely ink on paper; bookcloth red is spent on the ribbon, on "you", and on the single primary action of a screen.
+It stays calm and quiet: warm paper in light, a dark study in dark mode, ink for almost everything, bookcloth red spent on "you", the read part of the line and the screen's main action. Rare actions (finish, stop, edit pages, owner tools) wait behind a ⋯ or a gear, never on the page.
 
 **Key Characteristics:**
-- Page numbers and dates live in a 48px margin column, in Literata with old-style figures.
-- One raised desk per screen; every other section is flat type over a hairline rule.
-- Bookcloth red marks where you are (ribbon, read portion, "you") and the one primary button.
-- Literata for headings, note text and figures; the system UI face for controls and metadata.
+- A tab bar with icons and labels (Reading · Clubs · You) on phones; the same three as a slim sidebar from 1024px.
+- The book line: progress, the club's faces and the notes on one drawing; tap a bubble to read what was said there.
+- Everyday jobs in sheets: Update page (with +5 / +10 / +25), + Note (one box and who sees it), notes at a place.
+- One floating "+ Note" button wherever you can write; one filled button per screen.
+- Literata for titles, note text and figures; the system UI face for controls and metadata. Lucide line icons.
 - Light and dark are both first-class, from the same roles.
 
 ## Colors
@@ -146,22 +176,22 @@ It is calm and dense in the way a good book is: one reading column with a narrow
 Ink on warm paper with one bookcloth accent; dark mode is the same roles under lamplight.
 
 ### Primary
-- **Bookcloth Red** (bookcloth / bookcloth-dark): the ribbon bookmark, the read portion of a book's span, "you" in progress rows, the "you are here" rule, and the one filled button per screen. Text on it uses on-bookcloth.
+- **Bookcloth Red** (bookcloth / bookcloth-dark): the read part of the book line, your face and your note rings, the active tab, the floating note button and the one filled button per screen. Text and icons on it use on-bookcloth.
 
 ### Neutral
-- **Warm Paper** (paper / paper-dark): the page ground everywhere.
-- **Raised Paper** (paper-raised / paper-raised-dark): the desk, text fields, hover rows. Never used to box a whole section.
-- **Ink** (ink / ink-dark): body text, titles, note text.
-- **Faded Ink** (ink-muted / ink-muted-dark): metadata, section heads, "p." labels, hints. Passes 4.5:1 on paper in both themes.
-- **Hairline** (hairline / hairline-dark): decorative rules between sections, cover backdrops, the disabled primary fill.
-- **Control Edge** (control-edge / control-edge-dark): the edge of anything you interact with (fields, secondary buttons, chips) and the unread line of a book's span; 3:1 against the page (WCAG 1.4.11).
+- **Warm Paper** (paper / paper-dark): the page ground everywhere, and the track of a segmented control.
+- **Raised Paper** (paper-raised / paper-raised-dark): sheets, the tab bar, text fields, the selected segment, note bubbles and faces on the line.
+- **Ink** (ink / ink-dark): body text, titles, note text, count badges.
+- **Faded Ink** (ink-muted / ink-muted-dark): metadata, inactive tabs and segments, hints, "p." labels. Passes 4.5:1 on paper and raised paper in both themes.
+- **Hairline** (hairline / hairline-dark): decorative rules, the sheet's grabber, the tab bar's edge, segmented track borders.
+- **Control Edge** (control-edge / control-edge-dark): the edge of anything you press or type into (fields, secondary buttons, bubbles, the selected segment) and the unread part of the book line; 3:1 against the page (WCAG 1.4.11).
 
 ### Tertiary
 - **Moss** (moss / moss-dark): confirmations ("Saved."), always beside a drawn check mark.
 - **Madder** (madder / madder-dark): errors and destructive actions, always beside a drawn alert mark.
 
 ### Named Rules
-**The Ribbon Rule.** Bookcloth red means "where you are" or "the one thing to do here". If a screen has two filled red buttons, one of them is wrong.
+**The Ribbon Rule.** Bookcloth red means "you" or "the one thing to do here". If a screen has two filled red buttons, one of them is wrong (the floating "+ Note" counts as the screen's one when it is there).
 
 **The Two Edges Rule.** Decoration takes the hairline; anything you can press or type into takes the control edge. Never swap them.
 
@@ -170,82 +200,92 @@ Ink on warm paper with one bookcloth accent; dark mode is the same roles under l
 **Display Font:** Literata (with Georgia, serif)
 **Body Font:** the platform UI face (system-ui, -apple-system, Segoe UI, Roboto)
 
-**Character:** Literata carries the book: titles, the readers' own words and the numbers in the margin. The system face carries the machinery, so controls never pretend to be prose.
+**Character:** Literata carries the book: titles, the readers' own words and the numbers. The system face carries the machinery, so controls never pretend to be prose.
 
 ### Hierarchy
-- **Display** (700, 34px, 1.15): page titles: the greeting, a club's name, a page's own name. One per page (the h1).
-- **Headline** (700, 26px, 1.2): the book you're in, on home and the reading page.
-- **Title** (600, 20px, 1.25): a club's book, the page field's figures.
-- **Section head** (600, 14px, uppercase, 1.4px tracking, faded ink): every section over its hairline rule; these are h2s, never labels above another heading.
+- **Display** (700, 34px, 1.15): page titles (a club's name, "What are you reading?") and the page figure in the Update page sheet. One h1 per page.
+- **Headline** (700, 26px, 1.2): the book you're in, on the Reading tab and a reading.
+- **Title** (600, 20px, 1.25): sheet titles ("Where are you?", "Note at p. 178"), a club's book.
+- **Section head** (600, 14px, uppercase, 1.4px tracking, faded ink): sections of form-like pages (account, club settings, moderation, an edition) over a hairline rule; these are h2s.
 - **Reading** (400, 16px, 1.6): note bodies and long-form legal/help text; keep lines under about 75 characters.
-- **Margin figure** (400, 20px, old-style figures): page numbers beside notes, the day beside a meeting; a 12px "p." or month sits above or below in faded ink.
-- **Body** (400, 16px, 1.5) and **Label** (600, 14px): UI text, buttons, metadata.
+- **Margin figure** (400, 20px, old-style figures): page numbers beside notes in a list, the day beside a meeting.
+- **Body** (400, 16px, 1.5) and **Label** (600, 14px): UI text, buttons, segments, metadata. Tab labels are 12px / 600.
 
 ### Named Rules
-**The Marginalia Rule.** Page numbers and dates sit in the 48px left margin, right-aligned, in Literata old-style figures; they are never buried in a metadata line.
+**The One-Line Rule.** Copy says one thing in one line: "Page 178 of 320 · 56%", "You: p. 178 · 4 pages ahead of pace". If a control needs a second line to explain it, the control is wrong.
 
-**The No-Eyebrow Rule.** No small label above a heading. A section head is the heading; a book title is its own heading.
+**The No-Eyebrow Rule.** No small label above a heading.
 
 ## Layout
 
-One reading column (max 600px) on phones and narrow windows; from 1024px wide, pages that have a record beside them (home, reading, club) use a main column plus a 320px side rail at 40px gap, inside a 1060px frame. Narrow narrow-form pages (sign-in, settings forms) use a 420px column. The rail always follows the main column on a phone, so the first screen is the main column's: the book, your place, the desk. Section rhythm: 24px between sections, 12px from a rule to its content, 16px page gutters. Covers: 48px (lists), 72px (book headers), 128px (current book, shelf).
+One reading column (max 600px), 16px gutters, centred in whatever space the navigation leaves. Phones: the tab bar sits at the bottom (64px, icon over label) and the floating "+ Note" button rides 16px above the bottom, aligned to the column's right edge. From 1024px: the tabs become a 220px sidebar (icon beside label, the active one in a soft bookcloth pill), the column stays 600px, and sheets open as a centred 480px dialog. Detail pages (a reading, a club, a book) open over the tabs with a back link at the top. Section rhythm: 24px between sections, 12px within. Covers: 48px (lists), 72px (headers), 128px (a book's own page).
 
 ## Elevation & Depth
 
-Flat by default, with exactly one lifted surface per screen. Depth comes from the desk's soft, offset shadow and a hairline edge; everything else is separated by rules and space.
+Flat pages; things that are temporary float. A sheet rises over a 40% ink scrim with the soft sheet shadow; the floating note button carries a short, tight shadow so it reads as pressable over scrolling text. Nothing else is raised.
 
 ### Shadow Vocabulary
-- **Desk** (light `0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28)`; dark `0px 1px 2px rgba(0,0,0,0.5), 0px 12px 30px -14px rgba(0,0,0,0.7)`): the raised surface for logging your page or writing a note.
+- **Sheet** (light `0px 1px 2px rgba(42,33,25,0.06), 0px 10px 28px -14px rgba(42,33,25,0.28)`; dark `0px 1px 2px rgba(0,0,0,0.5), 0px 12px 30px -14px rgba(0,0,0,0.7)`): bottom sheets, wide-screen dialogs, the note preview on hover.
+- **Float** (`0px 2px 4px rgba(0,0,0,0.16), 0px 10px 24px -8px rgba(0,0,0,0.35)`): the floating "+ Note" button.
 
 ### Named Rules
-**The One Desk Rule.** A screen has at most one raised surface. If you're reaching for a second card, set it in type with a section head instead.
+**The One Task Rule.** A sheet does one job and closes back to the page: Escape, the scrim and the × all close it. If a sheet needs a second sheet, the first was doing two jobs.
 
 ## Shapes
 
-Gently rounded: 6px for chips and messages, 10px for buttons and fields, 16px for the desk. Book covers keep a 6px radius. Lines are hairlines (1 device pixel) except the read portion of a book's span (3px, round-ended) and progress fills (4px). The ribbon bookmark is a flat notched rectangle (12×26 on the span, 12×22 in the margin).
+Gently rounded: 6px for chips and messages, 10px for buttons, fields and segments, 12px for a segmented track, 20px for a sheet's top corners (all four on a wide dialog). Round things are people and notes: faces (28px) and note bubbles (26px) on the line, the 44px icon buttons, the pill-shaped floating button. Lines are hairlines except the read part of the book line (3px, round-ended). Icons are Lucide outlines at 1.75 stroke (2 on small marks and on red).
 
 ## Components
 
 ### Buttons
-- **Shape:** gently rounded (10px), 48px tall, 16px side padding.
-- **Primary:** bookcloth fill, on-bookcloth label; one per screen (Save on home and reading, Choose the book when there is none).
+- **Primary:** bookcloth fill, on-bookcloth label, 48px tall, 10px radius; one per screen ("Update page", "Start reading", "Post").
 - **Disabled:** goes neutral (hairline fill, faded-ink label), never a paler red.
-- **Secondary:** raised-paper fill with a control-edge border and an ink label.
-- **Quiet actions:** rare or destructive choices (finish, stop, remove, manage) are text buttons in bookcloth or madder, with a confirm step.
+- **Secondary:** raised-paper fill with a control-edge border and an ink label (+5 / +10 / +25, "I have another edition").
+- **Icon button:** 44px round, a 20px Lucide icon in ink (⋯, gear, invite, ×); always has a label for screen readers.
+- **Quiet actions:** rare or destructive choices (finish, stop, remove) are text buttons in a menu sheet, with a confirm step.
 
-### Chips
-- **Style:** transparent with a control-edge border, faded-ink label, 40px tall.
-- **State:** selected gets a bookcloth border, paper fill and ink label; used for note scopes (tabs) and note audiences (radios).
+### Floating note button
+Bookcloth pill, 52px tall, a plus and "Note" in on-bookcloth, at the bottom right of the column. Shown wherever you can write (your reading, a club whose book you're reading).
+
+### Sheets
+A bottom sheet on phones (grabber, title in Literata 20px, ×, scrolling content, safe-area padding) and a centred 480px dialog from 1024px. The Modal is the dialog and carries the title as its name. Used for: Update page, + Note, the notes at a place on the line, the book's ⋯ menu, and inviting to a club.
+
+### Segmented control
+Two to four choices in one row: a paper track with a hairline edge, the selected segment raised paper with a control edge and a soft shadow, labels 14px / 600. As tabs (a club's Notes · Meetings · Members, with `aria-selected`) or radios (who sees a note: Club · Everyone · Only me, with `aria-checked`).
 
 ### Inputs / Fields
-- **Style:** raised paper (or paper inside the desk), control-edge border, 10px radius, 48px tall.
+- **Style:** raised paper, control-edge border, 10px radius, 48px tall.
 - **Focus:** bookcloth border plus a 1px bookcloth ring (no layout shift).
 - **Error / Disabled:** madder border and a message with a drawn alert mark below.
-- **Page field:** 76px wide, Literata 20px tabular figures, centred, inside the sentence "I'm on page [ ] of 320 · Save".
+- **Page field:** 140px wide, Literata 34px tabular figures, centred, between "Page" and "of 320" in the Update page sheet.
 
 ### Navigation
-- A back link at the top of every sub-page: a drawn chevron and the parent's name in bookcloth. Home carries the wordmark and an Account link. Signed-out forms end with Privacy · Terms · Help links. Keyboard focus shows a 2px bookcloth outline at 2px offset on the web.
+- **Tabs:** Reading (open book), Clubs (people), You (person in a circle); active in bookcloth, inactive in faded ink; wrapped in a navigation landmark.
+- **Rows:** lists of places (clubs, account, help) are rows with an icon or cover, a title, one line of detail and a chevron, 56px tall.
+- **Back link:** a chevron and the parent's name in bookcloth at the top of every detail page.
+- Keyboard focus shows a 2px bookcloth outline at 2px offset on the web.
 
-### Book Span (signature)
-The book as a line from its first to its last page: control-edge hairline for the whole, bookcloth for what you've read, a ribbon bookmark at your page that slides there (700ms, cubic-bezier(0.16, 1, 0.3, 1)) when you log, unless reduced motion is on. Meeting targets are short faded-ink ticks; the club's pace is a dashed ink tick. "p. 1" and "p. 320" sit under the ends.
+### Book Line (signature)
+The book as one line from its first to its last page: control-edge hairline for the whole, bookcloth for what you've read. Alone, a ribbon bookmark marks your page; in a club, faces do: 28px circles with initials above the line, yours filled bookcloth, others raised paper. Below the line, a 26px note bubble (a speech-bubble icon) per place, tied to it by a short stem; your own notes take a bookcloth ring, and notes past your place are dashed and faded. Faces or bubbles closer than 30px merge into one with an ink count badge. The club's pace is a dashed ink tick. Hover or focus previews who, where and the first two lines (only "Ahead of where you are" for notes ahead); a tap opens that place's notes in a sheet, still covered until "Show note". Everything is placed by percentage so it renders before layout is measured.
 
-### Marginal Notes (signature)
-Each note is a row: the margin figure, then author · audience · time, the note in Literata, and React / Reply / More. Replies indent behind a control-edge hairline. "You are here · p. 142" is a bookcloth rule with the ribbon in the margin; notes past it are blurred (redaction bars on native) until the reader presses "Show note", and that choice holds for the note everywhere it appears until the app closes.
+### Sections
+Form-like pages (account, club settings, moderation) are set in type, not boxed: a section head over a hairline rule, 12px to its content, 24px between sections.
 
-### Note Timeline (signature)
-A club's notes as marks along the book, like comments along a track: the book span with your ribbon, and below it a 24px circle per note with the writer's initials (Literata 10px), joined to its place by a short stem. Your own notes take a bookcloth ring; notes past your ribbon are dashed with blurred initials. Marks closer than 28px merge into one with an ink count badge. Hover or focus previews who, where and the first two lines (only "Ahead of where you are · p. N" for notes ahead); a tap opens the mark's notes below the line, still covered until "Show note". Marks are placed by percentage so they render before layout is measured.
+### Notes
+Each note in a list: the page in the margin, then author · audience · time, the note in Literata, and React / Reply / More. Notes past your place are blurred (redaction bars on native) until you press "Show note", and that choice holds for the note everywhere it appears until the app closes.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** give every screen one job on the desk and set everything else as flat sections under small-caps heads.
-- **Do** put page numbers, percentages and meeting dates in the margin column, in Literata old-style figures.
-- **Do** keep control edges at 3:1 and text at 4.5:1 in both themes; check with axe after changes.
-- **Do** draw icons and marks as SVG in the bookcloth/madder/moss roles.
+- **Do** put the everyday job one tap from the page: a sheet, not a new screen.
+- **Do** keep rare and owner actions behind ⋯ or the gear.
+- **Do** say it in one line; numbers in Literata, tabular where they change.
+- **Do** keep control edges at 3:1 and text at 4.5:1 in both themes; check with axe at 375px and 1280px, with sheets open.
+- **Do** expose state with `aria-selected`, `aria-checked`, `aria-busy` and `aria-disabled` (react-native-web ignores `accessibilityState` except `disabled`).
 
 ### Don't:
-- **Don't** box sections in bordered cards or nest cards.
-- **Don't** put a label or eyebrow above a heading.
-- **Don't** use a colored side stripe on messages, list items or callouts; messages get a hairline edge and a drawn mark.
+- **Don't** box whole sections or nest cards; a card holds one thing you can look up or open (the next meeting, a club row).
+- **Don't** add a second filled red button beside the floating one.
+- **Don't** stack sheets, or put a form in a sheet whose button needs scrolling to reach on a phone.
 - **Don't** use Unicode arrows or emoji as icons (emoji reactions are content, not icons).
-- **Don't** spend bookcloth red on more than the ribbon, "you" and one primary action per screen.
+- **Don't** use a colored side stripe on messages, list items or callouts.

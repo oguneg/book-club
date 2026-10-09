@@ -36,7 +36,7 @@ export default function Account() {
   return (
     <Screen>
       <PageTitle title={t('account.title')} />
-      <BackLink href="/" label={t('appName')} />
+      <BackLink href="/you" label={t('tabs.you')} />
       <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, color: colors.text }}>
         {t('account.title')}
       </Text>
