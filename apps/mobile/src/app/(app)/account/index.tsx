@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { downloadMyData, useDeviceCount, useSignInMethods } from '@/api/account';
+import { useBlockActions, useBlocks } from '@/api/notes';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
@@ -16,6 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { Hint, Row, Section } from '@/components/ui/Section';
 import { TextField } from '@/components/ui/TextField';
+import { TextButton } from '@/components/ui/TextButton';
 import { TextLink } from '@/components/ui/TextLink';
 import { useTheme } from '@/theme';
 
@@ -46,6 +48,7 @@ export default function Account() {
           <ProfileSection name={user.name} email={user.email} />
           <SignInSection email={user.email} />
           <DevicesSection />
+          <BlockedSection />
           <DataSection />
           <Section title={t('account.dangerTitle')} tone="danger">
             <Hint>{t('account.dangerBody')}</Hint>
@@ -224,6 +227,36 @@ function DataSection() {
       <View style={{ alignSelf: 'flex-start' }}>
         <Button variant="secondary" label={t('account.download')} onPress={download} loading={busy} />
       </View>
+    </Section>
+  );
+}
+
+function BlockedSection() {
+  const { t } = useTranslation();
+  const blocked = useBlocks();
+  const { unblock } = useBlockActions();
+  const [message, setMessage] = useState<Message>();
+  return (
+    <Section title={t('account.blockedTitle')}>
+      <Hint>{t('account.blockedBody')}</Hint>
+      {blocked.data?.length === 0 && <Hint>{t('account.blockedNone')}</Hint>}
+      {blocked.data?.map((b) => (
+        <Row key={b.id} label={b.name}>
+          <View style={{ alignSelf: 'flex-start' }}>
+            <TextButton
+              label={t('account.unblock')}
+              accessibilityLabel={t('account.unblockLabel', { name: b.name })}
+              onPress={() =>
+                unblock(b.id).then(
+                  () => setMessage({ text: t('account.unblocked', { name: b.name }), tone: 'info' }),
+                  () => setMessage({ text: t('auth.errors.network'), tone: 'error' }),
+                )
+              }
+            />
+          </View>
+        </Row>
+      ))}
+      {message && <Notice message={message.text} tone={message.tone} />}
     </Section>
   );
 }

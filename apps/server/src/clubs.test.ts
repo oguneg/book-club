@@ -192,7 +192,7 @@ describe("the club's book", () => {
     expect(set.currentBook).toMatchObject({ status: 'current', startDate: '2026-10-01', finishDate: '2026-11-15', edition: { id: editionId, pageCount: 320 } });
 
     const list = clubListResponse.parse(await (await member.browser.request('/api/clubs')).json()).clubs;
-    expect(list[0]?.currentBook).toEqual({ title: 'The Hobbit', authors: ['J.R.R. Tolkien'], cover: null });
+    expect(list[0]?.currentBook).toEqual({ title: 'The Hobbit', authors: ['J.R.R. Tolkien'], cover: null, bookKey: `e:${editionId}` });
   });
 
   it('changes dates, rejects a finish before the start', async () => {

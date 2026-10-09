@@ -10,6 +10,7 @@ import { readingErrorMessage } from '@/readings/errors';
 import { readingLine } from '@/readings/format';
 import { BookCover } from '@/components/BookCover';
 import { LogProgress } from '@/components/LogProgress';
+import { Notes } from '@/components/Notes';
 import { PageRangeFields, parsePageRange } from '@/components/PageRangeFields';
 import { PageTitle } from '@/components/PageTitle';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -65,6 +66,7 @@ export default function ReadingPage() {
             ) : (
               <StatusActions reading={reading} />
             )}
+            <Notes bookKey={reading.bookKey} readingId={reading.id} />
             <History reading={reading} />
             <Pages key={`${reading.startPage}-${reading.endPage}`} reading={reading} />
             <RemoveReading reading={reading} />

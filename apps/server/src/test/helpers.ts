@@ -6,6 +6,7 @@ import type { Fetch } from '../books/providers';
 import { createBookService } from '../books/service';
 import { createClubService } from '../clubs/service';
 import { createLiveHub } from '../live';
+import { createNoteService } from '../notes/service';
 import { createReadingService } from '../readings/service';
 import { connectPglite, connectPostgres, type Database } from '../db/client';
 import type { EmailMessage, Mailer } from '../email/mailer';
@@ -62,7 +63,8 @@ export function testApp(
   const books = createBookService({ db: database.db, fetch: fetchFn, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
   const live = createLiveHub({ db: database.db, log });
   const readings = createReadingService({ db: database.db, live });
-  return { env, auth, books, clubs, readings, live, app: createApp({ env, database, auth, books, clubs, readings, live, log }) };
+  const notes = createNoteService({ db: database.db, live });
+  return { env, auth, books, clubs, readings, notes, live, app: createApp({ env, database, auth, books, clubs, readings, notes, live, log }) };
 }
 
 /** A unique address per test, so tests can share one database (CI) without colliding. */

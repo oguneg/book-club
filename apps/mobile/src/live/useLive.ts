@@ -3,7 +3,11 @@ import { useEffect } from 'react';
 import { AppState, Platform } from 'react-native';
 import { API_URL } from '@/config';
 
-type LiveEvent = { type: 'readings' } | { type: 'club'; clubId: string } | { type: 'club-progress'; clubId: string };
+type LiveEvent =
+  | { type: 'readings' }
+  | { type: 'club'; clubId: string }
+  | { type: 'club-progress'; clubId: string }
+  | { type: 'notes'; bookKey: string };
 
 /** ws(s)://<api>/api/live: the API's origin, or the page's own origin when the web app is served by the API. */
 function liveUrl(): string | null {
@@ -37,6 +41,8 @@ export function useLive() {
         void queryClient.invalidateQueries({ queryKey: ['clubs'] });
       } else if (event.type === 'club-progress') {
         void queryClient.invalidateQueries({ queryKey: ['club-progress', event.clubId] });
+      } else if (event.type === 'notes') {
+        void queryClient.invalidateQueries({ queryKey: ['notes', event.bookKey] });
       }
     };
 

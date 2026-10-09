@@ -1,5 +1,6 @@
 import { randomInt, randomUUID } from 'node:crypto';
 import {
+  bookKeyOf,
   CLUB_MEMBER_CAP,
   INVITE_ALPHABET,
   INVITE_LENGTH,
@@ -132,11 +133,11 @@ export function createClubService({ db }: { db: Db }) {
 
   async function bookGlimpse(clubId: string) {
     const [row] = await db
-      .select({ title: edition.title, authors: edition.authors, cover: edition.cover })
+      .select({ id: edition.id, workKey: edition.workKey, title: edition.title, authors: edition.authors, cover: edition.cover })
       .from(clubBook)
       .innerJoin(edition, eq(edition.id, clubBook.editionId))
       .where(and(eq(clubBook.clubId, clubId), eq(clubBook.status, 'current')));
-    return row ?? null;
+    return row ? { title: row.title, authors: row.authors, cover: row.cover, bookKey: bookKeyOf(row) } : null;
   }
 
   async function meetingOfClub(clubId: string, meetingId: string) {

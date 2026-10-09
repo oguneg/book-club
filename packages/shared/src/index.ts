@@ -3,6 +3,7 @@ export * from './auth';
 export * from './books';
 export * from './clubs';
 export * from './isbn';
+export * from './notes';
 export * from './pace';
 export * from './position';
 export * from './reading';

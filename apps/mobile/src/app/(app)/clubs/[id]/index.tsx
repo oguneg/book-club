@@ -1,4 +1,4 @@
-import { formatInviteCode, roleAtLeast, type ClubBook, type ClubDetail } from '@bookclub/shared';
+import { bookKeyOf, formatInviteCode, roleAtLeast, type ClubBook, type ClubDetail } from '@bookclub/shared';
 import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -15,6 +15,7 @@ import { readingLine } from '@/readings/format';
 import { BookCover } from '@/components/BookCover';
 import { BookRow } from '@/components/BookRow';
 import { ClubProgress } from '@/components/ClubProgress';
+import { Notes } from '@/components/Notes';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { BackLink } from '@/components/ui/BackLink';
@@ -49,6 +50,7 @@ export default function ClubPage() {
           <View style={{ gap: space.lg, marginTop: space.xl }}>
             <CurrentBook club={club} />
             {club.currentBook && <Progress club={club} book={club.currentBook} />}
+            {club.currentBook && <ClubNotes club={club} book={club.currentBook} />}
             {club.currentBook && <Meetings club={club} book={club.currentBook} />}
             <InviteSection club={club} />
             <Members club={club} />
@@ -275,4 +277,11 @@ function Progress({ club, book }: { club: ClubDetail; book: ClubBook }) {
       )}
     </Section>
   );
+}
+
+function ClubNotes({ club, book }: { club: ClubDetail; book: ClubBook }) {
+  const { data: session } = authClient.useSession();
+  const progress = useClubProgress(club.id);
+  const me = progress.data?.find((m) => m.userId === session?.user.id);
+  return <Notes bookKey={bookKeyOf(book.edition)} club={{ id: club.id, name: club.name }} readingId={me?.reading?.id} />;
 }

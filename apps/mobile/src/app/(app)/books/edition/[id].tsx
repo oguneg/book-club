@@ -1,15 +1,17 @@
-import { roleAtLeast, type Edition } from '@bookclub/shared';
+import { bookKeyOf, roleAtLeast, type Edition } from '@bookclub/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useEdition } from '@/api/books';
 import { useClub, useClubActions } from '@/api/clubs';
+import { useReadings } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { parsePick } from '@/books/pick';
 import { formatAuthors, languageName } from '@/books/format';
 import { clubErrorMessage } from '@/clubs/errors';
 import { BookCover } from '@/components/BookCover';
+import { Notes } from '@/components/Notes';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { BackLink } from '@/components/ui/BackLink';
@@ -76,6 +78,7 @@ export default function EditionDetails() {
             {edition.workKey && (
               <TextLink href={{ pathname: '/books/work/[key]', params: { key: edition.workKey, ...pickParams } }} label={t('books.edition.otherEditions')} />
             )}
+            {!picking && <BookNotes edition={edition} />}
           </View>
         </>
       )}
@@ -118,4 +121,11 @@ function ChooseForClub({ clubId, edition }: { clubId: string; edition: Edition }
       )}
     </View>
   );
+}
+
+/** Everyone's notes on this book; readers of it (in any edition) can add theirs here too. */
+function BookNotes({ edition }: { edition: Edition }) {
+  const bookKey = bookKeyOf(edition);
+  const reading = useReadings().data?.find((r) => r.bookKey === bookKey);
+  return <Notes bookKey={bookKey} readingId={reading?.id} publicOnly />;
 }

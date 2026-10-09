@@ -1,7 +1,7 @@
 // Drizzle schema. Tables arrive stage by stage; see docs/ARCHITECTURE.md, "Data model".
 // After changing it, run `npm run db:generate -w @bookclub/server` and commit the new migration.
 import { sql } from 'drizzle-orm';
-import { boolean, customType, date, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
+import { boolean, customType, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 const bytea = customType<{ data: Buffer; driverData: Buffer | Uint8Array }>({
   dataType: () => 'bytea',
@@ -246,4 +246,85 @@ export const progressEvent = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('progress_event_reading_idx').on(table.readingId, table.createdAt)],
+);
+
+// Notes: placed by position in a book (any edition), visible privately, to a club, or to everyone reading it.
+export const note = pgTable(
+  'note',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    bookKey: text('book_key').notNull(),
+    /** The author's edition and page, for "p. N" to readers of the same edition. */
+    editionId: text('edition_id')
+      .notNull()
+      .references(() => edition.id, { onDelete: 'restrict' }),
+    page: integer('page'),
+    position: integer('position').notNull(),
+    visibility: text('visibility', { enum: ['private', 'club', 'public'] }).notNull(),
+    clubId: text('club_id').references(() => club.id, { onDelete: 'cascade' }),
+    /** Replies (one level) point at their note and take its visibility. */
+    parentId: text('parent_id'),
+    body: text('body'),
+    editedAt: timestamp('edited_at', { withTimezone: true }),
+    /** Deleted notes that still have replies keep their row (body null) as a placeholder. */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index('note_book_idx').on(table.bookKey, table.position),
+    index('note_parent_idx').on(table.parentId),
+    index('note_club_idx').on(table.clubId),
+    index('note_user_idx').on(table.userId),
+    foreignKey({ columns: [table.parentId], foreignColumns: [table.id] }).onDelete('cascade'),
+  ],
+);
+
+export const noteReaction = pgTable(
+  'note_reaction',
+  {
+    noteId: text('note_id')
+      .notNull()
+      .references(() => note.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    emoji: text('emoji').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.noteId, table.userId, table.emoji] })],
+);
+
+export const noteReport = pgTable(
+  'note_report',
+  {
+    noteId: text('note_id')
+      .notNull()
+      .references(() => note.id, { onDelete: 'cascade' }),
+    reporterId: text('reporter_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    reason: text('reason', { enum: ['spoiler', 'offensive', 'spam', 'other'] }).notNull(),
+    details: text('details'),
+    status: text('status', { enum: ['open', 'dismissed', 'actioned'] }).notNull().default('open'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.noteId, table.reporterId] })],
+);
+
+/** Blocking hides each other's notes and replies, both ways. */
+export const userBlock = pgTable(
+  'user_block',
+  {
+    blockerId: text('blocker_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    blockedId: text('blocked_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.blockerId, table.blockedId] }), index('user_block_blocked_idx').on(table.blockedId)],
 );

@@ -6,7 +6,7 @@ import type { Logger } from 'pino';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { Auth } from './auth';
 import type { Db } from './db/client';
-import { clubBook, clubMember, edition } from './db/schema';
+import { clubBook, clubMember, edition, reading } from './db/schema';
 
 // Live updates: one WebSocket per open app (GET /api/live, signed in). Messages only say *what* changed;
 // the app refetches it through the normal API, so permissions are checked in one place.
@@ -14,7 +14,8 @@ import { clubBook, clubMember, edition } from './db/schema';
 export type LiveEvent =
   | { type: 'readings' } // my readings changed (another device, or this one)
   | { type: 'club'; clubId: string } // a club's details changed (book, meetings, members)
-  | { type: 'club-progress'; clubId: string }; // a member of the club logged progress on the club book
+  | { type: 'club-progress'; clubId: string } // a member of the club logged progress on the club book
+  | { type: 'notes'; bookKey: string }; // notes on this book changed (new note, reply, reaction, edit)
 
 interface Socket {
   send(data: string): void;
@@ -63,6 +64,25 @@ export function createLiveHub({ db, log }: { db: Db; log: Logger }) {
         members.map((m) => m.userId),
         { type: 'club', clubId },
       );
+    },
+
+    /**
+     * Notes on a book changed. Private notes: the author's devices. Club notes: the club's members. Public
+     * notes: every connected reader of that book.
+     */
+    async notesChanged({ userId, bookKey, visibility, clubId }: { userId: string; bookKey: string; visibility: string; clubId: string | null }) {
+      const event: LiveEvent = { type: 'notes', bookKey };
+      if (visibility === 'club' && clubId) {
+        send((await membersOf([clubId])).map((m) => m.userId), event);
+      } else if (visibility === 'public') {
+        const connected = [...byUser.keys()];
+        const readers = connected.length
+          ? await db.select({ userId: reading.userId }).from(reading).where(and(eq(reading.bookKey, bookKey), inArray(reading.userId, connected)))
+          : [];
+        send([userId, ...readers.map((r) => r.userId)], event);
+      } else {
+        send([userId], event);
+      }
     },
 
     /**

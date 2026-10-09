@@ -78,7 +78,13 @@ export const clubDetail = z.object({
 });
 export type ClubDetail = z.infer<typeof clubDetail>;
 
-const bookGlimpse = z.object({ title: z.string(), authors: z.array(z.string()), cover: z.string().nullable() });
+const bookGlimpse = z.object({
+  title: z.string(),
+  authors: z.array(z.string()),
+  cover: z.string().nullable(),
+  /** Which book this is (see bookKeyOf), e.g. to offer club notes on it. */
+  bookKey: z.string(),
+});
 
 export const clubSummary = z.object({
   id: z.string(),

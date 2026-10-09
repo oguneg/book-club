@@ -60,6 +60,7 @@ describe('download my data', () => {
     expect(data.signInMethods).toEqual([{ method: 'password', connectedAt: expect.any(String) }]);
     expect(data.signedInDevices).toHaveLength(2);
     expect(data.signedInDevices.filter((d: { thisDevice: boolean }) => d.thisDevice)).toHaveLength(1);
+    expect(data).toMatchObject({ clubs: [], readings: [], notes: [], reactions: [], reports: [], blocked: [] });
 
     const [stored] = await database.db
       .select({ hash: account.password })

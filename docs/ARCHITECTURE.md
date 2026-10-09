@@ -57,7 +57,7 @@ deploy/          update.sh, backup scripts, compose files
   - Accounts with the same email are linked only if the existing account confirmed its email (blocks pre-registration takeover). Apple private-relay emails are stored as given.
 - **Email/password** (Better Auth): confirmation required before first sign-in, 10+ character passwords checked against Have I Been Pwned (k-anonymity), rate-limited sign-in, reset links valid 1 hour and single-use, all sessions revoked on reset. Sign-up with a taken address answers like a new sign-up; the owner gets a "you already have an account" email instead.
 - **Email** goes out through Resend from `noreply@mail.ogun.se` (sending-only key); in development it is written to the server log.
-- **Live updates (built):** `GET /api/live` upgrades to a WebSocket for signed-in users from trusted origins only (cookie-authenticated sockets are otherwise open to cross-site hijacking). Events only name what changed (`readings`, `club`, `club-progress`); the app refetches through the normal API, so permissions live in one place. Heartbeat every 25 s; close code 1012 on deploy so apps reconnect immediately. Original design notes: one WebSocket per client. The client subscribes to the clubs it belongs to (membership checked on subscribe), and the server publishes after each committed write: `progress`, `note`, `reply`, `reaction`, `member`, `club`. It's in-process now; Postgres LISTEN/NOTIFY is the upgrade path if we ever run more than one process. Clients refetch after reconnecting, so a missed event costs nothing.
+- **Live updates (built):** `GET /api/live` upgrades to a WebSocket for signed-in users from trusted origins only (cookie-authenticated sockets are otherwise open to cross-site hijacking). Events only name what changed (`readings`, `club`, `club-progress`, `notes` for a book: sent to the club for club notes, to connected readers of the book for public ones); the app refetches through the normal API, so permissions live in one place. Heartbeat every 25 s; close code 1012 on deploy so apps reconnect immediately. Original design notes: one WebSocket per client. The client subscribes to the clubs it belongs to (membership checked on subscribe), and the server publishes after each committed write: `progress`, `note`, `reply`, `reaction`, `member`, `club`. It's in-process now; Postgres LISTEN/NOTIFY is the upgrade path if we ever run more than one process. Clients refetch after reconnecting, so a missed event costs nothing.
 - **Push:** Expo push service (expo-server-sdk), which needs an APNs key and FCM v1 credentials in EAS. Sends are batched, and receipts are checked to prune dead tokens.
 - **Jobs** (in-process scheduler, single instance): meeting/milestone reminders, receipt checks, cover cache cleanup.
 - **Rate limits:** per user and per IP on writes, book lookups and joining with invite codes (codes are random, 8+ characters and rotatable).
@@ -83,7 +83,8 @@ page_in_other_edition ≈ start′ + position × (end′ − start′)
 
 - E-book readers can log a percentage directly.
 - Notes store the author's page, the edition and the position. A reader of the **same edition** sees the exact page, and everyone else sees "≈ p.N".
-- **Spoiler rule:** a note or reply is blurred for a viewer when `note.position > viewer.position`. The blur is a presentation choice, so the text is sent and the client hides it. Push notifications for new notes go only to members who have already passed that position, and never include text otherwise.
+- **Spoiler rule:** a note (and its replies) is covered for a viewer when `note.position > viewer.position`, where the viewer's position is their reading of the same book; with no reading, everything past the start is covered. Your own notes never are. The cover is a presentation choice, so the text is sent and the client hides it: blurred on the web, redaction bars on native, hidden from screen readers either way until tapped. A "you are here" line separates what you've reached from what's ahead. Push notifications for new notes (iOS step) go only to readers who have already passed that position, and never include text otherwise.
+- **Who sees a note:** `private` (only the author), `club` (members of one club whose current book is this book, checked when writing), or `public` (anyone signed in, in or out of clubs). Replies, one level deep, take their note's audience. Reported notes are hidden for the reporter at once and, when public, for everyone but the author after 3 open reports. A block works both ways: neither person sees the other's notes or threads. A note deleted by its author stays as a "deleted" placeholder while it has replies; a blocked or hidden note takes its whole thread with it. Club owners and admins can remove club notes, not public ones.
 - The schedule's targets are positions too. The pace line interpolates linearly between the start date, the milestones and the finish date.
 
 All of this lives in `packages/shared` with unit tests.
@@ -102,16 +103,16 @@ All of this lives in `packages/shared` with unit tests.
 | `meeting` | club_book_id, starts_at, title, location, read_to_page (in the club's edition) |
 | `reading` | user_id, edition_id, book_key (`w:<work>` or `e:<edition>`: which readings are the same book), start_page, end_page, position, current_page, status (reading/finished/stopped; one active per user and book), started_at, finished_at. Personal: clubs show members' readings with the club book's book_key |
 | `progress_event` | reading_id, position, page (null for %), created_at; logs within a minute replace each other |
-| `note` | club_book_id, author_id, reading_id, parent_id (replies, one level), position, page, body (≤ 2000 chars), created/edited/deleted_at |
-| `reaction` | note_id, user_id, emoji (from a fixed set) — unique per user+note+emoji |
-| `report` | reporter_id, note_id, reason, status, created_at |
-| `block` | blocker_id, blocked_id |
+| `note` | user_id, book_key, edition_id + page (the author's copy), position, visibility (private/club/public), club_id, parent_id (replies, one level), body (≤ 2000 chars), edited_at, deleted_at (placeholder kept while replies exist) |
+| `note_reaction` | note_id + user_id + emoji (from a fixed set of six) |
+| `note_report` | note_id + reporter_id, reason (spoiler/offensive/spam/other), details, status (open/dismissed/actioned), created_at |
+| `user_block` | blocker_id + blocked_id, created_at |
 | `push_token` | user_id, token, platform, last_seen |
 | `notification_pref` | user_id, type, enabled |
 
 Authorization is enforced in one place: every club-scoped query goes through a membership check helper, and integration tests cover "a non-member gets 404" for every route.
 
-**Deleting an account** removes the user's readings, progress, reactions, tokens and notes. Replies under a deleted note stay, under a "deleted note" placeholder. The Apple token is revoked, and a club the user owns passes to its oldest admin, then its oldest member, or is deleted if it's empty.
+**Deleting an account** removes the user's readings, progress, notes (with the threads they started, others' replies included: without the note they answer they have no context), reactions, reports, blocks and tokens. The Apple token is revoked, and a club the user owns passes to its oldest admin, then its oldest member, or is deleted if it's empty.
 
 ## Environments and deployment
 

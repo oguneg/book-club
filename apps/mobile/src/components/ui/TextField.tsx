@@ -50,7 +50,11 @@ export function TextField({ label, error, hint, password = false, ref, ...input 
             setFocused(false);
             input.onBlur?.(e);
           }}
-          style={[styles.input, { color: colors.text, fontSize: fontSize.md, paddingHorizontal: space.md }]}
+          style={[
+            styles.input,
+            { color: colors.text, fontSize: fontSize.md, paddingHorizontal: space.md },
+            input.multiline && { minHeight: 96, paddingVertical: space.sm, textAlignVertical: 'top' },
+          ]}
         />
         {password && (
           <Pressable
