@@ -35,7 +35,7 @@ export function formatDate(isoDate: string, locale?: string): string {
 }
 
 export function formatMeetingTime(isoDateTime: string, locale?: string): string {
-  return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(
+  return new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }).format(
     new Date(isoDateTime),
   );
 }

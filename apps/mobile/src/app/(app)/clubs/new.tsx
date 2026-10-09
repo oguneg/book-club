@@ -27,7 +27,7 @@ export default function NewClub() {
       const club = await createClub({ name: name.trim(), ...(description.trim() ? { description: description.trim() } : {}) });
       queryClient.setQueryData(['club', club.id], club);
       await queryClient.invalidateQueries({ queryKey: ['clubs'] });
-      router.replace({ pathname: '/clubs/[id]', params: { id: club.id } });
+      router.replace({ pathname: '/clubs/[id]/setup', params: { id: club.id } });
     } catch (err) {
       setError(clubErrorMessage(t, err));
       setBusy(false);

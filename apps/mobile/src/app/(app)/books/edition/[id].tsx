@@ -1,14 +1,14 @@
 import { bookKeyOf, roleAtLeast, type Edition } from '@bookclub/shared';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useEdition } from '@/api/books';
-import { useClub, useClubActions } from '@/api/clubs';
+import { useClub } from '@/api/clubs';
 import { useReadings } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { parsePick } from '@/books/pick';
-import { useStartReading } from '@/books/start';
+import { useChooseForClub, useStartReading } from '@/books/start';
 import { formatAuthors, languageName } from '@/books/format';
 import { clubErrorMessage } from '@/clubs/errors';
 import { BookCover } from '@/components/BookCover';
@@ -57,7 +57,7 @@ export default function EditionDetails() {
 
           <View style={{ marginTop: space.xl, gap: space.lg }}>
             {picking?.kind === 'club' ? (
-              <ChooseForClub clubId={picking.clubId} edition={edition} />
+              <ChooseForClub clubId={picking.clubId} setup={picking.setup} edition={edition} />
             ) : (
               <StartOrOpen edition={edition} clubId={picking?.clubId ?? undefined} />
             )}
@@ -81,10 +81,10 @@ export default function EditionDetails() {
 }
 
 /** In picking mode (opened from a club's "Choose the book"): make this edition the club's book. */
-function ChooseForClub({ clubId, edition }: { clubId: string; edition: Edition }) {
+function ChooseForClub({ clubId, setup, edition }: { clubId: string; setup: boolean; edition: Edition }) {
   const { t } = useTranslation();
   const club = useClub(clubId);
-  const actions = useClubActions(clubId);
+  const chooseForClub = useChooseForClub(clubId);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
 
@@ -95,8 +95,7 @@ function ChooseForClub({ clubId, edition }: { clubId: string; edition: Edition }
     setBusy(true);
     setError(undefined);
     try {
-      await actions.setBook({ editionId: edition.id });
-      router.dismissTo({ pathname: '/clubs/[id]', params: { id: clubId } });
+      await chooseForClub(edition, { setup });
     } catch (err) {
       setError(clubErrorMessage(t, err));
       setBusy(false);

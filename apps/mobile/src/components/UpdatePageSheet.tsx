@@ -10,7 +10,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
 
-type Updatable = Pick<ReadingDetail, 'id' | 'endPage' | 'currentPage'> & { history?: ReadingDetail['history'] };
+type Updatable = Pick<ReadingDetail, 'id' | 'endPage' | 'currentPage'> & { startPage?: number; history?: ReadingDetail['history'] };
 
 /**
  * "Where are you?": one big number, a few quick steps forward, Save. Reaching the last page offers to mark
@@ -21,12 +21,15 @@ export function UpdatePageSheet({
   visible,
   onClose,
   bookTitle,
+  onFinished,
 }: {
   reading: Updatable;
   visible: boolean;
   onClose: () => void;
   /** Named in the title when the page around it shows several books. */
   bookTitle?: string;
+  /** After "Yes, I finished it": the page around shows the ending. */
+  onFinished?: () => void;
 }) {
   const { t } = useTranslation();
   const { colors, fonts, fontSize, radius, space, minTouch } = useTheme();
@@ -96,8 +99,13 @@ export function UpdatePageSheet({
           <Button
             label={t('reading.update.markFinished')}
             onPress={async () => {
-              await actions.finish().catch((err) => setError(readingErrorMessage(t, err)));
-              close();
+              try {
+                await actions.finish();
+                close();
+                onFinished?.();
+              } catch (err) {
+                setError(readingErrorMessage(t, err));
+              }
             }}
           />
           <Button variant="secondary" label={t('reading.update.notYet')} onPress={close} />
@@ -144,6 +152,23 @@ export function UpdatePageSheet({
           {mode === 'page' && <View style={{ flexDirection: 'row', gap: space.sm }}>{[5, 10, 25].map(step)}</View>}
           {error && <Notice message={error} />}
           <Button label={t('reading.save')} onPress={() => void save()} loading={busy} disabled={!value} />
+          {reading.currentPage === null && mode === 'page' && (
+            // A book just started: one tap to say so, instead of typing page 1.
+            <Button
+              variant="secondary"
+              label={t('reading.update.justStarted')}
+              onPress={async () => {
+                setBusy(true);
+                try {
+                  await actions.logPage(reading.startPage ?? 1);
+                  close();
+                } catch (err) {
+                  setError(readingErrorMessage(t, err));
+                }
+                setBusy(false);
+              }}
+            />
+          )}
           <View style={{ alignSelf: 'center' }}>
             <TextButton
               tone="muted"

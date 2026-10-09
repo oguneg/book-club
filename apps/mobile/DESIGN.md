@@ -166,7 +166,8 @@ It stays calm and quiet: warm paper in light, a dark study in dark mode, ink for
 **Key Characteristics:**
 - A tab bar with icons and labels (My books · Clubs · You) on phones; the same three as a slim sidebar from 1024px.
 - My books: Reading · Want to read · Read. Each book you're reading is a card with its progress and its own "Update page", so several books are one tap each.
-- The book line: progress, the club's faces and the notes on one drawing; tap a bubble to read what was said there.
+- One page per book: the book line (your ribbon, your club's faces, the notes) on your own reading, with the club as a layer, not a second page.
+- Start opens on "Where are you?"; finishing opens a quiet ending with Undo; a new club is three short steps.
 - Everyday jobs in sheets: Update page (with +5 / +10 / +25), + Note (one box and who sees it), notes at a place.
 - One floating "+ Note" button wherever you can write; one filled button per screen.
 - Literata for titles, note text and figures; the system UI face for controls and metadata. Lucide line icons.
@@ -249,7 +250,16 @@ Gently rounded: 6px for chips and messages, 10px for buttons, fields and segment
 Bookcloth pill, 52px tall, a plus and "Note" in on-bookcloth, at the bottom right of the column. Shown wherever you can write (your reading, a club whose book you're reading).
 
 ### Sheets
-A bottom sheet on phones (grabber, title in Literata 20px, ×, scrolling content, safe-area padding) and a centred 480px dialog from 1024px. The Modal is the dialog and carries the title as its name. Used for: Update page, + Note, the notes at a place on the line, the book's ⋯ menu, and inviting to a club.
+A bottom sheet on phones (grabber, title in Literata 20px, ×, scrolling content, safe-area padding) and a centred 480px dialog from 1024px. The Modal is the dialog and carries the title as its name. Used for: Update page (with "I'm just starting" before the first log), + Note, the notes at a place on the line, the book's ⋯ menu, inviting to a club, and the ending.
+
+### One page per book
+Each book has one page: yours. When your club is reading it, the club is a layer on that page, not a second page: faces on the line, a club strip under it (a row with the club's name and "Next: Fri, Oct 16, 6:30 PM · read to p. 120", opening the club), and a Club · Everyone switch on the notes (Club first). The club page is the book with one "Open the book" (or "Start reading the book"), who's where (furthest first, the pace on top), meetings (upcoming first), and invite; no second notes feed, Update page or "+ Note".
+
+### Starting and finishing
+Starting a book opens it on its own page with "Where are you?" already up. Finishing needs no confirming: it opens a quiet ending sheet ("You finished The Hobbit"; how many notes from other readers are open now; "Leave a last thought"; "Read the notes"; "Next up" from Want to read with Start reading), and "Not finished yet? Undo" puts you back on the page you were on.
+
+### Setting up a club
+A new club is three short steps after its name, with a three-bar progress mark under the heading and "Skip for now" on each: which book first (choosing it starts the owner's own reading too), when everyone should finish (a date sets the pace), and invite (copy the link or read out the code). Club settings group "This book" and "Club".
 
 ### Segmented control
 Two to four choices in one row: a paper track with a hairline edge, the selected segment raised paper with a control edge and a soft shadow, labels 14px / 600. As tabs (a club's Notes · Meetings · Members, with `aria-selected`) or radios (who sees a note: Club · Everyone · Only me, with `aria-checked`).
@@ -267,7 +277,7 @@ Two to four choices in one row: a paper track with a hairline edge, the selected
 - Keyboard focus shows a 2px bookcloth outline at 2px offset on the web.
 
 ### Book Line (signature)
-The book as one line from its first to its last page: control-edge hairline for the whole, bookcloth for what you've read. Alone, a ribbon bookmark marks your page; in a club, faces do: 28px circles with initials above the line, yours filled bookcloth, others raised paper. Below the line, a 26px note bubble (a speech-bubble icon) per place, tied to it by a short stem; your own notes take a bookcloth ring, and notes past your place are dashed and faded. Faces or bubbles closer than 30px merge into one with an ink count badge. The club's pace is a dashed ink tick. Hover or focus previews who, where and the first two lines (only "Ahead of where you are" for notes ahead); a tap opens that place's notes in a sheet, still covered until "Show note". Everything is placed by percentage so it renders before layout is measured.
+The book as one line from its first to its last page: control-edge hairline for the whole, bookcloth for what you've read. A ribbon bookmark always marks your page, alone or in a club, so you are never merged with anyone else. The rest of your club are faces: 28px raised-paper circles with 11px initials, lifted 26px above the line on a stem so they clear the ribbon. Below the line, a 26px note bubble (a speech-bubble icon) per place, tied to it by a short stem; your own notes take a bookcloth ring, and notes past your place are dashed and faded. Faces or bubbles closer than 30px merge into one with a count: filled ink for notes, outlined for people, and a merged face announces each person with their own position. Under the line, one plain sentence says where everyone is in your own pages ("Sam ≈26 pages ahead · Lena ≈127 behind"). The club's pace is a dashed ink tick, keyed by "On pace today: p. 68" with the same dash. Hover or focus previews who, where and the first two lines (only "Ahead of where you are" for notes ahead); a tap opens that place's notes in a sheet, still covered until "Show note". Everything is placed by percentage so it renders before layout is measured.
 
 ### Sections
 Form-like pages (account, club settings, moderation) are set in type, not boxed: a section head over a hairline rule, 12px to its content, 24px between sections.

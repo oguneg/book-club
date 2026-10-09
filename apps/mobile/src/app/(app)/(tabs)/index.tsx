@@ -7,12 +7,13 @@ import { ActivityIndicator, Text, View } from 'react-native';
 import { useReadings, useWantToRead, useWantToReadActions } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { formatAuthors } from '@/books/format';
-import { useStartReading } from '@/books/start';
+import { openReading, useStartReading } from '@/books/start';
 import { formatDate } from '@/clubs/format';
 import { takePendingInvite } from '@/clubs/pendingInvite';
 import { readingErrorMessage } from '@/readings/errors';
 import { readingLine } from '@/readings/format';
 import { BookRow } from '@/components/BookRow';
+import { FinishedSheet } from '@/components/FinishedSheet';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { UpdatePageSheet } from '@/components/UpdatePageSheet';
@@ -42,6 +43,7 @@ export default function MyBooks() {
   const current = all.filter((r) => r.status === 'reading').sort((a, b) => b.startedAt.localeCompare(a.startedAt));
   // One sheet for whichever book you tap; kept after closing so it can slide away.
   const [updating, setUpdating] = useState<{ reading: Reading; open: boolean } | null>(null);
+  const [finished, setFinished] = useState<Reading | null>(null);
 
   // Back from signing in (or confirming an email) with an invite still open: continue joining.
   useEffect(() => {
@@ -96,6 +98,23 @@ export default function MyBooks() {
           bookTitle={updating.reading.edition.title}
           visible={updating.open}
           onClose={() => setUpdating((u) => u && { ...u, open: false })}
+          onFinished={() => setFinished(updating.reading)}
+        />
+      )}
+      {finished && (
+        <FinishedSheet
+          key={finished.id}
+          reading={finished}
+          visible
+          onClose={() => setFinished(null)}
+          onLastThought={() => {
+            setFinished(null);
+            openReading(finished.id, 'note');
+          }}
+          onReadNotes={() => {
+            setFinished(null);
+            openReading(finished.id);
+          }}
         />
       )}
     </Screen>

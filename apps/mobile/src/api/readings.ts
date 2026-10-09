@@ -62,6 +62,8 @@ export function useReadingActions(id: string) {
     queryClient.setQueryData(['reading', id], reading);
     void queryClient.invalidateQueries({ queryKey: ['readings'] });
     void queryClient.invalidateQueries({ queryKey: ['club-progress'] });
+    // Your place decides which notes are spoilers.
+    void queryClient.invalidateQueries({ queryKey: ['notes'] });
     return reading;
   };
   return {

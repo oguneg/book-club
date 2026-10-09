@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -7,6 +7,7 @@ import { useEdition } from '@/api/books';
 import { ApiError } from '@/api/client';
 import { startReading } from '@/api/readings';
 import { formatAuthors, publishedYear } from '@/books/format';
+import { openReading } from '@/books/start';
 import { readingErrorMessage } from '@/readings/errors';
 import { BookCover } from '@/components/BookCover';
 import { FormLayout } from '@/components/FormLayout';
@@ -56,12 +57,10 @@ function Form({ edition, clubId }: { edition: NonNullable<ReturnType<typeof useE
     try {
       const reading = await startReading({ editionId: edition.id, ...range });
       await queryClient.invalidateQueries({ queryKey: ['readings'] });
-      if (clubId) {
-        await queryClient.invalidateQueries({ queryKey: ['club-progress', clubId] });
-        router.dismissTo({ pathname: '/clubs/[id]', params: { id: clubId } });
-      } else {
-        router.replace({ pathname: '/readings/[id]', params: { id: reading.id } });
-      }
+      void queryClient.invalidateQueries({ queryKey: ['want-to-read'] });
+      if (clubId) void queryClient.invalidateQueries({ queryKey: ['club-progress', clubId] });
+      // The book's own page (the club's book included), asking where you are.
+      openReading(reading.id, 'update');
     } catch (err) {
       setBusy(false);
       if (err instanceof ApiError && err.code === 'already_reading') {

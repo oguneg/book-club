@@ -334,7 +334,9 @@
       "yourBook": "Your book",
       "startBook": "Start reading the book",
       "nextMeetingLabel": "Next meeting",
-      "noBookAdmin": "Choose the book the club will read first."
+      "noBookAdmin": "Choose the book the club will read first.",
+      "openBook": "Open the book",
+      "whoIsWhere": "Who’s where"
     },
     "roles": {
       "owner": "Owner",
@@ -385,7 +387,7 @@
     },
     "settings": {
       "title": "Club settings",
-      "details": "Name and description",
+      "details": "Club",
       "save": "Save",
       "leave": "Leave club",
       "leaveQuestion": "Leave {{name}}? You can rejoin with an invite link.",
@@ -394,7 +396,7 @@
       "delete": "Delete club",
       "deleteQuestion": "Delete {{name}} for everyone? Its books, meetings and member list are removed. This cannot be undone.",
       "deleteConfirm": "Yes, delete the club",
-      "book": "The book"
+      "book": "This book"
     },
     "progress": {
       "title": "Where everyone is",
@@ -415,6 +417,20 @@
     },
     "tab": {
       "empty": "You're not in a club yet. Start one and invite friends, or join one with an invite code."
+    },
+    "setup": {
+      "title": "Set up your club",
+      "progress": "Step {{step}} of {{count}}",
+      "bookTitle": "Which book first?",
+      "bookBody": "Everyone reads their own copy; the pages line up by themselves.",
+      "findBook": "Find the book",
+      "skip": "Skip for now",
+      "finishTitle": "When should everyone finish?",
+      "finishBody": "{{title}}. A date sets the club’s pace; you can change it later.",
+      "finishHint": "Meetings can be planned from the club page.",
+      "next": "Next",
+      "inviteTitle": "Invite people to {{club}}",
+      "done": "Go to the club"
     }
   },
   "reading": {
@@ -491,7 +507,8 @@
       "endTitle": "The last page!",
       "endBody": "That's the end of the book. Mark it as finished?",
       "markFinished": "Yes, I finished it",
-      "notYet": "Not yet"
+      "notYet": "Not yet",
+      "justStarted": "I’m just starting"
     },
     "menu": {
       "label": "More for this book",
@@ -502,6 +519,13 @@
       "body": "Find your book and keep your place in it. Notes and clubs build on that.",
       "find": "Find the book",
       "invite": "Got an invite? Join a club"
+    },
+    "notesFor": "Whose notes",
+    "notesClub": "Club",
+    "notesEveryone": "Everyone",
+    "club": {
+      "next": "Next: {{when}}",
+      "readTo": "read to p. {{page}}"
     }
   },
   "notes": {
@@ -612,7 +636,16 @@
       "you": "you",
       "at": "{{percent}}% through",
       "markLabel": "{{notes}} at {{place}} by {{names}}",
-      "sheetTitle": "Notes at {{place}}"
+      "sheetTitle": "Notes at {{place}}",
+      "person": "{{name}}, {{percent}}% through",
+      "notStarted": "{{name}} hasn’t started",
+      "percent": "{{name}} {{percent}}%",
+      "withYou": "{{name}} is with you",
+      "ahead_one": "{{name}} ≈1 page ahead",
+      "ahead_other": "{{name}} ≈{{count}} pages ahead",
+      "behind_one": "{{name}} ≈1 page behind",
+      "behind_other": "{{name}} ≈{{count}} behind",
+      "more": "+{{count}} more"
     },
     "feed": {
       "empty": "No notes yet. Tap + Note to leave the first one."
@@ -676,5 +709,15 @@
     "didntFinish": "Didn’t finish",
     "stoppedAt": "Stopped at p. {{page}}",
     "stoppedEarly": "Stopped before page 1"
+  },
+  "finished": {
+    "title": "You finished {{title}}",
+    "notesOpen_one": "The note from another reader is open now.",
+    "notesOpen_other": "All {{count}} notes from other readers are open now.",
+    "allOpen": "Every note on this book is open to you now.",
+    "lastThought": "Leave a last thought",
+    "readNotes": "Read the notes",
+    "nextUp": "Next up",
+    "undo": "Not finished yet? Undo"
   }
 }

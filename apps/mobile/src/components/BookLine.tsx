@@ -5,21 +5,17 @@ import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useNotes, type NoteScope } from '@/api/notes';
+import { whereEveryoneIs, type LineMember } from '@/clubs/where';
 import { placeLabel } from '@/notes/format';
 import { NoteCard } from '@/components/NoteCard';
 import { Notice } from '@/components/ui/Notice';
+import { Hint } from '@/components/ui/Section';
 import { Sheet } from '@/components/ui/Sheet';
 import { useTheme } from '@/theme';
 
-export interface LineMember {
-  userId: string;
-  name: string;
-  /** 0..10000, or null when they haven't started. */
-  position: number | null;
-  me: boolean;
-}
-
 const FACE = 28;
+/** Faces sit this far above the line on a stem, clear of your ribbon. */
+const FACE_LIFT = 26;
 const MARK = 26;
 /** Marks closer than this (in pixels) share one, with a count, so the line stays readable on a phone. */
 const MIN_GAP = 30;
@@ -31,6 +27,9 @@ const initials = (name: string) =>
     .slice(0, 2)
     .map((w) => w.charAt(0).toUpperCase())
     .join('');
+const percentOf = (position: number) => Math.round((position / POSITION_SCALE) * 100);
+
+export type { LineMember };
 
 function bucket<T>(items: T[], at: (item: T) => number, width: number): { x: number; items: T[] }[] {
   const out: { x: number; items: T[] }[] = [];
@@ -44,19 +43,22 @@ function bucket<T>(items: T[], at: (item: T) => number, width: number): { x: num
 }
 
 /**
- * The book as one line, first page to last: where you are (the ribbon, or your face among the club's),
- * and where people left notes, like comments along a track. Tap a note bubble to read what was said
- * there; notes past your place stay covered until you choose "Show note".
+ * The book as one line, first page to last: where you are (the ribbon), where the rest of your club is
+ * (their faces), and where people left notes, like comments along a track. Tap a note bubble to read what
+ * was said there; notes past your place stay covered until you choose "Show note".
  */
 export function BookLine({
   bookKey,
   scope,
+  startPage = 1,
   endPage,
   members,
   pace,
 }: {
   bookKey: string;
   scope: NoteScope;
+  /** Your copy's story pages, for "≈N pages ahead". */
+  startPage?: number;
   endPage: number;
   members?: LineMember[];
   pace?: number | null;
@@ -72,11 +74,14 @@ export function BookLine({
   const lineWidth = width || 340;
   const notes = useMemo(() => (query.data?.notes ?? []).filter((n) => n.body !== null || n.replies.length > 0), [query.data]);
   const groups = useMemo(() => bucket(notes, (n) => n.position, lineWidth), [notes, lineWidth]);
-  const people = useMemo(() => bucket((members ?? []).filter((m) => m.position !== null), (m) => m.position ?? 0, lineWidth), [members, lineWidth]);
-  const showFaces = (members?.length ?? 0) > 0;
-  const lineY = showFaces ? FACE + 14 : 24;
+  // You are the ribbon, never a face, so your place is never merged with (or mistaken for) someone else's.
+  const others = useMemo(() => (members ?? []).filter((m) => !m.me), [members]);
+  const people = useMemo(() => bucket(others.filter((m) => m.position !== null), (m) => m.position ?? 0, lineWidth), [others, lineWidth]);
+  const showFaces = others.length > 0;
+  const lineY = showFaces ? FACE + FACE_LIFT + 4 : 24;
   const marksY = lineY + 14;
-  const you = viewer ? viewer.position / POSITION_SCALE : null;
+  const mine = viewer?.position ?? members?.find((m) => m.me)?.position ?? null;
+  const you = mine !== null ? mine / POSITION_SCALE : null;
   const pct = (x: number) => `${(x / lineWidth) * 100}%` as const;
   const ahead = (g: Note[]) => g.every((n) => !n.mine && isSpoilerFor(n.position, viewer));
   const placeOf = (g: Note[]) => {
@@ -96,45 +101,46 @@ export function BookLine({
         {pace != null && (
           <View aria-hidden style={{ position: 'absolute', left: `${(pace / POSITION_SCALE) * 100}%`, top: lineY - 7, height: 15, width: 0, borderLeftWidth: 2, borderStyle: 'dashed', borderColor: colors.text }} />
         )}
-        {/* Alone with the book: a ribbon marks your place. In a club, your face does. */}
-        {!showFaces && you !== null && (
+        {people.map((p) => {
+          const face = p.items[0]!;
+          return (
+            <View
+              key={face.userId}
+              role="img"
+              aria-label={p.items.map((m) => t('notes.line.person', { name: m.name, percent: percentOf(m.position ?? 0) })).join(', ')}
+              style={{ position: 'absolute', left: pct(p.x), marginLeft: -FACE / 2, top: lineY - FACE_LIFT - FACE, width: FACE, alignItems: 'center' }}
+            >
+              <View
+                style={{
+                  width: FACE,
+                  height: FACE,
+                  borderRadius: FACE / 2,
+                  borderWidth: 1,
+                  borderColor: colors.control,
+                  backgroundColor: colors.surface,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ color: colors.text, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 }}>{initials(face.name)}</Text>
+                {p.items.length > 1 && <Badge count={p.items.length} people />}
+              </View>
+              {/* A stem ties the face to its place on the line. */}
+              <View style={{ width: 1, height: FACE_LIFT, backgroundColor: colors.control }} />
+            </View>
+          );
+        })}
+        {/* Your place: the ribbon, alone or in a club. */}
+        {you !== null && (
           <View aria-hidden style={{ position: 'absolute', top: lineY - 22, left: `${you * 100}%`, marginLeft: -6 }}>
             <Svg width={12} height={26} viewBox="0 0 12 26">
               <Path d="M0 0 H12 V26 L6 20 L0 26 Z" fill={colors.accent} />
             </Svg>
           </View>
         )}
-        {people.map((p) => {
-          const me = p.items.find((m) => m.me);
-          const face = me ?? p.items[0]!;
-          return (
-            <View
-              key={face.userId}
-              role="img"
-              aria-label={p.items.map((m) => (m.me ? t('notes.line.you') : m.name)).join(', ') + ' · ' + t('notes.line.at', { percent: Math.round(((face.position ?? 0) / POSITION_SCALE) * 100) })}
-              style={{
-                position: 'absolute',
-                left: pct(p.x),
-                marginLeft: -FACE / 2,
-                top: lineY - FACE - 8,
-                width: FACE,
-                height: FACE,
-                borderRadius: FACE / 2,
-                borderWidth: me ? 0 : 1,
-                borderColor: colors.control,
-                backgroundColor: me ? colors.accent : colors.surface,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ color: me ? colors.onAccent : colors.text, fontSize: 10, fontWeight: '700', letterSpacing: 0.3 }}>{initials(face.name)}</Text>
-              {p.items.length > 1 && <Badge count={p.items.length} />}
-            </View>
-          );
-        })}
         {groups.map((g) => {
           const isAhead = ahead(g.items);
-          const mine = g.items.some((n) => n.mine);
+          const mineGroup = g.items.some((n) => n.mine);
           const key = g.items[0]!.id;
           const label =
             t('notes.line.markLabel', {
@@ -164,9 +170,9 @@ export function BookLine({
                 width: MARK,
                 height: MARK,
                 borderRadius: MARK / 2,
-                borderWidth: mine ? 1.5 : 1,
+                borderWidth: mineGroup ? 1.5 : 1,
                 borderStyle: isAhead ? 'dashed' : 'solid',
-                borderColor: mine ? colors.accent : colors.control,
+                borderColor: mineGroup ? colors.accent : colors.control,
                 backgroundColor: isAhead ? 'transparent' : colors.surface,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -176,7 +182,7 @@ export function BookLine({
               <MessageCircle size={13} color={isAhead ? colors.textMuted : colors.text} strokeWidth={2} />
               {g.items.length > 1 && <Badge count={g.items.length} />}
               {/* A short stem ties the bubble to its place on the line. */}
-              <View style={{ position: 'absolute', top: -(marksY - lineY), left: MARK / 2 - 0.5, width: 1, height: marksY - lineY, backgroundColor: mine ? colors.accent : colors.control }} />
+              <View style={{ position: 'absolute', top: -(marksY - lineY), left: MARK / 2 - 0.5, width: 1, height: marksY - lineY, backgroundColor: mineGroup ? colors.accent : colors.control }} />
             </Pressable>
           );
         })}
@@ -219,6 +225,7 @@ export function BookLine({
         <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>p. 1</Text>
         <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>{`p. ${viewer?.endPage ?? endPage}`}</Text>
       </View>
+      {showFaces && <Hint>{whereEveryoneIs(t, others, mine, Math.max(1, endPage - startPage))}</Hint>}
       <Sheet visible={Boolean(open)} onClose={() => setOpenKey(null)} title={open ? t('notes.line.sheetTitle', { place: placeOf(open.items) }) : ''}>
         {message && <Notice tone="info" message={message} />}
         <View style={{ gap: space.lg, paddingBottom: space.sm }}>
@@ -229,7 +236,8 @@ export function BookLine({
   );
 }
 
-function Badge({ count }: { count: number }) {
+/** A count on a merged mark: filled for notes, outlined for people, so the two never read alike. */
+function Badge({ count, people = false }: { count: number; people?: boolean }) {
   const { colors } = useTheme();
   return (
     <View
@@ -241,12 +249,14 @@ function Badge({ count }: { count: number }) {
         height: 16,
         borderRadius: 8,
         paddingHorizontal: 3,
-        backgroundColor: colors.text,
+        backgroundColor: people ? colors.surface : colors.text,
+        borderWidth: people ? 1 : 0,
+        borderColor: colors.text,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text style={{ color: colors.background, fontSize: 10, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{count}</Text>
+      <Text style={{ color: people ? colors.text : colors.background, fontSize: 11, fontWeight: '700', fontVariant: ['tabular-nums'] }}>{count}</Text>
     </View>
   );
 }

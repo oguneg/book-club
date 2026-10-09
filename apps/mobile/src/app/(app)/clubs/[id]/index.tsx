@@ -1,40 +1,31 @@
-import { bookKeyOf, formatInviteCode, paceAt, positionToPage, roleAtLeast, type ClubBook, type ClubDetail, type Meeting, type MemberProgress } from '@bookclub/shared';
-import * as Clipboard from 'expo-clipboard';
+import { paceAt, positionToPage, roleAtLeast, type ClubBook, type ClubDetail, type Meeting, type MemberProgress } from '@bookclub/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Plus, Settings, UserPlus } from 'lucide-react-native';
+import { Settings, UserPlus } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useClub } from '@/api/clubs';
 import { useClubProgress } from '@/api/readings';
-import { appUrl, authClient } from '@/auth/client';
+import { authClient } from '@/auth/client';
 import { formatAuthors } from '@/books/format';
-import { useStartReading } from '@/books/start';
+import { openReading, useStartReading } from '@/books/start';
 import { clubErrorMessage } from '@/clubs/errors';
 import { formatDate, formatMeetingTime } from '@/clubs/format';
+import { pacePlan } from '@/clubs/pace';
 import { readingLine } from '@/readings/format';
 import { BookCover } from '@/components/BookCover';
-import { BookLine, type LineMember } from '@/components/BookLine';
-import { pacePlan } from '@/clubs/pace';
+import { InviteBody } from '@/components/Invite';
 import { MARGIN } from '@/components/NoteCard';
-import { NotesFeed } from '@/components/Notes';
-import { NoteSheet } from '@/components/NoteSheet';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
-import { UpdatePageSheet } from '@/components/UpdatePageSheet';
 import { BackButton } from '@/components/ui/BackButton';
 import { Button } from '@/components/ui/Button';
-import { Fab } from '@/components/ui/Fab';
 import { IconButton } from '@/components/ui/IconButton';
 import { Notice } from '@/components/ui/Notice';
 import { Hint } from '@/components/ui/Section';
-import { Segmented } from '@/components/ui/Segmented';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextButton } from '@/components/ui/TextButton';
-import { TextLink } from '@/components/ui/TextLink';
 import { useTheme } from '@/theme';
-
-type Tab = 'notes' | 'meetings' | 'members';
 
 const initialsOf = (name: string) =>
   name
@@ -45,8 +36,8 @@ const initialsOf = (name: string) =>
     .join('');
 
 /**
- * A club: the book, everyone on one line (faces where they are, notes where they were left), your one
- * next step (start the book, or update your page), the next meeting, then Notes · Meetings · Members.
+ * A club: the book it's reading (and your one next step: open it, or start it), who's where, and the
+ * meetings. The book itself, with everyone on its line and the club's notes, is the book's own page.
  * Owner and admin tools are behind the gear.
  */
 export default function ClubPage() {
@@ -58,14 +49,11 @@ export default function ClubPage() {
   const { data: session } = authClient.useSession();
   const progress = useClubProgress(id, { enabled: Boolean(club?.currentBook) });
   const me = progress.data?.find((m) => m.userId === session?.user.id);
-  const [sheet, setSheet] = useState<'update' | 'note' | 'invite' | null>(null);
-  const [tab, setTab] = useState<Tab>('notes');
-  const [message, setMessage] = useState<string>();
+  const [inviting, setInviting] = useState(false);
   const book = club?.currentBook ?? null;
-  const canWrite = Boolean(book && me?.reading?.status === 'reading');
 
   return (
-    <Screen overlay={canWrite ? <Fab icon={Plus} label={t('notes.sheet.fab')} onPress={() => setSheet('note')} /> : undefined}>
+    <Screen>
       <PageTitle title={club?.name} />
       <BackButton label={t('tabs.clubs')} fallback="/clubs" />
       {query.isPending && <ActivityIndicator color={colors.accent} />}
@@ -76,56 +64,40 @@ export default function ClubPage() {
             <Text accessibilityRole="header" style={{ flex: 1, fontFamily: fonts.headingBold, fontSize: fontSize.xxl, lineHeight: fontSize.xxl * 1.15, color: colors.text }}>
               {club.name}
             </Text>
-            <IconButton icon={UserPlus} label={t('clubs.club.invite')} onPress={() => setSheet('invite')} />
+            <IconButton icon={UserPlus} label={t('clubs.club.invite')} onPress={() => setInviting(true)} />
             <IconButton icon={Settings} label={t('clubs.club.settings')} onPress={() => router.push({ pathname: '/clubs/[id]/settings', params: { id: club.id } })} />
           </View>
 
           {book ? (
             <>
-              <TheBook book={book} />
-              {progress.data && <TheLine club={club} book={book} members={progress.data} myUserId={session?.user.id} />}
-              <NextStep club={club} book={book} me={me} onUpdate={() => setSheet('update')} />
-              {message && <Notice tone="info" message={message} />}
-              <NextMeeting book={book} />
-              <Segmented
-                label={t('clubs.club.sections')}
-                options={[
-                  { value: 'notes', label: t('clubs.club.tabNotes') },
-                  { value: 'meetings', label: t('clubs.club.meetings') },
-                  { value: 'members', label: t('clubs.club.members') },
-                ]}
-                value={tab}
-                onChange={setTab}
-              />
-              {tab === 'notes' && <NotesFeed bookKey={bookKeyOf(book.edition)} scope={`club:${club.id}`} title={t('notes.clubTitle')} />}
-              {tab === 'meetings' && <Meetings club={club} book={book} />}
-              {tab === 'members' && <Members club={club} progress={progress.data ?? []} myUserId={session?.user.id} onInvite={() => setSheet('invite')} />}
+              <View style={{ gap: space.lg }}>
+                <TheBook book={book} />
+                <YourStep club={club} book={book} me={me} />
+              </View>
+              <WhoIsWhere club={club} book={book} progress={progress.data ?? []} myUserId={session?.user.id} onInvite={() => setInviting(true)} />
+              <Meetings club={club} book={book} />
             </>
           ) : (
-            <NoBook club={club} onInvite={() => setSheet('invite')} />
+            <NoBook club={club} onInvite={() => setInviting(true)} />
           )}
 
-          <InviteSheet club={club} visible={sheet === 'invite'} onClose={() => setSheet(null)} />
-          {me?.reading && (
-            <UpdatePageSheet
-              reading={{ id: me.reading.id, endPage: me.reading.endPage, currentPage: me.reading.currentPage }}
-              visible={sheet === 'update'}
-              onClose={() => setSheet(null)}
-            />
-          )}
-          {me?.reading && book && (
-            <NoteSheet
-              readingId={me.reading.id}
-              bookKey={bookKeyOf(book.edition)}
-              clubId={club.id}
-              visible={sheet === 'note'}
-              onClose={() => setSheet(null)}
-              onPosted={() => setMessage(t('notes.added'))}
-            />
-          )}
+          <Sheet visible={inviting} onClose={() => setInviting(false)} title={t('clubs.club.invite')}>
+            <View style={{ paddingBottom: space.sm }}>
+              <InviteBody club={club} />
+            </View>
+          </Sheet>
         </View>
       )}
     </Screen>
+  );
+}
+
+function SectionHead({ children }: { children: string }) {
+  const { colors, fonts, fontSize } = useTheme();
+  return (
+    <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, lineHeight: fontSize.lg * 1.25, color: colors.text }}>
+      {children}
+    </Text>
   );
 }
 
@@ -147,31 +119,8 @@ function TheBook({ book }: { book: ClubBook }) {
   );
 }
 
-/** Everyone on the book, and in plain words where the club should be today. */
-function TheLine({ club, book, members, myUserId }: { club: ClubDetail; book: ClubBook; members: MemberProgress[]; myUserId?: string }) {
-  const { t } = useTranslation();
-  const { colors, space } = useTheme();
-  // Captured once per visit; the pace moves by the day.
-  const [now] = useState(() => Date.now());
-  const pace = paceAt(now, pacePlan(book));
-  const pages = book.edition.pageCount ?? 0;
-  const line: LineMember[] = members.map((m) => ({ userId: m.userId, name: m.name, position: m.reading?.position ?? null, me: m.userId === myUserId }));
-  return (
-    <View style={{ gap: space.sm }}>
-      <BookLine bookKey={bookKeyOf(book.edition)} scope={`club:${club.id}`} endPage={pages} members={line} pace={pace} />
-      {pace !== null && pace > 0 && book.finishDate && (
-        // Doubles as the legend for the dashed tick on the line.
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-          <View aria-hidden style={{ height: 15, width: 0, borderLeftWidth: 2, borderStyle: 'dashed', borderColor: colors.text }} />
-          <Hint>{t('clubs.club.paceToday', { page: positionToPage(pace, { startPage: 1, endPage: Math.max(pages, 2) }) })}</Hint>
-        </View>
-      )}
-    </View>
-  );
-}
-
-/** Your one next step in this club: start the book, or update where you are. */
-function NextStep({ club, book, me, onUpdate }: { club: ClubDetail; book: ClubBook; me?: MemberProgress; onUpdate: () => void }) {
+/** Your one next step: open the book (where you log, read and write), or start it. */
+function YourStep({ club, book, me }: { club: ClubDetail; book: ClubBook; me?: MemberProgress }) {
   const { t } = useTranslation();
   const { colors, fontSize, space } = useTheme();
   const start = useStartReading();
@@ -179,13 +128,11 @@ function NextStep({ club, book, me, onUpdate }: { club: ClubDetail; book: ClubBo
   const [error, setError] = useState<string>();
 
   if (me?.reading) {
+    const reading = me.reading;
     return (
       <View style={{ gap: space.sm }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.md, flexWrap: 'wrap' }}>
-          <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{t('clubs.club.youAre', { where: readingLine(t, me.reading) })}</Text>
-          <TextLink href={{ pathname: '/readings/[id]', params: { id: me.reading.id } }} label={t('clubs.club.yourBook')} />
-        </View>
-        {me.reading.status === 'reading' && <Button label={t('reading.update.button')} onPress={onUpdate} />}
+        <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{t('clubs.club.youAre', { where: readingLine(t, reading) })}</Text>
+        <Button label={t('clubs.club.openBook')} onPress={() => openReading(reading.id)} />
       </View>
     );
   }
@@ -221,17 +168,57 @@ function NextStep({ club, book, me, onUpdate }: { club: ClubDetail; book: ClubBo
   );
 }
 
-function NextMeeting({ book }: { book: ClubBook }) {
+/** Everyone in the club and where they are, furthest first; where the club should be today on top. */
+function WhoIsWhere({ club, book, progress, myUserId, onInvite }: { club: ClubDetail; book: ClubBook; progress: MemberProgress[]; myUserId?: string; onInvite: () => void }) {
   const { t } = useTranslation();
-  const { colors, fontSize, radius, space } = useTheme();
+  const { colors, fontSize, space } = useTheme();
   const [now] = useState(() => Date.now());
-  const next = book.meetings.find((m) => new Date(m.startsAt).getTime() >= now);
-  if (!next) return null;
+  const isAdmin = roleAtLeast(club.myRole, 'admin');
+  const where = new Map(progress.map((p) => [p.userId, p.reading]));
+  const pace = paceAt(now, pacePlan(book));
+  const pages = book.edition.pageCount ?? 0;
+  const members = [...club.members].sort((a, b) => (where.get(b.userId)?.position ?? -1) - (where.get(a.userId)?.position ?? -1));
   return (
-    <View style={{ backgroundColor: colors.surface, borderRadius: radius.lg, padding: space.lg, gap: 2, borderWidth: 1, borderColor: colors.border }}>
-      <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{t('clubs.club.nextMeetingLabel')}</Text>
-      <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600' }}>{`${formatMeetingTime(next.startsAt)} · ${next.title}`}</Text>
-      {(next.location || next.readToPage) && <Hint>{[next.location, next.readToPage ? t('clubs.club.readTo', { page: next.readToPage }) : null].filter(Boolean).join(' · ')}</Hint>}
+    <View style={{ gap: space.sm }}>
+      <SectionHead>{t('clubs.club.whoIsWhere')}</SectionHead>
+      {pace !== null && pace > 0 && <Hint>{t('clubs.club.paceToday', { page: positionToPage(pace, { startPage: 1, endPage: Math.max(pages, 2) }) })}</Hint>}
+      <View role="list">
+        {members.map((m) => {
+          const reading = where.get(m.userId);
+          const isMe = m.userId === myUserId;
+          const line = [isMe ? t('clubs.progress.you') : null, m.role !== 'member' ? t(`clubs.roles.${m.role}`) : null, reading ? readingLine(t, reading) : t('reading.notStarted')]
+            .filter(Boolean)
+            .join(' · ');
+          const row = (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm }}>
+              <View aria-hidden style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: isMe ? colors.accent : colors.border, alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: isMe ? colors.onAccent : colors.text, fontSize: 12, fontWeight: '700' }}>{initialsOf(m.name)}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600' }}>{m.name}</Text>
+                <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontVariant: ['tabular-nums'] }}>{line}</Text>
+              </View>
+            </View>
+          );
+          return (
+            <View key={m.userId} role="listitem">
+              {isAdmin && !isMe ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${m.name}, ${line}`}
+                  onPress={() => router.push({ pathname: '/clubs/[id]/member/[userId]', params: { id: club.id, userId: m.userId } })}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                >
+                  {row}
+                </Pressable>
+              ) : (
+                row
+              )}
+            </View>
+          );
+        })}
+      </View>
+      <Button variant="secondary" label={t('clubs.club.invite')} onPress={onInvite} />
     </View>
   );
 }
@@ -249,16 +236,21 @@ function NoBook({ club, onInvite }: { club: ClubDetail; onInvite: () => void }) 
   );
 }
 
+/** Upcoming meetings first (the next one on top), then past ones, faded. */
 function Meetings({ club, book }: { club: ClubDetail; book: ClubBook }) {
   const { t } = useTranslation();
   const { space } = useTheme();
   const isAdmin = roleAtLeast(club.myRole, 'admin');
   const [now] = useState(() => Date.now());
+  const time = (m: Meeting) => new Date(m.startsAt).getTime();
+  const upcoming = book.meetings.filter((m) => time(m) >= now).sort((a, b) => time(a) - time(b));
+  const past = book.meetings.filter((m) => time(m) < now).sort((a, b) => time(b) - time(a));
   return (
     <View style={{ gap: space.lg }}>
+      <SectionHead>{t('clubs.club.meetings')}</SectionHead>
       {book.meetings.length === 0 && <Hint>{t('clubs.club.noMeetings')}</Hint>}
-      {book.meetings.map((m) => (
-        <MeetingRow key={m.id} meeting={m} past={new Date(m.startsAt).getTime() < now}>
+      {[...upcoming, ...past].map((m) => (
+        <MeetingRow key={m.id} meeting={m} past={time(m) < now}>
           {isAdmin && (
             <View style={{ alignSelf: 'flex-start' }}>
               <TextButton
@@ -281,7 +273,7 @@ function MeetingRow({ meeting, past, children }: { meeting: Meeting; past: boole
   const { t } = useTranslation();
   const date = new Date(meeting.startsAt);
   const month = new Intl.DateTimeFormat(undefined, { month: 'short' }).format(date);
-  const time = new Intl.DateTimeFormat(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+  const time = new Intl.DateTimeFormat(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' }).format(date);
   const details = [time, meeting.location, meeting.readToPage ? t('clubs.club.readTo', { page: meeting.readToPage }) : null].filter(Boolean).join(' · ');
   return (
     <View style={{ flexDirection: 'row', gap: space.md, opacity: past ? 0.6 : 1 }}>
@@ -297,84 +289,5 @@ function MeetingRow({ meeting, past, children }: { meeting: Meeting; past: boole
         {children}
       </View>
     </View>
-  );
-}
-
-/** Who's in the club and where each of them is: the text version of the line above. */
-function Members({ club, progress, myUserId, onInvite }: { club: ClubDetail; progress: MemberProgress[]; myUserId?: string; onInvite: () => void }) {
-  const { t } = useTranslation();
-  const { colors, fontSize, space } = useTheme();
-  const isAdmin = roleAtLeast(club.myRole, 'admin');
-  const where = new Map(progress.map((p) => [p.userId, p.reading]));
-  return (
-    <View style={{ gap: space.xs }}>
-      {club.members.map((m) => {
-        const reading = where.get(m.userId);
-        const isMe = m.userId === myUserId;
-        const line = [isMe ? t('clubs.progress.you') : null, m.role !== 'member' ? t(`clubs.roles.${m.role}`) : null, reading ? readingLine(t, reading) : t('reading.notStarted')]
-          .filter(Boolean)
-          .join(' · ');
-        const row = (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm }}>
-            <View aria-hidden style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: isMe ? colors.accent : colors.border, alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ color: isMe ? colors.onAccent : colors.text, fontSize: 11, fontWeight: '700' }}>{initialsOf(m.name)}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600' }}>{m.name}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontVariant: ['tabular-nums'] }}>{line}</Text>
-            </View>
-          </View>
-        );
-        return isAdmin && !isMe ? (
-          <Pressable
-            key={m.userId}
-            accessibilityRole="button"
-            accessibilityLabel={`${m.name}, ${line}`}
-            onPress={() => router.push({ pathname: '/clubs/[id]/member/[userId]', params: { id: club.id, userId: m.userId } })}
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            {row}
-          </Pressable>
-        ) : (
-          <View key={m.userId}>{row}</View>
-        );
-      })}
-      <View style={{ marginTop: space.md }}>
-        <Button variant="secondary" label={t('clubs.club.invite')} onPress={onInvite} />
-      </View>
-    </View>
-  );
-}
-
-/** The way in for friends: the link to send, and the code to read out. */
-function InviteSheet({ club, visible, onClose }: { club: ClubDetail; visible: boolean; onClose: () => void }) {
-  const { t } = useTranslation();
-  const { colors, fonts, fontSize, space } = useTheme();
-  const [copied, setCopied] = useState(false);
-  const link = appUrl(`/join/${formatInviteCode(club.inviteCode)}`);
-  return (
-    <Sheet visible={visible} onClose={onClose} title={t('clubs.club.invite')}>
-      <View style={{ gap: space.md, paddingBottom: space.sm }}>
-        <Text style={{ color: colors.text, fontSize: fontSize.md, lineHeight: fontSize.md * 1.5 }}>{t('clubs.invite.sheetBody')}</Text>
-        <Button
-          label={copied ? t('clubs.club.copied') : t('clubs.club.copyLink')}
-          onPress={async () => {
-            await Clipboard.setStringAsync(link);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-          }}
-        />
-        <Text selectable style={{ color: colors.textMuted, fontSize: fontSize.sm, textAlign: 'center' }}>
-          {link}
-        </Text>
-        <View style={{ alignItems: 'center', gap: 2, marginTop: space.sm }}>
-          <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{t('clubs.invite.orCode')}</Text>
-          <Text selectable style={{ color: colors.text, fontFamily: fonts.headingBold, fontSize: fontSize.xl, letterSpacing: 2 }}>
-            {formatInviteCode(club.inviteCode)}
-          </Text>
-        </View>
-        <Hint>{t('clubs.club.inviteBody', { count: club.members.length, cap: club.memberCap })}</Hint>
-      </View>
-    </Sheet>
   );
 }

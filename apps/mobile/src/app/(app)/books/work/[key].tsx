@@ -6,12 +6,12 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useWork } from '@/api/books';
-import { useClub, useClubActions } from '@/api/clubs';
+import { useClub } from '@/api/clubs';
 import { useReadings, useWantToRead, useWantToReadActions } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { editionSearchText, formatAuthors, languageName, preferredLanguages, publishedYear, sortByLanguage } from '@/books/format';
 import { parsePick } from '@/books/pick';
-import { pickEdition, useStartReading } from '@/books/start';
+import { pickEdition, useChooseForClub, useStartReading } from '@/books/start';
 import { clubErrorMessage } from '@/clubs/errors';
 import { BookCover } from '@/components/BookCover';
 import { BookRow } from '@/components/BookRow';
@@ -39,7 +39,7 @@ export default function BookPage() {
   const work = useWork(key);
   const readings = useReadings();
   const club = useClub(picking?.clubId ?? '', { enabled: Boolean(picking?.clubId) });
-  const actions = useClubActions(picking?.clubId ?? '');
+  const chooseForClub = useChooseForClub(picking?.clubId ?? '');
   const start = useStartReading();
   const want = useWantToRead();
   const wantActions = useWantToReadActions();
@@ -77,9 +77,8 @@ export default function BookPage() {
     setBusy(true);
     setError(undefined);
     try {
-      if (forClub && picking) {
-        await actions.setBook({ editionId: chosen.id });
-        router.dismissTo({ pathname: '/clubs/[id]', params: { id: picking.clubId } });
+      if (picking?.kind === 'club') {
+        await chooseForClub(chosen, { setup: picking.setup });
       } else {
         await start(chosen, picking?.clubId);
       }

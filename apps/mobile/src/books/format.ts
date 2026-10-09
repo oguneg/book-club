@@ -51,14 +51,19 @@ export function sortByLanguage<T extends { language: string | null }>(editions: 
   return [...editions].sort((a, b) => rank(a) - rank(b));
 }
 
+// Word-bounded, so "Unabridged" stays in.
+const SHORTENED = /\b(abridged|adapted|adaptation|retold|simplified|graded reader|summary)\b/i;
+
 /**
  * From editions already in preference order, a typical copy to read: among those with a page count in the
  * first such edition's language, the one closest to the book's median length, so an abridged edition or an
  * omnibus isn't the default. The median counts every language: translations run about as long, and a
  * reader's own language often has only a couple of editions with a page count. Ties keep the given order.
  */
-export function typicalEdition<T extends { language: string | null; pageCount: number | null }>(sorted: T[]): T | undefined {
-  const counted = sorted.filter((e) => e.pageCount);
+export function typicalEdition<T extends { title: string; language: string | null; pageCount: number | null }>(sorted: T[]): T | undefined {
+  // Abridged, adapted or retold versions only when there's nothing else.
+  const full = sorted.filter((e) => !SHORTENED.test(e.title));
+  const counted = (full.some((e) => e.pageCount) ? full : sorted).filter((e) => e.pageCount);
   if (counted.length === 0) return sorted[0];
   const same = counted.filter((e) => e.language === counted[0]!.language);
   const pages = counted.map((e) => e.pageCount!).sort((a, b) => a - b);

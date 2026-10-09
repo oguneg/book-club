@@ -17,7 +17,18 @@ import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
 
 /** Everything you rarely need for a book, in one place: finished, stop, your copy's pages, history, remove. */
-export function BookMenu({ reading, visible, onClose }: { reading: ReadingDetail; visible: boolean; onClose: () => void }) {
+export function BookMenu({
+  reading,
+  visible,
+  onClose,
+  onFinished,
+}: {
+  reading: ReadingDetail;
+  visible: boolean;
+  onClose: () => void;
+  /** After "I finished it": the page around shows the ending, whose Undo goes back to `before`. */
+  onFinished: (before: { page: number | null; position: number }) => void;
+}) {
   const { t } = useTranslation();
   const { colors, fontSize, space } = useTheme();
   const actions = useReadingActions(reading.id);
@@ -44,7 +55,21 @@ export function BookMenu({ reading, visible, onClose }: { reading: ReadingDetail
         <View style={{ gap: space.xs, alignItems: 'flex-start' }}>
           {reading.status === 'reading' ? (
             <>
-              <ConfirmButton quiet label={t('reading.finishIt')} question={t('reading.finishQuestion')} confirmLabel={t('reading.finishConfirm')} onConfirm={attempt(actions.finish)} />
+              {/* Good news needs no confirming: the ending sheet that follows has an Undo. */}
+              <TextButton
+                label={t('reading.finishIt')}
+                onPress={async () => {
+                  setError(undefined);
+                  const before = { page: reading.currentPage, position: reading.position };
+                  try {
+                    await actions.finish();
+                    onClose();
+                    onFinished(before);
+                  } catch (err) {
+                    setError(readingErrorMessage(t, err));
+                  }
+                }}
+              />
               <ConfirmButton quiet label={t('reading.stop')} question={t('reading.stopQuestion')} confirmLabel={t('reading.stopConfirm')} onConfirm={attempt(actions.stop)} />
             </>
           ) : (
