@@ -246,7 +246,11 @@
       "usingEdition": "We'll use the {{edition}} edition ({{pages}} pages). You can change it later.",
       "pagesAsked": "We'll ask how many pages your copy has.",
       "differentEdition": "Different edition?",
-      "hideEditions": "Hide editions"
+      "hideEditions": "Hide editions",
+      "want": "Want to read",
+      "wanted": "In your Want to read",
+      "unwant": "Remove",
+      "unwantLabel": "Remove from Want to read"
     }
   },
   "clubs": {
@@ -457,8 +461,6 @@
     "removeConfirm": "Yes, remove",
     "started": "Started {{date}}",
     "finishedOn": "Finished {{date}}",
-    "shelfTitle": "Your shelf",
-    "shelfEmpty": "Books you finish or stop reading show up here.",
     "errors": {
       "already_reading": "You are already reading this book.",
       "not_reading": "This book is not in progress. Read it again first.",
@@ -478,12 +480,11 @@
     "closedFinished": "You finished this book. Pick it up again any time.",
     "closedStopped": "You stopped reading this book. Your place is kept if you come back to it.",
     "openYours": "You're reading this book. Open your copy",
-    "shelfFinished": "Finished {{date}}",
-    "shelfStopped": "Stopped at {{progress}}",
     "switcher": "Your books",
     "update": {
       "button": "Update page",
       "title": "Where are you?",
+      "titleIn": "Where are you in {{title}}?",
       "page": "Page",
       "percent": "% of the way",
       "stepLabel": "Add {{count}} pages",
@@ -648,15 +649,32 @@
     "home": "Go to the start"
   },
   "tabs": {
-    "reading": "Reading",
+    "books": "My books",
     "clubs": "Clubs",
     "you": "You",
     "label": "Main"
   },
   "you": {
-    "books": "Your shelf",
-    "seeAll": "See all",
     "account": "Account",
     "accountDetail": "Name, sign-in, devices, your data"
+  },
+  "myBooks": {
+    "title": "My books",
+    "add": "Add a book",
+    "sections": "Which books",
+    "reading": "Reading",
+    "want": "Want to read",
+    "read": "Read",
+    "updateLabel": "Update page: {{title}}",
+    "wantEmpty": "Nothing saved yet. On a book’s page, tap Want to read to keep it here.",
+    "find": "Find a book",
+    "start": "Start reading",
+    "startLabel": "Start reading: {{title}}",
+    "remove": "Remove {{title}} from Want to read",
+    "readEmpty": "Books you finish show up here.",
+    "finished": "Finished {{date}}",
+    "didntFinish": "Didn’t finish",
+    "stoppedAt": "Stopped at p. {{page}}",
+    "stoppedEarly": "Stopped before page 1"
   }
 }

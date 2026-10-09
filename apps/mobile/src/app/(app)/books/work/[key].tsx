@@ -1,12 +1,13 @@
 import { roleAtLeast } from '@bookclub/shared';
 import { getLocales } from 'expo-localization';
 import { router, useLocalSearchParams } from 'expo-router';
+import { BookmarkCheck, BookmarkPlus } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useWork } from '@/api/books';
 import { useClub, useClubActions } from '@/api/clubs';
-import { useReadings } from '@/api/readings';
+import { useReadings, useWantToRead, useWantToReadActions } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { editionSearchText, formatAuthors, languageName, preferredLanguages, publishedYear, sortByLanguage } from '@/books/format';
 import { parsePick } from '@/books/pick';
@@ -26,11 +27,11 @@ import { TextLink } from '@/components/ui/TextLink';
 import { useTheme } from '@/theme';
 
 /**
- * A book (all its editions). One decision: start reading it, or choose it for a club. We pick a sensible
- * edition; "Different edition?" lists them all for readers who care which one they hold.
+ * A book (all its editions). One decision: start reading it (or save it for later), or choose it for a
+ * club. We pick a sensible edition; "Different edition?" lists them all for readers who care which one.
  */
 export default function BookPage() {
-  const { colors, fonts, fontSize, space } = useTheme();
+  const { colors, fonts, fontSize, space, minTouch } = useTheme();
   const { t } = useTranslation();
   const { key, pick: pickId } = useLocalSearchParams<{ key: string; pick?: string }>();
   const pick = pickId ? { pick: pickId } : {};
@@ -40,6 +41,9 @@ export default function BookPage() {
   const club = useClub(picking?.clubId ?? '', { enabled: Boolean(picking?.clubId) });
   const actions = useClubActions(picking?.clubId ?? '');
   const start = useStartReading();
+  const want = useWantToRead();
+  const wantActions = useWantToReadActions();
+  const [saving, setSaving] = useState(false);
   const [showEditions, setShowEditions] = useState(false);
   const [filter, setFilter] = useState('');
   const [busy, setBusy] = useState(false);
@@ -54,6 +58,19 @@ export default function BookPage() {
   const summary = work.data?.work;
   const mine = readings.data?.find((r) => r.bookKey === `w:${key}` && r.status === 'reading');
   const forClub = picking?.kind === 'club';
+  const saved = want.data?.find((b) => b.bookKey === `w:${key}`);
+
+  async function toggleWant() {
+    if (!chosen) return;
+    setSaving(true);
+    setError(undefined);
+    try {
+      await (saved ? wantActions.remove(saved.id) : wantActions.add(chosen.id));
+    } catch (err) {
+      setError(bookErrorMessage(t, err));
+    }
+    setSaving(false);
+  }
 
   async function primary() {
     if (!chosen) return;
@@ -105,6 +122,16 @@ export default function BookPage() {
             ) : (
               <Notice message={t('books.noEditions')} />
             )}
+            {chosen && !mine && !forClub && want.isSuccess &&
+              (saved ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, minHeight: minTouch }}>
+                  <BookmarkCheck size={20} color={colors.accent} strokeWidth={1.75} />
+                  <Text style={{ flex: 1, color: colors.text, fontSize: fontSize.md, fontWeight: '600' }}>{t('books.book.wanted')}</Text>
+                  <TextButton tone="muted" label={t('books.book.unwant')} onPress={() => void toggleWant()} disabled={saving} />
+                </View>
+              ) : (
+                <Button variant="secondary" label={t('books.book.want')} icon={<BookmarkPlus size={18} color={colors.text} strokeWidth={1.75} />} loading={saving} onPress={() => void toggleWant()} />
+              ))}
             {chosen && !mine && (
               <Hint>
                 {chosen.pageCount

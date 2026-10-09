@@ -159,12 +159,13 @@ components:
 
 **Creative North Star: "The Reading Journal, one tap deep"**
 
-Every screen is a page of a well-kept reading journal, and every common job is one tap from it. Three places live in the tab bar: **Reading** (the book you're in), **Clubs**, and **You**. The book itself is the organizing line: first page to last, bookcloth red for what you've read, the faces of your club above it and note bubbles below it, like comments along a track. Updating your page, writing a note and reading the notes at a place each open a sheet over the page and close back to it; nothing sends you to another screen to do the everyday things.
+Every screen is a page of a well-kept reading journal, and every common job is one tap from it. Three places live in the tab bar: **My books** (what you're reading, each one tap from an update; what you want to read; what you've read), **Clubs**, and **You**. The book itself is the organizing line: first page to last, bookcloth red for what you've read, the faces of your club above it and note bubbles below it, like comments along a track. Updating your page, writing a note and reading the notes at a place each open a sheet over the page and close back to it; nothing sends you to another screen to do the everyday things.
 
 It stays calm and quiet: warm paper in light, a dark study in dark mode, ink for almost everything, bookcloth red spent on "you", the read part of the line and the screen's main action. Rare actions (finish, stop, edit pages, owner tools) wait behind a ⋯ or a gear, never on the page.
 
 **Key Characteristics:**
-- A tab bar with icons and labels (Reading · Clubs · You) on phones; the same three as a slim sidebar from 1024px.
+- A tab bar with icons and labels (My books · Clubs · You) on phones; the same three as a slim sidebar from 1024px.
+- My books: Reading · Want to read · Read. Each book you're reading is a card with its progress and its own "Update page", so several books are one tap each.
 - The book line: progress, the club's faces and the notes on one drawing; tap a bubble to read what was said there.
 - Everyday jobs in sheets: Update page (with +5 / +10 / +25), + Note (one box and who sees it), notes at a place.
 - One floating "+ Note" button wherever you can write; one filled button per screen.
@@ -204,7 +205,7 @@ Ink on warm paper with one bookcloth accent; dark mode is the same roles under l
 
 ### Hierarchy
 - **Display** (700, 34px, 1.15): page titles (a club's name, "What are you reading?") and the page figure in the Update page sheet. One h1 per page.
-- **Headline** (700, 26px, 1.2): the book you're in, on the Reading tab and a reading.
+- **Headline** (700, 26px, 1.2): the book on a reading's own page.
 - **Title** (600, 20px, 1.25): sheet titles ("Where are you?", "Note at p. 178"), a club's book.
 - **Section head** (600, 14px, uppercase, 1.4px tracking, faded ink): sections of form-like pages (account, club settings, moderation, an edition) over a hairline rule; these are h2s.
 - **Reading** (400, 16px, 1.6): note bodies and long-form legal/help text; keep lines under about 75 characters.
@@ -260,7 +261,7 @@ Two to four choices in one row: a paper track with a hairline edge, the selected
 - **Page field:** 140px wide, Literata 34px tabular figures, centred, between "Page" and "of 320" in the Update page sheet.
 
 ### Navigation
-- **Tabs:** Reading (open book), Clubs (people), You (person in a circle); active in bookcloth, inactive in faded ink; wrapped in a navigation landmark.
+- **Tabs:** My books (books on a shelf), Clubs (people), You (person in a circle); active in bookcloth, inactive in faded ink; wrapped in a navigation landmark.
 - **Rows:** lists of places (clubs, account, help) are rows with an icon or cover, a title, one line of detail and a chevron, 56px tall.
 - **Back link:** a chevron and the parent's name in bookcloth at the top of every detail page.
 - Keyboard focus shows a 2px bookcloth outline at 2px offset on the web.

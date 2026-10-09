@@ -1,11 +1,11 @@
 import { Tabs } from 'expo-router';
 import { BottomTabBar } from 'expo-router/js-tabs';
-import { BookOpen, CircleUser, Users } from 'lucide-react-native';
+import { CircleUser, Library, Users } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useWindowDimensions, View } from 'react-native';
 import { useTheme } from '@/theme';
 
-/** Three places, always one tap away: the book you're reading, your clubs, and you. */
+/** Three places, always one tap away: your books, your clubs, and you. */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors, fontSize, layout } = useTheme();
@@ -37,7 +37,7 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('tabs.reading'), tabBarIcon: ({ color, size }) => <BookOpen color={color} size={size} strokeWidth={1.75} /> }} />
+      <Tabs.Screen name="index" options={{ title: t('tabs.books'), tabBarIcon: ({ color, size }) => <Library color={color} size={size} strokeWidth={1.75} /> }} />
       <Tabs.Screen name="clubs" options={{ title: t('tabs.clubs'), tabBarIcon: ({ color, size }) => <Users color={color} size={size} strokeWidth={1.75} /> }} />
       <Tabs.Screen name="you" options={{ title: t('tabs.you'), tabBarIcon: ({ color, size }) => <CircleUser color={color} size={size} strokeWidth={1.75} /> }} />
     </Tabs>

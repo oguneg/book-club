@@ -32,6 +32,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
   - [x] Privacy policy, terms and help pages (`/privacy`, `/terms`, `/help`), linked from sign-in, sign-up and the account page. support@ogun.se needs forwarding set up.
   - [x] Design pass, "reading journal": home is the book you’re in with a one-step page log on the only raised surface; notes carry page numbers in the margin; a bookmark ribbon shows where you are; sections are set in type instead of boxed cards; owner tools sit together under Manage; a side rail from 1024px. Recorded in `apps/mobile/DESIGN.md`.
   - [x] Simpler to use: three tabs (Reading · Clubs · You, a sidebar from 1024px). The Reading tab is the book you're in, with "Update page" (+5 / +10 / +25) and "+ Note" in sheets and notes as bubbles along the book line. Starting a book is search → Start reading, with the edition picked for you. A club is one line of members' faces and notes, then Notes · Meetings · Members; owner tools sit behind the gear. Recorded in `apps/mobile/DESIGN.md`.
+  - [x] My books tab (replaces Reading): Reading · Want to read · Read. Every book you're reading has its own "Update page", so several books are one tap each; "Want to read" is saved from a book's page and comes off the list when you start it. Included in the data export.
 - [ ] **10. Production** at bookclub.ogun.se: deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving (unlike staging today). Google consent screen published.
 
 ## Later

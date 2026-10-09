@@ -54,6 +54,20 @@ export const updateReadingInput = z
   .object({ editionId: z.string().uuid().optional(), startPage: page.optional(), endPage: page.optional() })
   .refine((r) => !(r.startPage && r.endPage) || r.endPage > r.startPage, { message: 'endPage must be after startPage', path: ['endPage'] });
 
+// ---- Want to read: books saved for later, each with the edition you'd start in ----
+
+export const wantToRead = z.object({
+  id: z.string(),
+  edition,
+  bookKey: z.string(),
+  addedAt: z.string(),
+});
+export type WantToRead = z.infer<typeof wantToRead>;
+
+export const wantToReadListResponse = z.object({ books: z.array(wantToRead) });
+export const wantToReadResponse = z.object({ book: wantToRead });
+export const addWantToReadInput = z.object({ editionId: z.string().uuid() });
+
 export const logProgressInput = z.union([
   z.object({ page: z.number().int().min(0).max(MAX_PAGE_COUNT) }),
   z.object({ percent: z.number().min(0).max(100) }),

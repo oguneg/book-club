@@ -1,15 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import { serve } from '@hono/node-server';
-import { clubProgressResponse, clubResponse, readingListResponse, readingResponse, type ReadingDetail } from '@bookclub/shared';
+import { clubProgressResponse, clubResponse, readingListResponse, readingResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
 import type { Database } from './db/client';
 import { edition, progressEvent } from './db/schema';
 import { attachLive, MAX_SOCKETS_PER_USER } from './live';
-import type { Browser } from './test/helpers';
-import { captureMailer, log, signedInUser, testApp, testDatabase } from './test/helpers';
+import { Browser, captureMailer, log, signedInUser, testApp, testDatabase } from './test/helpers';
 
 let database: Database;
 
@@ -263,5 +262,54 @@ describe('live updates', () => {
     } finally {
       await new Promise((resolve) => server.close(resolve));
     }
+  });
+});
+
+describe('want to read', () => {
+  async function wanted(browser: Browser) {
+    return wantToReadListResponse.parse(await (await browser.request('/api/want-to-read')).json()).books;
+  }
+
+  it('saves books for later, one entry per book, and starting one takes it off', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    expect((await new Browser(ctx.app, ctx.env.APP_URL).request('/api/want-to-read')).status).toBe(401);
+
+    const work = newWork();
+    const paperback = await anEdition(work, 300);
+    const hardcover = await anEdition(work, 320);
+    const other = await anEdition(newWork(), 200, 'Dune');
+
+    const added = await ann.browser.post('/api/want-to-read', { editionId: paperback });
+    expect(added.status).toBe(201);
+    const first = wantToReadResponse.parse(await added.json()).book;
+    expect(first).toMatchObject({ bookKey: `w:${work}`, edition: { id: paperback } });
+    await ann.browser.post('/api/want-to-read', { editionId: other });
+
+    // Saving another edition of the same book changes the edition, not the count.
+    const again = wantToReadResponse.parse(await (await ann.browser.post('/api/want-to-read', { editionId: hardcover })).json()).book;
+    expect(again).toMatchObject({ id: first.id, edition: { id: hardcover } });
+    expect((await wanted(ann.browser)).map((b) => b.edition.title)).toEqual(['Dune', 'The Hobbit']);
+
+    expect((await ann.browser.post('/api/want-to-read', { editionId: randomUUID() })).status).toBe(400);
+
+    const reading = await start(ann.browser, paperback);
+    expect((await wanted(ann.browser)).map((b) => b.edition.title)).toEqual(['Dune']);
+    const whileReading = await ann.browser.post('/api/want-to-read', { editionId: hardcover });
+    expect(whileReading.status).toBe(409);
+    expect(await whileReading.json()).toMatchObject({ error: 'already_reading', readingId: reading.id });
+  });
+
+  it('removes only your own entries', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    const bo = await ctx.user('Bo Reader');
+    const book = wantToReadResponse.parse(await (await ann.browser.post('/api/want-to-read', { editionId: await anEdition(newWork()) })).json()).book;
+
+    expect((await bo.browser.request(`/api/want-to-read/${book.id}`, { method: 'DELETE' })).status).toBe(404);
+    expect(await wanted(ann.browser)).toHaveLength(1);
+    expect((await ann.browser.request(`/api/want-to-read/${book.id}`, { method: 'DELETE' })).status).toBe(204);
+    expect(await wanted(ann.browser)).toHaveLength(0);
+    expect((await ann.browser.request(`/api/want-to-read/${book.id}`, { method: 'DELETE' })).status).toBe(404);
   });
 });

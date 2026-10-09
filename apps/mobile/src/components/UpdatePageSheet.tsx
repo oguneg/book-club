@@ -16,7 +16,18 @@ type Updatable = Pick<ReadingDetail, 'id' | 'endPage' | 'currentPage'> & { histo
  * "Where are you?": one big number, a few quick steps forward, Save. Reaching the last page offers to mark
  * the book finished right there, so nobody has to go looking for it.
  */
-export function UpdatePageSheet({ reading, visible, onClose }: { reading: Updatable; visible: boolean; onClose: () => void }) {
+export function UpdatePageSheet({
+  reading,
+  visible,
+  onClose,
+  bookTitle,
+}: {
+  reading: Updatable;
+  visible: boolean;
+  onClose: () => void;
+  /** Named in the title when the page around it shows several books. */
+  bookTitle?: string;
+}) {
   const { t } = useTranslation();
   const { colors, fonts, fontSize, radius, space, minTouch } = useTheme();
   const actions = useReadingActions(reading.id);
@@ -78,7 +89,7 @@ export function UpdatePageSheet({ reading, visible, onClose }: { reading: Updata
   );
 
   return (
-    <Sheet visible={visible} onClose={close} title={finishedPrompt ? t('reading.update.endTitle') : t('reading.update.title')}>
+    <Sheet visible={visible} onClose={close} title={finishedPrompt ? t('reading.update.endTitle') : bookTitle ? t('reading.update.titleIn', { title: bookTitle }) : t('reading.update.title')}>
       {finishedPrompt ? (
         <View style={{ gap: space.md, paddingBottom: space.sm }}>
           <Text style={{ color: colors.text, fontSize: fontSize.md, lineHeight: fontSize.md * 1.5 }}>{t('reading.update.endBody')}</Text>

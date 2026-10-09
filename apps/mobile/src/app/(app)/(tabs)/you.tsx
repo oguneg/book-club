@@ -1,26 +1,20 @@
-import { Link } from 'expo-router';
 import { CircleHelp, FileText, Flag, LogOut, Settings, Shield } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useIsModerator } from '@/api/admin';
-import { useReadings } from '@/api/readings';
 import { authClient } from '@/auth/client';
-import { BookCover } from '@/components/BookCover';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import { NavRow } from '@/components/ui/NavRow';
-import { TextLink } from '@/components/ui/TextLink';
 import { useTheme } from '@/theme';
 
-/** You: the books you've read, your account, help, sign out. */
+/** You: your account, help, sign out. (Your books have their own tab.) */
 export default function YouTab() {
   const { t } = useTranslation();
   const { colors, fonts, fontSize, space } = useTheme();
   const { data: session } = authClient.useSession();
-  const readings = useReadings();
   const moderator = useIsModerator();
-  const done = (readings.data ?? []).filter((r) => r.status !== 'reading');
   const user = session?.user;
   const initials = (user?.name ?? '')
     .trim()
@@ -42,26 +36,6 @@ export default function YouTab() {
           </Text>
           <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{user?.email}</Text>
         </View>
-      </View>
-
-      <View style={{ gap: space.sm, marginBottom: space.xl }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text }}>
-            {t('you.books')}
-          </Text>
-          {done.length > 0 && <TextLink href="/shelf" label={t('you.seeAll')} />}
-        </View>
-        {done.length === 0 ? (
-          <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{t('reading.shelfEmpty')}</Text>
-        ) : (
-          <View style={{ flexDirection: 'row', gap: space.sm, flexWrap: 'wrap' }}>
-            {done.slice(0, 6).map((r) => (
-              <Link key={r.id} href={{ pathname: '/readings/[id]', params: { id: r.id } }} aria-label={r.edition.title}>
-                <BookCover cover={r.edition.cover} title={r.edition.title} size="md" />
-              </Link>
-            ))}
-          </View>
-        )}
       </View>
 
       <View style={{ gap: space.sm }}>

@@ -36,11 +36,13 @@ export function useStartReading() {
       throw err;
     }
     await queryClient.invalidateQueries({ queryKey: ['readings'] });
+    // Starting a book takes it off "Want to read".
+    void queryClient.invalidateQueries({ queryKey: ['want-to-read'] });
     if (clubId) {
       await queryClient.invalidateQueries({ queryKey: ['club-progress', clubId] });
       router.dismissTo({ pathname: '/clubs/[id]', params: { id: clubId } });
     } else {
-      // The Reading tab opens on the book you touched last: this one.
+      // My books opens on what you're reading, this one included.
       router.dismissTo('/');
     }
   };

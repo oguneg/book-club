@@ -1,4 +1,4 @@
-import { logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
+import { addWantToReadInput, logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
 import { Hono, type Context } from 'hono';
 import type { z } from 'zod';
 import type { Auth } from '../auth';
@@ -27,10 +27,14 @@ export function readingRoutes({ auth, readings }: { auth: Auth; readings: Readin
   const app = new Hono<SignedInEnv>();
   app.use('/readings', requireSession(auth));
   app.use('/readings/*', requireSession(auth));
-  app.use('/readings/*', async (c, next) => {
-    if (c.req.method !== 'GET' && !allowWrites(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
-    await next();
-  });
+  app.use('/want-to-read', requireSession(auth));
+  app.use('/want-to-read/*', requireSession(auth));
+  for (const path of ['/readings/*', '/want-to-read', '/want-to-read/*']) {
+    app.use(path, async (c, next) => {
+      if (c.req.method !== 'GET' && !allowWrites(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
+      await next();
+    });
+  }
   app.onError((err, c) => {
     if (err instanceof ReadingError) return c.json({ error: err.code, ...(err.readingId ? { readingId: err.readingId } : {}) }, err.status);
     throw err;
@@ -58,6 +62,13 @@ export function readingRoutes({ auth, readings }: { auth: Auth; readings: Readin
   app.post('/readings/:id/finish', async (c) => c.json({ reading: await readings.finish(readingId(c), c.get('user').id) }));
   app.post('/readings/:id/stop', async (c) => c.json({ reading: await readings.stop(readingId(c), c.get('user').id) }));
   app.post('/readings/:id/resume', async (c) => c.json({ reading: await readings.resume(readingId(c), c.get('user').id) }));
+
+  app.get('/want-to-read', async (c) => c.json({ books: await readings.wantList(c.get('user').id) }));
+  app.post('/want-to-read', async (c) => c.json({ book: await readings.addWant(c.get('user').id, (await body(c, addWantToReadInput)).editionId) }, 201));
+  app.delete('/want-to-read/:id', async (c) => {
+    await readings.removeWant(c.get('user').id, readingId(c));
+    return c.body(null, 204);
+  });
 
   return app;
 }

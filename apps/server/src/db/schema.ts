@@ -248,6 +248,24 @@ export const progressEvent = pgTable(
   (table) => [index('progress_event_reading_idx').on(table.readingId, table.createdAt)],
 );
 
+/** Books someone wants to read, each with the edition they'd start in. Starting a reading takes it off. */
+export const wantToRead = pgTable(
+  'want_to_read',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    editionId: text('edition_id')
+      .notNull()
+      .references(() => edition.id, { onDelete: 'cascade' }),
+    /** Same as reading.bookKey: one entry per book, whichever edition. */
+    bookKey: text('book_key').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('want_to_read_user_book_uidx').on(table.userId, table.bookKey)],
+);
+
 // Notes: placed by position in a book (any edition), visible privately, to a club, or to everyone reading it.
 export const note = pgTable(
   'note',

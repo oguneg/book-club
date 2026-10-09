@@ -8,13 +8,14 @@ import {
   type MemberProgress,
   type Reading,
   type ReadingDetail,
+  type WantToRead,
 } from '@bookclub/shared';
 import { and, asc, desc, eq, gte, inArray, ne, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
 import { toEdition } from '../books/service';
 import type { Db } from '../db/client';
-import { clubBook, clubMember, edition, progressEvent, reading, user } from '../db/schema';
+import { clubBook, clubMember, edition, progressEvent, reading, user, wantToRead } from '../db/schema';
 import type { LiveHub } from '../live';
 
 /** Logs this close together replace each other, so adjusting a typo doesn't pile up history. */
@@ -131,8 +132,47 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
         if (isUniqueViolation(err)) throw new ReadingError(409, 'already_reading');
         throw err;
       }
+      // Started, so no longer "want to read".
+      await db.delete(wantToRead).where(and(eq(wantToRead.userId, userId), eq(wantToRead.bookKey, bookKey)));
       await changed(userId, bookKey);
       return detail(id, userId);
+    },
+
+    /** Books saved for later, most recently added first. */
+    async wantList(userId: string): Promise<WantToRead[]> {
+      const rows = await db
+        .select({ want: wantToRead, edition })
+        .from(wantToRead)
+        .innerJoin(edition, eq(edition.id, wantToRead.editionId))
+        .where(eq(wantToRead.userId, userId))
+        .orderBy(desc(wantToRead.createdAt));
+      return rows.map((r) => ({ id: r.want.id, edition: toEdition(r.edition), bookKey: r.want.bookKey, addedAt: r.want.createdAt.toISOString() }));
+    },
+
+    /** Save a book for later; saving it again just changes the edition. Not for a book you're reading. */
+    async addWant(userId: string, editionId: string): Promise<WantToRead> {
+      const [e] = await db.select().from(edition).where(eq(edition.id, editionId));
+      if (!e) throw new ReadingError(400, 'unknown_edition');
+      const bookKey = bookKeyOf(e);
+      const [active] = await db
+        .select({ id: reading.id })
+        .from(reading)
+        .where(and(eq(reading.userId, userId), eq(reading.bookKey, bookKey), eq(reading.status, 'reading')));
+      if (active) throw new ReadingError(409, 'already_reading', active.id);
+      const [row] = await db
+        .insert(wantToRead)
+        .values({ id: randomUUID(), userId, editionId: e.id, bookKey })
+        .onConflictDoUpdate({ target: [wantToRead.userId, wantToRead.bookKey], set: { editionId: e.id } })
+        .returning();
+      return { id: row!.id, edition: toEdition(e), bookKey, addedAt: row!.createdAt.toISOString() };
+    },
+
+    async removeWant(userId: string, id: string) {
+      const gone = await db
+        .delete(wantToRead)
+        .where(and(eq(wantToRead.id, id), eq(wantToRead.userId, userId)))
+        .returning({ id: wantToRead.id });
+      if (gone.length === 0) throw new ReadingError(404, 'not_found');
     },
 
     /** Switch to another edition of the same book, or correct the page range. The position stays. */

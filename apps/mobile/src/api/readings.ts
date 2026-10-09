@@ -1,4 +1,4 @@
-import { clubProgressResponse, readingListResponse, readingResponse, type ReadingDetail } from '@bookclub/shared';
+import { clubProgressResponse, readingListResponse, readingResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiDelete, apiGet, apiPatch, apiPost } from './client';
@@ -23,6 +23,30 @@ export function useClubProgress(clubId: string, { enabled = true }: { enabled?: 
     queryFn: async ({ signal }) => (await apiGet(`/api/clubs/${encodeURIComponent(clubId)}/progress`, clubProgressResponse, signal)).members,
     enabled,
   });
+}
+
+/** Books saved for later, newest first. */
+export function useWantToRead() {
+  return useQuery({
+    queryKey: ['want-to-read'],
+    queryFn: async ({ signal }) => (await apiGet('/api/want-to-read', wantToReadListResponse, signal)).books,
+  });
+}
+
+export function useWantToReadActions() {
+  const queryClient = useQueryClient();
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['want-to-read'] });
+  return {
+    add: async (editionId: string) => {
+      const { book } = await apiPost('/api/want-to-read', { editionId }, wantToReadResponse);
+      await refresh();
+      return book;
+    },
+    remove: async (id: string) => {
+      await apiDelete(`/api/want-to-read/${encodeURIComponent(id)}`, z.undefined());
+      await refresh();
+    },
+  };
 }
 
 export async function startReading(input: { editionId: string; startPage: number; endPage: number }) {

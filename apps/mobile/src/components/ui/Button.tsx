@@ -11,9 +11,11 @@ interface ButtonProps {
   /** Shown before the label, e.g. a provider logo. */
   icon?: ReactNode;
   accessibilityHint?: string;
+  /** When several buttons share a label ("Update page" per book); must start with the visible label. */
+  accessibilityLabel?: string;
 }
 
-export function Button({ label, onPress, variant = 'primary', loading = false, disabled = false, icon, accessibilityHint }: ButtonProps) {
+export function Button({ label, onPress, variant = 'primary', loading = false, disabled = false, icon, accessibilityHint, accessibilityLabel }: ButtonProps) {
   const { colors, fontSize, radius, space, minTouch } = useTheme();
   const inactive = disabled || loading;
   // Disabled (not busy) buttons go neutral: a faded red still looks like a red button.
@@ -27,6 +29,7 @@ export function Button({ label, onPress, variant = 'primary', loading = false, d
       aria-disabled={inactive}
       aria-busy={loading}
       accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel}
       disabled={inactive}
       onPress={onPress}
       style={({ pressed }) => [

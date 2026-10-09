@@ -2,13 +2,13 @@ import { asc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type { Auth } from '../auth';
 import type { Db } from '../db/client';
-import { account, club, clubMember, edition, note, noteReaction, noteReport, progressEvent, reading, session, user as userTable, userBlock } from '../db/schema';
+import { account, club, clubMember, edition, note, noteReaction, noteReport, progressEvent, reading, session, user as userTable, userBlock, wantToRead } from '../db/schema';
 import { createRateLimiter } from '../rate-limit';
 import { requireSession, type SignedInEnv } from '../session';
 
 /**
  * Everything stored about a user, as JSON (GDPR access and portability): profile, sign-in, clubs, reading,
- * notes and what they did to others' notes. Secrets are never included: no password hashes, tokens or session keys.
+ * books they want to read, notes and what they did to others' notes. Secrets are never included: no password hashes, tokens or session keys.
  */
 export async function exportUserData(db: Db, user: SignedInEnv['Variables']['user'], currentSessionId: string) {
   const methods = await db
@@ -19,7 +19,7 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
     .select({ id: session.id, createdAt: session.createdAt, expiresAt: session.expiresAt, ipAddress: session.ipAddress, userAgent: session.userAgent })
     .from(session)
     .where(eq(session.userId, user.id));
-  const [clubs, readings, progress, notes, reactions, reports, blocks] = await Promise.all([
+  const [clubs, readings, progress, wanted, notes, reactions, reports, blocks] = await Promise.all([
     db
       .select({ club: club.name, role: clubMember.role, joinedAt: clubMember.joinedAt })
       .from(clubMember)
@@ -49,6 +49,12 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
       .innerJoin(reading, eq(reading.id, progressEvent.readingId))
       .where(eq(reading.userId, user.id))
       .orderBy(asc(progressEvent.createdAt)),
+    db
+      .select({ title: edition.title, authors: edition.authors, isbn13: edition.isbn13, addedAt: wantToRead.createdAt })
+      .from(wantToRead)
+      .innerJoin(edition, eq(edition.id, wantToRead.editionId))
+      .where(eq(wantToRead.userId, user.id))
+      .orderBy(asc(wantToRead.createdAt)),
     db
       .select({
         id: note.id,
@@ -101,6 +107,7 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
       percent: percent(position),
       progress: progress.filter((e) => e.readingId === id).map(({ page, position: at, ...e }) => ({ ...e, page, percent: percent(at) })),
     })),
+    wantToRead: wanted,
     notes: notes.map(({ position, ...n }) => ({ ...n, percent: percent(position) })),
     reactions,
     reports,
