@@ -26,7 +26,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
   - [x] Reviewing reported notes: moderators listed in `ADMIN_EMAILS` keep or remove them, and get an email when one is hidden.
   - [x] Accessibility pass: axe on every screen in light and dark (no violations), 3:1 borders on form controls, one h1 per page with h2 sections, a main landmark, labelled progress bars, decorative covers hidden. A screen-reader pass on a phone comes with iOS.
   - [x] Book cache pruned daily (lookups after 30 days, covers after 6 months), so the database grows with users, not with browsing.
-  - [ ] Encrypted off-site backups + a tested restore: built (nightly restic to S3-compatible storage, CI restores every push); waiting for the B2 bucket and keys on the VPS.
+  - [x] Encrypted off-site backups + a tested restore: nightly restic to Backblaze B2 (EU), one key per environment limited to its own prefix; CI restores every push, and a restore was rehearsed on staging. Production gets its own key (`production/`) in step 10.
   - [ ] Error tracking: built (server errors and app crashes, through our server, to Sentry EU); waiting for the two DSNs in the VPS `.env`.
   - [ ] Uptime check on `/api/health` plus the backup heartbeat: set up in Better Stack (owner).
   - [x] Privacy policy, terms and help pages (`/privacy`, `/terms`, `/help`), linked from sign-in, sign-up and the account page. support@ogun.se needs forwarding set up.
@@ -45,6 +45,6 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 - [x] Resend account; sending-only API key on the VPS.
 - [x] Google Cloud project: consent screen (Testing, test users added), web OAuth client; secret on the VPS.
 - [x] Google Books API key on the VPS. Its ISBN search returns nothing for fielded queries (`isbn:`), so lookups fall through to Open Library; revisit if Google fixes it.
-- [ ] Object storage bucket for backups (step 9).
+- [x] Backblaze B2 bucket for backups (EU), staging key on the VPS.
 - [ ] Error tracking account, e.g. Sentry free tier (step 9).
 - [ ] Later: Apple Developer setup (iOS), Google Play Console (Android).
