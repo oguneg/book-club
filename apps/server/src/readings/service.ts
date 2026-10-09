@@ -9,7 +9,7 @@ import {
   type Reading,
   type ReadingDetail,
 } from '@bookclub/shared';
-import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, inArray, ne, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
 import { toEdition } from '../books/service';
@@ -267,7 +267,7 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
         ? await db
             .select()
             .from(progressEvent)
-            .where(and(inArray(progressEvent.readingId, ids), sql`${progressEvent.createdAt} >= ${since}`))
+            .where(and(inArray(progressEvent.readingId, ids), gte(progressEvent.createdAt, since)))
             .orderBy(asc(progressEvent.createdAt))
         : [];
 
