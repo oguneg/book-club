@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import pino from 'pino';
-import { createApp } from '../app';
+import { createApp, errorReporters } from '../app';
 import { createAuth } from '../auth';
 import type { Fetch } from '../books/providers';
 import { createBookService } from '../books/service';
@@ -65,7 +65,7 @@ export function testApp(
   const live = createLiveHub({ db: database.db, log });
   const readings = createReadingService({ db: database.db, live });
   const notes = createNoteService({ db: database.db, live, onHidden: moderatorAlerts({ env, mailer, log }) });
-  return { env, auth, books, clubs, readings, notes, live, app: createApp({ env, database, auth, books, clubs, readings, notes, live, log }) };
+  return { env, auth, books, clubs, readings, notes, live, app: createApp({ env, database, auth, books, clubs, readings, notes, live, log, reporters: errorReporters(env, log, fetchFn) }) };
 }
 
 /** A unique address per test, so tests can share one database (CI) without colliding. */

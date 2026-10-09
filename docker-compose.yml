@@ -21,6 +21,8 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY:-}
       ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_DSN_WEB: ${SENTRY_DSN_WEB:-}
     depends_on:
       db:
         condition: service_healthy

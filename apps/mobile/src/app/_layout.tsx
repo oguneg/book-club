@@ -6,15 +6,23 @@ import { Literata_600SemiBold } from '@expo-google-fonts/literata/600SemiBold';
 import { Literata_700Bold } from '@expo-google-fonts/literata/700Bold';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { authClient } from '@/auth/client';
+import { CrashScreen } from '@/components/CrashScreen';
+import { installCrashReporting } from '@/monitoring/crashes';
 import { ThemeProvider, useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
+installCrashReporting();
+
+/** A crash anywhere below: report it and offer a way out (expo-router renders this instead of the layout). */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return <CrashScreen error={error} retry={() => void retry()} />;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({

@@ -540,5 +540,11 @@
     "terms": "Terms",
     "help": "Help and contact",
     "linksLabel": "About Bookclub"
+  },
+  "crash": {
+    "title": "Something went wrong",
+    "body": "This page broke. We've been told about it. Try again, or start over from the beginning.",
+    "retry": "Try again",
+    "home": "Go to the start"
   }
 }

@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server';
 import pino from 'pino';
-import { createApp } from './app';
+import { createApp, errorReporters } from './app';
 import { createAuth } from './auth';
 import { createBookService } from './books/service';
 import { createClubService } from './clubs/service';
@@ -43,7 +43,9 @@ const readings = createReadingService({ db: database.db, live });
 
 const notes = createNoteService({ db: database.db, live, onHidden: moderatorAlerts({ env, mailer, log }) });
 
-const app = createApp({ env, database, auth, books, clubs, readings, notes, live, log });
+const reporters = errorReporters(env, log);
+log.info({ server: reporters.server.enabled, web: reporters.web.enabled }, 'error tracking');
+const app = createApp({ env, database, auth, books, clubs, readings, notes, live, log, reporters });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {
   log.info({ port: info.port }, 'listening');
 });
@@ -74,5 +76,16 @@ function shutdown(signal: string) {
     database.close().finally(() => process.exit(0));
   });
 }
+// Errors outside a request: report them; a crash still ends the process (Docker restarts it).
+process.on('unhandledRejection', (reason) => {
+  const err = reason instanceof Error ? reason : new Error(String(reason));
+  log.error({ err }, 'unhandled rejection');
+  reporters.server.report({ platform: 'node', type: err.name, message: err.message, stack: err.stack });
+});
+process.on('uncaughtException', (err) => {
+  log.fatal({ err }, 'uncaught exception');
+  reporters.server.report({ platform: 'node', type: err.name, message: err.message, stack: err.stack });
+  setTimeout(() => process.exit(1), 2000).unref();
+});
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));

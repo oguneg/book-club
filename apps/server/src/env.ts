@@ -41,6 +41,9 @@ const schema = z
     /** Reject passwords found in known breaches (Have I Been Pwned, k-anonymity: the password never leaves). */
     PASSWORD_BREACH_CHECK: z.stringbool().optional(),
     RATE_LIMIT: z.stringbool().optional(),
+    /** Sentry DSNs for server errors and for crashes in the app (forwarded by the server). Optional. */
+    SENTRY_DSN: z.string().optional(),
+    SENTRY_DSN_WEB: z.string().optional(),
     /** Comma-separated emails of the people who review reported notes (confirmed addresses only). */
     ADMIN_EMAILS: z
       .string()

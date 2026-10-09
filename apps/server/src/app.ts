@@ -15,6 +15,8 @@ import type { Database } from './db/client';
 import type { Env } from './env';
 import { accountRoutes } from './routes/account';
 import { adminRoutes } from './routes/admin';
+import { monitoringRoutes } from './routes/monitoring';
+import { createErrorReporter, type ErrorReporter } from './monitoring/sentry';
 import { bookRoutes } from './routes/books';
 import { clubRoutes } from './routes/clubs';
 import { noteRoutes } from './routes/notes';
@@ -30,6 +32,8 @@ export interface AppDeps {
   notes: NoteService;
   live?: LiveHub;
   log: Logger;
+  /** Error tracking: server errors, and crashes the app reports. Off unless DSNs are configured. */
+  reporters?: { server: ErrorReporter; web: ErrorReporter };
 }
 
 function cacheControlFor(path: string): string {
@@ -40,7 +44,7 @@ function cacheControlFor(path: string): string {
   return 'public, max-age=3600';
 }
 
-export function createApp({ env, database, auth, books, clubs, readings, notes, live, log }: AppDeps) {
+export function createApp({ env, database, auth, books, clubs, readings, notes, live, log, reporters = errorReporters(env, log) }: AppDeps) {
   const app = new Hono();
 
   app.use(async (c, next) => {
@@ -110,6 +114,7 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
   app.route('/api', readingRoutes({ auth, readings }));
   app.route('/api', noteRoutes({ auth, notes }));
   app.route('/api', adminRoutes({ auth, env, notes }));
+  app.route('/api', monitoringRoutes({ reporter: reporters.web }));
 
   app.all('/api/*', (c) => c.json({ error: 'not_found' }, 404));
 
@@ -136,8 +141,18 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
 
   app.onError((error, c) => {
     log.error({ err: error, path: c.req.path }, 'unhandled error');
+    reporters.server.report({ platform: 'node', type: error.name, message: error.message, stack: error.stack, path: c.req.path, method: c.req.method });
     return c.json({ error: 'internal' }, 500);
   });
 
   return app;
+}
+
+/** One reporter for server errors, one for the app's (each to its own Sentry project; the app's falls back to the server's). */
+export function errorReporters(env: Env, log: Logger, fetchFn?: typeof fetch) {
+  const base = { environment: env.APP_ENV, release: env.GIT_COMMIT, log, fetchFn };
+  return {
+    server: createErrorReporter({ ...base, dsn: env.SENTRY_DSN }),
+    web: createErrorReporter({ ...base, dsn: env.SENTRY_DSN_WEB ?? env.SENTRY_DSN }),
+  };
 }

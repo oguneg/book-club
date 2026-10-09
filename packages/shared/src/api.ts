@@ -14,3 +14,13 @@ export const publicConfig = z.object({
   google: z.boolean(),
 });
 export type PublicConfig = z.infer<typeof publicConfig>;
+
+/** A crash in the app, sent to the server (which forwards it to error tracking). Technical details only. */
+export const clientErrorInput = z.object({
+  type: z.string().trim().min(1).max(100),
+  message: z.string().max(1000),
+  stack: z.string().max(10_000).optional(),
+  /** The page's path, without the query string. */
+  page: z.string().max(300).regex(/^\/[^?#]*$/),
+});
+export type ClientErrorInput = z.infer<typeof clientErrorInput>;
