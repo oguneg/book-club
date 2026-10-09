@@ -230,7 +230,10 @@ Gently rounded: 6px for chips and messages, 10px for buttons and fields, 16px fo
 The book as a line from its first to its last page: control-edge hairline for the whole, bookcloth for what you've read, a ribbon bookmark at your page that slides there (700ms, cubic-bezier(0.16, 1, 0.3, 1)) when you log, unless reduced motion is on. Meeting targets are short faded-ink ticks; the club's pace is a dashed ink tick. "p. 1" and "p. 320" sit under the ends.
 
 ### Marginal Notes (signature)
-Each note is a row: the margin figure, then author · audience · time, the note in Literata, and React / Reply / More. Replies indent behind a control-edge hairline. "You are here · p. 142" is a bookcloth rule with the ribbon in the margin; notes past it are blurred (redaction bars on native) until tapped.
+Each note is a row: the margin figure, then author · audience · time, the note in Literata, and React / Reply / More. Replies indent behind a control-edge hairline. "You are here · p. 142" is a bookcloth rule with the ribbon in the margin; notes past it are blurred (redaction bars on native) until the reader presses "Show note", and that choice holds for the note everywhere it appears until the app closes.
+
+### Note Timeline (signature)
+A club's notes as marks along the book, like comments along a track: the book span with your ribbon, and below it a 24px circle per note with the writer's initials (Literata 10px), joined to its place by a short stem. Your own notes take a bookcloth ring; notes past your ribbon are dashed with blurred initials. Marks closer than 28px merge into one with an ink count badge. Hover or focus previews who, where and the first two lines (only "Ahead of where you are · p. N" for notes ahead); a tap opens the mark's notes below the line, still covered until "Show note". Marks are placed by percentage so they render before layout is measured.
 
 ## Do's and Don'ts
 

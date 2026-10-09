@@ -16,6 +16,7 @@ import { ClubProgress } from '@/components/ClubProgress';
 import { Columns } from '@/components/Columns';
 import { MARGIN } from '@/components/NoteCard';
 import { Notes } from '@/components/Notes';
+import { NoteTimeline } from '@/components/NoteTimeline';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { BackLink } from '@/components/ui/BackLink';
@@ -59,6 +60,9 @@ export default function ClubPage() {
                 <>
                   <TheBook club={club} />
                   {club.currentBook && <Progress club={club} book={club.currentBook} />}
+                  {club.currentBook && (
+                    <NoteTimeline bookKey={bookKeyOf(club.currentBook.edition)} scope={`club:${club.id}`} endPage={club.currentBook.edition.pageCount ?? 0} />
+                  )}
                   {club.currentBook && <ClubNotes club={club} book={club.currentBook} />}
                 </>
               }

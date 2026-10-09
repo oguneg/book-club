@@ -498,9 +498,9 @@
     "minutesAgo": "{{count}} min ago",
     "hoursAgo": "{{count}} h ago",
     "daysAgo": "{{count}} d ago",
-    "spoilerAhead": "Ahead of where you are. Tap to read.",
-    "spoilerUnknown": "May give away the story. Tap to read.",
-    "revealLabel": "Note at {{place}}. {{hint}}",
+    "spoilerAhead": "Ahead of where you are.",
+    "spoilerUnknown": "May give away the story.",
+    "revealLabel": "Note at {{place}}. {{hint}} Show it.",
     "react": "React",
     "reactionMine": "{{emoji}} {{count}}, including you. Tap to take yours back.",
     "reactionOthers": "{{emoji}} {{count}}. Tap to add yours.",
@@ -539,6 +539,20 @@
       "own_note": "You can’t report your own note.",
       "self": "You can’t block yourself.",
       "rate_limited": "That’s a lot of notes in a short time. Wait a few minutes and try again."
+    },
+    "showNote": "Show note",
+    "timeline": {
+      "title": "Notes along the book",
+      "hint": "Each mark is a note, left at that place in the book. Marks past your ribbon stay blurred until you choose to read them.",
+      "empty": "No club notes yet. They appear here at the page they were written on.",
+      "count_one": "{{count}} note",
+      "count_other": "{{count}} notes",
+      "at": "At {{place}}",
+      "close": "Close",
+      "markLabel": "{{notes}} at {{place}} by {{names}}",
+      "markAhead": ", ahead of where you are",
+      "previewAhead": "Ahead of where you are · {{place}}",
+      "you": "you"
     }
   },
   "admin": {

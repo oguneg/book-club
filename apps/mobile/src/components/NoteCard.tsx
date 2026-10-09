@@ -5,6 +5,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useBlockActions, useNoteActions, type ReportReason } from '@/api/notes';
 import { noteErrorMessage } from '@/notes/errors';
 import { noteTime, placeLabel } from '@/notes/format';
+import { useRevealed } from '@/notes/revealed';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { TextButton } from '@/components/ui/TextButton';
@@ -23,7 +24,7 @@ interface Shared {
 export function NoteCard({ note, viewer, ...shared }: Shared & { note: Note; viewer: NoteViewer | null }) {
   const { t } = useTranslation();
   const { colors, space } = useTheme();
-  const [revealed, setRevealed] = useState(false);
+  const [revealed, reveal] = useRevealed(note.id);
   const [replying, setReplying] = useState(false);
   const hidden = !note.mine && isSpoilerFor(note.position, viewer) && !revealed;
   const audience = note.visibility === 'club' ? (note.club?.name ?? t('notes.audience_club')) : t(`notes.audience_${note.visibility}`);
@@ -39,7 +40,7 @@ export function NoteCard({ note, viewer, ...shared }: Shared & { note: Note; vie
           details={[audience]}
           place={place}
           spoiler={hidden ? (viewer ? t('notes.spoilerAhead') : t('notes.spoilerUnknown')) : undefined}
-          onReveal={() => setRevealed(true)}
+          onReveal={reveal}
           onReply={note.body !== null ? () => setReplying((r) => !r) : undefined}
         />
         {!hidden && (note.replies.length > 0 || replying) && (
@@ -268,13 +269,9 @@ function Entry({
 function SpoilerCover({ preview, label, place, onReveal }: { preview: string; label: string; place: string; onReveal?: () => void }) {
   const { t } = useTranslation();
   const { colors, fonts, fontSize, radius, space } = useTheme();
+  // Reading a note ahead of you is a decision, so it takes a deliberate "Show note", not any stray tap.
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t('notes.revealLabel', { place, hint: label })}
-      onPress={onReveal}
-      style={({ pressed }) => ({ borderRadius: radius.md, backgroundColor: colors.background, padding: space.md, gap: space.sm, opacity: pressed ? 0.8 : 1 })}
-    >
+    <View style={{ borderRadius: radius.md, backgroundColor: colors.background, padding: space.md, gap: space.sm }}>
       <View aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ overflow: 'hidden' }}>
         {Platform.OS === 'web' ? (
           <Text
@@ -291,8 +288,11 @@ function SpoilerCover({ preview, label, place, onReveal }: { preview: string; la
           </View>
         )}
       </View>
-      <Text style={{ color: colors.accent, fontSize: fontSize.sm, fontWeight: '600' }}>{label}</Text>
-    </Pressable>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: space.md }}>
+        <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{label}</Text>
+        <TextButton label={t('notes.showNote')} accessibilityLabel={t('notes.revealLabel', { place, hint: label })} onPress={() => onReveal?.()} />
+      </View>
+    </View>
   );
 }
 
