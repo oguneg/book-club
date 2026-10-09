@@ -25,5 +25,9 @@ if [ "$tables" != "0" ]; then
 fi
 
 echo "restoring snapshot $snapshot into $target" >&2
-restic dump --tag nightly "$snapshot" bookclub.sql | psql -q -v ON_ERROR_STOP=1 -d "$target" >&2
+# Download first, then load: piped, a failed download would just look like an empty database.
+dump=$(mktemp)
+trap 'rm -f "$dump"' EXIT
+restic dump --tag nightly "$snapshot" bookclub.sql > "$dump"
+psql -q -v ON_ERROR_STOP=1 -d "$target" -f "$dump" >&2
 counts.sh "$target"
