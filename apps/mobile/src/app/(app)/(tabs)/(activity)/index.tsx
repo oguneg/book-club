@@ -6,16 +6,18 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useActivity } from '@/api/activity';
 import { useClubs } from '@/api/clubs';
-import { useReadings } from '@/api/readings';
+import { useReadings, useReadingStats } from '@/api/readings';
 import { authClient } from '@/auth/client';
 import { openReading } from '@/books/start';
 import { formatMeetingTime } from '@/clubs/format';
 import { takePendingInvite } from '@/clubs/pendingInvite';
 import { noteTime, placeLabel } from '@/notes/format';
+import { calendarOf } from '@/readings/calendar';
 import { readingLine } from '@/readings/format';
 import { Avatar } from '@/components/Avatar';
 import { BookCover } from '@/components/BookCover';
 import { FinishedSheet } from '@/components/FinishedSheet';
+import { PopularBooks } from '@/components/PopularBooks';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { UpdatePageSheet } from '@/components/UpdatePageSheet';
@@ -37,6 +39,8 @@ export default function Home() {
   const [updating, setUpdating] = useState<{ reading: Reading; open: boolean } | null>(null);
   const [finished, setFinished] = useState<Reading | null>(null);
   const [now] = useState(() => Date.now());
+  const stats = useReadingStats().data;
+  const weekPages = stats ? calendarOf(stats, new Date(now)).weekPages : 0;
   const firstName = session?.user.name.trim().split(/\s+/)[0] ?? '';
   const hour = new Date(now).getHours();
   const greeting = hour < 5 ? 'evening' : hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
@@ -55,7 +59,11 @@ export default function Home() {
           <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, lineHeight: fontSize.xxl * 1.15, color: colors.text }}>
             {t(`homeFeed.greeting.${greeting}`, { name: firstName })}
           </Text>
-          <Text style={{ color: colors.textMuted, fontSize: fontSize.md }}>{new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: fontSize.md }}>
+            {[new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now), weekPages > 0 ? t('homeFeed.weekLine', { count: weekPages, pages: new Intl.NumberFormat().format(weekPages) }) : null]
+              .filter(Boolean)
+              .join(' · ')}
+          </Text>
         </View>
 
         {readings.isPending ? (
@@ -69,7 +77,10 @@ export default function Home() {
             </ScrollView>
           </Section>
         ) : (
-          <StartReading />
+          <>
+            <StartReading />
+            <PopularBooks title={t('popular.orStart')} />
+          </>
         )}
 
         <ComingUp clubs={clubs} now={now} />

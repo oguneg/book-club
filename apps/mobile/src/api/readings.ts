@@ -1,4 +1,4 @@
-import { clubProgressResponse, readingListResponse, readingResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
+import { clubProgressResponse, readingListResponse, readingResponse, readingStatsResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiDelete, apiGet, apiPatch, apiPost } from './client';
@@ -22,6 +22,14 @@ export function useClubProgress(clubId: string, { enabled = true }: { enabled?: 
     queryKey: ['club-progress', clubId],
     queryFn: async ({ signal }) => (await apiGet(`/api/clubs/${encodeURIComponent(clubId)}/progress`, clubProgressResponse, signal)).members,
     enabled,
+  });
+}
+
+/** Your reading, gently counted (see the server's stats). */
+export function useReadingStats() {
+  return useQuery({
+    queryKey: ['reading-stats'],
+    queryFn: async ({ signal }) => (await apiGet('/api/reading-stats', readingStatsResponse, signal)).stats,
   });
 }
 
@@ -64,6 +72,7 @@ export function useReadingActions(id: string) {
     void queryClient.invalidateQueries({ queryKey: ['club-progress'] });
     // Your place decides which notes are spoilers.
     void queryClient.invalidateQueries({ queryKey: ['notes'] });
+    void queryClient.invalidateQueries({ queryKey: ['reading-stats'] });
     return reading;
   };
   return {

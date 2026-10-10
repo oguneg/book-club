@@ -36,6 +36,8 @@ export function bookRoutes({ auth, books }: { auth: Auth; books: BookService }) 
     return c.json({ works: await books.searchWorks(q) });
   });
 
+  app.get('/books/popular', async (c) => c.json({ works: await books.popular() }));
+
   app.get('/books/works/:key', async (c) => {
     const key = c.req.param('key');
     if (!WORK_KEY.test(key)) return c.json({ error: 'not_found' }, 404);

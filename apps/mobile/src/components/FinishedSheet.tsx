@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useNotes } from '@/api/notes';
-import { useReadingActions, useWantToRead } from '@/api/readings';
+import { useReadingActions, useReadingStats, useWantToRead } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { formatAuthors } from '@/books/format';
 import { useStartReading } from '@/books/start';
@@ -40,6 +40,7 @@ export function FinishedSheet({
   const notes = useNotes(reading.bookKey, 'all');
   const actions = useReadingActions(reading.id);
   const next = useWantToRead().data?.[0];
+  const thisYear = useReadingStats().data?.finishedThisYear.length ?? 0;
   const start = useStartReading();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
@@ -50,7 +51,9 @@ export function FinishedSheet({
       <View style={{ gap: space.lg, paddingBottom: space.sm }}>
         {error && <Notice message={error} />}
         <Text style={{ color: colors.text, fontFamily: fonts.reading, fontSize: fontSize.md, lineHeight: fontSize.md * 1.6 }}>
-          {others > 0 ? t('finished.notesOpen', { count: others }) : t('finished.allOpen')}
+          {[thisYear > 0 ? t('finished.countThisYear', { count: thisYear, ordinal: true }) : null, others > 0 ? t('finished.notesOpen', { count: others }) : t('finished.allOpen')]
+            .filter(Boolean)
+            .join(' ')}
         </Text>
         <View style={{ gap: space.sm }}>
           <Button label={t('finished.lastThought')} onPress={onLastThought} />

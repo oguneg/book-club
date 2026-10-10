@@ -1,7 +1,8 @@
 import type { ReadingDetail } from '@bookclub/shared';
+import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useReadingActions } from '@/api/readings';
 import { readingErrorMessage } from '@/readings/errors';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +11,11 @@ import { useToast } from '@/components/Toast';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
+
+/** A light tap of confirmation on phones (the web's vibration would just be odd). */
+const feelSaved = () => {
+  if (Platform.OS !== 'web') void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+};
 
 type Updatable = Pick<ReadingDetail, 'id' | 'endPage' | 'currentPage'> & { startPage?: number; history?: ReadingDetail['history'] };
 
@@ -67,6 +73,7 @@ export function UpdatePageSheet({
         // A little "well done" for moving on; a correction backwards is just saved.
         const moved = mode === 'page' ? n - current : 0;
         toast(moved > 0 ? t('reading.update.toastPages', { count: moved }) : t('reading.update.toastSaved'));
+        feelSaved();
       }
     } catch (err) {
       setError(readingErrorMessage(t, err));
@@ -108,6 +115,7 @@ export function UpdatePageSheet({
             onPress={async () => {
               try {
                 await actions.finish();
+                feelSaved();
                 close();
                 onFinished?.();
               } catch (err) {

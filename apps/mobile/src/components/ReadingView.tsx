@@ -37,7 +37,18 @@ import { useTheme } from '@/theme';
  * book and below it, and "+ Note". When your club is reading it, the club is a layer on the same page:
  * everyone's faces on the line, the next meeting, and the club's notes first. Rare things are in ⋯.
  */
-export function ReadingView({ readingId, open, onOpened }: { readingId: string; open?: 'update' | 'note'; onOpened?: () => void }) {
+export function ReadingView({
+  readingId,
+  open,
+  onOpened,
+  pane = false,
+}: {
+  readingId: string;
+  open?: 'update' | 'note';
+  onOpened?: () => void;
+  /** Beside a list (desktop My books): no header of its own, so ⋯ goes in the page. */
+  pane?: boolean;
+}) {
   const { t } = useTranslation();
   const { colors, fonts, fontSize, space } = useTheme();
   const query = useReading(readingId);
@@ -74,11 +85,12 @@ export function ReadingView({ readingId, open, onOpened }: { readingId: string; 
   // The rare things (finish, stop, pages, remove) wait behind ⋯ in the header.
   const navigation = useNavigation();
   useLayoutEffect(() => {
+    if (pane) return;
     navigation.setOptions({ headerRight: () => <IconButton icon={MoreHorizontal} label={t('reading.menu.label')} onPress={() => setSheet('menu')} /> });
-  }, [navigation, t]);
+  }, [navigation, t, pane]);
 
   return (
-    <Screen overlay={reading_ ? <Fab icon={Plus} label={t('notes.sheet.fab')} onPress={() => setSheet('note')} /> : undefined}>
+    <Screen region={pane ? reading?.edition.title : undefined} overlay={reading_ ? <Fab icon={Plus} label={t('notes.sheet.fab')} onPress={() => setSheet('note')} /> : undefined}>
       <PageTitle title={reading?.edition.title} />
       {query.isPending && <ActivityIndicator color={colors.accent} />}
       {query.isError && <Notice message={readingErrorMessage(t, query.error)} />}
@@ -99,6 +111,11 @@ export function ReadingView({ readingId, open, onOpened }: { readingId: string; 
             }}
           >
             <CoverWash cover={reading.edition.cover} />
+            {pane && (
+              <View style={{ position: 'absolute', top: space.xs, right: space.xs }}>
+                <IconButton icon={MoreHorizontal} label={t('reading.menu.label')} onPress={() => setSheet('menu')} />
+              </View>
+            )}
             <View style={{ flexDirection: 'row', gap: space.lg, alignItems: 'flex-end' }}>
               <View style={{ borderRadius: 8, boxShadow: '0px 2px 4px rgba(42,33,25,0.14), 0px 14px 28px -12px rgba(42,33,25,0.5)' }}>
                 <BookCover cover={reading.edition.cover} title={reading.edition.title} size="lg" />

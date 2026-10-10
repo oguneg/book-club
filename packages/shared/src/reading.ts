@@ -54,6 +54,18 @@ export const updateReadingInput = z
   .object({ editionId: z.string().uuid().optional(), startPage: page.optional(), endPage: page.optional() })
   .refine((r) => !(r.startPage && r.endPage) || r.endPage > r.startPage, { message: 'endPage must be after startPage', path: ['endPage'] });
 
+// ---- Your reading, gently counted: no streaks, no goals ----
+
+export const readingStats = z.object({
+  /** Progress logged in the last 12 weeks: when, and how many pages (in that book's copy) it moved you on. */
+  recent: z.array(z.object({ at: z.string(), pages: z.number().int() })),
+  /** Books finished this calendar year, newest first. */
+  finishedThisYear: z.array(z.object({ id: z.string(), title: z.string(), cover: z.string().nullable(), finishedAt: z.string() })),
+  pagesThisYear: z.number().int(),
+});
+export type ReadingStats = z.infer<typeof readingStats>;
+export const readingStatsResponse = z.object({ stats: readingStats });
+
 // ---- Want to read: books saved for later, each with the edition you'd start in ----
 
 export const wantToRead = z.object({

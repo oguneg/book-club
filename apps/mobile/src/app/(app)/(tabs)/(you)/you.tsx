@@ -5,6 +5,7 @@ import { useIsModerator } from '@/api/admin';
 import { authClient } from '@/auth/client';
 import { Avatar } from '@/components/Avatar';
 import { PageTitle } from '@/components/PageTitle';
+import { ReadingStats } from '@/components/ReadingStats';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import { NavRow } from '@/components/ui/NavRow';
@@ -29,6 +30,13 @@ export default function YouTab() {
           </Text>
           <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{user?.email}</Text>
         </View>
+      </View>
+
+      <View style={{ gap: space.md, marginBottom: space.xl }}>
+        <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.lg, color: colors.text }}>
+          {t('stats.title')}
+        </Text>
+        <ReadingStats />
       </View>
 
       <View style={{ gap: space.sm }}>

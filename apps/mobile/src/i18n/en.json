@@ -722,7 +722,11 @@
     "lastThought": "Leave a last thought",
     "readNotes": "Read the notes",
     "nextUp": "Next up",
-    "undo": "Not finished yet? Undo"
+    "undo": "Not finished yet? Undo",
+    "countThisYear_ordinal_one": "That’s your {{count}}st book this year.",
+    "countThisYear_ordinal_two": "That’s your {{count}}nd book this year.",
+    "countThisYear_ordinal_few": "That’s your {{count}}rd book this year.",
+    "countThisYear_ordinal_other": "That’s your {{count}}th book this year."
   },
   "homeFeed": {
     "greeting": {
@@ -745,6 +749,35 @@
     "reply": "{{name}} replied to your note",
     "noteAhead": "Ahead of where you are",
     "finished": "{{name}} finished {{title}}",
-    "joined": "{{name}} joined {{club}}"
+    "joined": "{{name}} joined {{club}}",
+    "weekLine_one": "1 page in the last 7 days",
+    "weekLine_other": "{{pages}} pages in the last 7 days"
+  },
+  "stats": {
+    "weekPages_one": "page in the last 7 days",
+    "weekPages_other": "pages in the last 7 days",
+    "yearBooks_one": "book finished in {{year}}",
+    "yearBooks_other": "books finished in {{year}}",
+    "yearPages_one": "page read in {{year}}",
+    "yearPages_other": "pages read in {{year}}",
+    "calendarTitle": "Days you read",
+    "day_zero": "{{day}} · no reading",
+    "day_one": "{{day}} · 1 page",
+    "day_other": "{{day}} · {{count}} pages",
+    "daysRead_zero": "No reading logged in the last {{weeks}} weeks",
+    "daysRead_one": "Read on 1 day in the last {{weeks}} weeks",
+    "daysRead_other": "Read on {{count}} days in the last {{weeks}} weeks",
+    "less": "Less",
+    "more": "More",
+    "showDays": "Show the days",
+    "hideDays": "Hide the days",
+    "pages_one": "1 page",
+    "pages_other": "{{count}} pages",
+    "shelfTitle": "Finished in {{year}}",
+    "title": "Your reading"
+  },
+  "popular": {
+    "title": "Popular this week",
+    "orStart": "Or start with one of these"
   }
 }

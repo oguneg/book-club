@@ -9,6 +9,7 @@ import { fetchCover, googleBooks, openLibrary, type Fetch, type ProviderEdition 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TTL = {
   search: 7 * DAY_MS,
+  popular: DAY_MS,
   work: 30 * DAY_MS,
   editions: 7 * DAY_MS,
   /** "No source knows this ISBN" is retried after a week: books get added. */
@@ -125,6 +126,11 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
   }
 
   return {
+    /** Popular books (see openLibrary.popular), refreshed daily. */
+    async popular(): Promise<WorkSummary[]> {
+      return cached('popular', TTL.popular, () => ol.popular());
+    },
+
     async searchWorks(query: string): Promise<WorkSummary[]> {
       const works = await cached(`search:${normalizeQuery(query)}`, TTL.search, () => ol.searchWorks(query));
       // Remember each work's summary, so opening it doesn't ask Open Library again.

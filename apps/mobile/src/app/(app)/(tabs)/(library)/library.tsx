@@ -3,7 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Plus, Search, X } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Text, useWindowDimensions, View } from 'react-native';
 import { useReadings, useWantToRead, useWantToReadActions } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { formatAuthors } from '@/books/format';
@@ -14,7 +14,9 @@ import { readingLine } from '@/readings/format';
 import { BookRow } from '@/components/BookRow';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { FinishedSheet } from '@/components/FinishedSheet';
+import { PopularBooks } from '@/components/PopularBooks';
 import { PageTitle } from '@/components/PageTitle';
+import { ReadingView } from '@/components/ReadingView';
 import { Screen } from '@/components/Screen';
 import { UpdatePageSheet } from '@/components/UpdatePageSheet';
 import { Button } from '@/components/ui/Button';
@@ -44,8 +46,12 @@ export default function MyBooks() {
   // One sheet for whichever book you tap; kept after closing so it can slide away.
   const [updating, setUpdating] = useState<{ reading: Reading; open: boolean } | null>(null);
   const [finished, setFinished] = useState<Reading | null>(null);
+  // Wide enough for both: the list on the left, the book you picked on the right.
+  const split = useWindowDimensions().width >= 1200;
+  const [picked, setPicked] = useState<string | null>(null);
+  const paneId = split ? (current.find((r) => r.id === picked)?.id ?? current[0]?.id ?? null) : null;
 
-  return (
+  const list = (
     <Screen>
       <PageTitle title={t('myBooks.title')} />
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.lg }}>
@@ -77,7 +83,13 @@ export default function MyBooks() {
           ) : (
             <List>
               {current.map((r) => (
-                <ReadingCard key={r.id} reading={r} onUpdate={() => setUpdating({ reading: r, open: true })} />
+                <ReadingCard
+                  key={r.id}
+                  reading={r}
+                  onUpdate={() => setUpdating({ reading: r, open: true })}
+                  onOpen={split ? () => setPicked(r.id) : undefined}
+                  selected={r.id === paneId}
+                />
               ))}
             </List>
           )
@@ -113,6 +125,13 @@ export default function MyBooks() {
       )}
     </Screen>
   );
+  if (!split) return list;
+  return (
+    <View style={{ flex: 1, flexDirection: 'row' }}>
+      <View style={{ width: 420, borderRightWidth: 1, borderRightColor: colors.border }}>{list}</View>
+      <View style={{ flex: 1 }}>{paneId ? <ReadingView key={paneId} readingId={paneId} pane /> : null}</View>
+    </View>
+  );
 }
 
 function List({ children }: { children: ReactNode }) {
@@ -124,29 +143,34 @@ function List({ children }: { children: ReactNode }) {
   );
 }
 
-/** One thing you can open or act on, as a card. */
-function Card({ children }: { children: ReactNode }) {
+/** One thing you can open or act on, as a card; the one shown beside the list gets a bookcloth edge. */
+function Card({ children, selected = false }: { children: ReactNode; selected?: boolean }) {
   const { colors, radius, space } = useTheme();
   return (
-    <View role="listitem" style={{ backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md + 4, padding: space.xs, gap: space.sm }}>
+    <View
+      role="listitem"
+      style={{ backgroundColor: colors.surface, borderWidth: selected ? 2 : 1, borderColor: selected ? colors.accent : colors.border, borderRadius: radius.md + 4, padding: selected ? space.xs - 1 : space.xs, gap: space.sm }}
+    >
       {children}
     </View>
   );
 }
 
 /** A book you're reading: where you are, and one button to update it. Tap the book for its notes. */
-function ReadingCard({ reading, onUpdate }: { reading: Reading; onUpdate: () => void }) {
+function ReadingCard({ reading, onUpdate, onOpen, selected = false }: { reading: Reading; onUpdate: () => void; onOpen?: () => void; selected?: boolean }) {
   const { t } = useTranslation();
   const { space } = useTheme();
   const read = reading.position / POSITION_SCALE;
   return (
-    <Card>
+    <Card selected={selected}>
       <BookRow
         href={{ pathname: '/readings/[id]', params: { id: reading.id } }}
         cover={reading.edition.cover}
         title={reading.edition.title}
         lines={[formatAuthors(reading.edition.authors), readingLine(t, reading)]}
         coverSize="md"
+        onPress={onOpen}
+        selected={selected}
       />
       <View style={{ paddingHorizontal: space.sm, paddingBottom: space.sm, gap: space.md }}>
         <ProgressBar value={read} />
@@ -186,6 +210,7 @@ function WantList({ onStarted }: { onStarted: () => void }) {
         <View style={{ alignSelf: 'flex-start' }}>
           <Button variant="secondary" label={t('myBooks.find')} icon={<Search size={18} color={colors.text} />} onPress={() => router.push('/books')} />
         </View>
+        <PopularBooks />
       </View>
     );
   }
@@ -278,6 +303,7 @@ function WhatAreYouReading() {
       <View style={{ alignItems: 'center', marginTop: space.sm }}>
         <TextLink href="/clubs/join" label={t('reading.empty.invite')} />
       </View>
+      <PopularBooks title={t('popular.orStart')} />
     </View>
   );
 }

@@ -14,6 +14,16 @@ export function useBookSearch(query: string) {
   });
 }
 
+/** Books people are reading this week (well-known ones with covers), for an empty shelf to start from. */
+export function usePopularBooks({ enabled = true }: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: ['popular'],
+    queryFn: async ({ signal }) => (await apiGet('/api/books/popular', bookSearchResponse, signal)).works,
+    enabled,
+    staleTime: 60 * 60 * 1000,
+  });
+}
+
 export function useWork(key: string) {
   return useQuery({
     queryKey: ['books', 'work', key],

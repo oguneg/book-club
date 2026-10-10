@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import { serve } from '@hono/node-server';
-import { clubProgressResponse, clubResponse, readingListResponse, readingResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
+import { clubProgressResponse, clubResponse, readingListResponse, readingResponse, readingStatsResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
@@ -311,5 +311,25 @@ describe('want to read', () => {
     expect((await ann.browser.request(`/api/want-to-read/${book.id}`, { method: 'DELETE' })).status).toBe(204);
     expect(await wanted(ann.browser)).toHaveLength(0);
     expect((await ann.browser.request(`/api/want-to-read/${book.id}`, { method: 'DELETE' })).status).toBe(404);
+  });
+});
+
+describe('reading stats', () => {
+  it('counts pages read lately and books finished this year, ignoring corrections backwards', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    const r = await start(ann.browser, await anEdition(newWork(), 300), 1, 300);
+    await logPage(ann.browser, r.id, { page: 30 });
+    // Two logs a minute apart merge into one entry; this one corrects the last downwards.
+    await logPage(ann.browser, r.id, { page: 20 });
+    const other = await start(ann.browser, await anEdition(newWork(), 200, 'Dune'), 1, 200);
+    await ann.browser.post(`/api/readings/${other.id}/finish`);
+
+    const res = await ann.browser.request('/api/reading-stats');
+    expect(res.status).toBe(200);
+    const { stats } = readingStatsResponse.parse(await res.json());
+    expect(stats.recent.map((e) => e.pages).sort((a, b) => a - b)).toEqual([20, 200]);
+    expect(stats.pagesThisYear).toBe(220);
+    expect(stats.finishedThisYear.map((b) => b.title)).toEqual(['Dune']);
   });
 });

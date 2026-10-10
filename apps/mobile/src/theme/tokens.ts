@@ -21,6 +21,11 @@ export interface Palette {
   selection: string;
   /** A steady colour per person (their initials, when they have no photo); white text passes 5.8:1 on each. */
   people: readonly string[];
+  /**
+   * Days read, by how much: no reading, then four steps of bookcloth (OKLCH, one hue, lightness moving
+   * one way; darker for more on paper, lighter for more under lamplight).
+   */
+  calendar: readonly string[];
 }
 
 const PEOPLE = ['#6B4E9B', '#2F6F6A', '#8A5A1F', '#3E5C8A', '#7A3E5D', '#4F6B2E', '#9A4A2C', '#55567A'] as const;
@@ -40,6 +45,7 @@ export const palettes: Record<'light' | 'dark', Palette> = {
     deskShadow: '0px 1px 2px rgba(42, 33, 25, 0.06), 0px 10px 28px -14px rgba(42, 33, 25, 0.28)',
     selection: 'rgba(138, 59, 46, 0.22)',
     people: PEOPLE,
+    calendar: ['#E2D7C3', '#D9B4AC', '#C58A7F', '#A96053', '#8A3B2E'],
   },
   dark: {
     background: '#1B1814',
@@ -55,6 +61,7 @@ export const palettes: Record<'light' | 'dark', Palette> = {
     deskShadow: '0px 1px 2px rgba(0, 0, 0, 0.5), 0px 12px 30px -14px rgba(0, 0, 0, 0.7)',
     selection: 'rgba(217, 135, 111, 0.32)',
     people: PEOPLE,
+    calendar: ['#3A332A', '#674237', '#905848', '#B46E5A', '#D9876F'],
   },
 };
 

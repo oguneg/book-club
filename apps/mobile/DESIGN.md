@@ -256,6 +256,15 @@ Avatars are photos when people have them, otherwise initials in white on a stead
 ### Motion
 Progress bars glide to their new place (700ms, exponential ease-out) and a dark pill toast rises with "+26 pages" after an update (fades after 2.4s); both are still with reduced motion on. A book's own page has a soft wash of its cover, blurred and faded into the paper, behind a big cover with a lifted shadow.
 
+### Your reading
+On the You tab, gently counted: no streaks, no goals. Three tiles (pages in the last 7 days, books finished this year, pages this year; the number in the sans at 26px bold, its label under it in faded ink), a quiet 12-week calendar of the days you read (Monday-first columns, 3px gaps, 3px corners; four steps of bookcloth by pages: up to 10, 25, 50, more; OKLCH steps of one hue, darker for more on paper and lighter for more in dark mode), with a Less to More key, a caption that says it in words ("Read on 18 days in the last 12 weeks") and names the day under your finger or pointer, and "Show the days" for the same as a list; then this year's finished covers. Home carries the week in one line under the date.
+
+### Starting from nothing
+Empty shelves offer "Popular this week" (Open Library's weekly trending, well-known books with covers only, cached for a day): covers face out, a tap opens the book's page.
+
+### Wide screens
+From 1200px, My books shows the list and the book side by side: tapping a card opens it in the pane (the card gets a bookcloth edge), with ⋯ in the pane since it has no header; the pane is a region named after the book.
+
 ### Floating note button
 Bookcloth pill, 52px tall, a plus and "Note" in on-bookcloth, at the bottom right of the column. Shown wherever you can write (your reading, a club whose book you're reading).
 

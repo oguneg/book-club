@@ -137,6 +137,26 @@ export function openLibrary(fetchFn: Fetch) {
       return body?.docs?.[0] ? toWorkSummary(body.docs[0]) : null;
     },
 
+    /**
+     * Books people are reading this week, for an empty shelf to start from: only well-known ones (many
+     * editions) with a cover. Falls back to classics when the week is thin.
+     */
+    async popular(): Promise<WorkSummary[]> {
+      const known = (docs: OlSearchDoc[] | undefined) =>
+        (docs ?? []).filter((d) => d.cover_i && (d.edition_count ?? 0) >= 10).map(toWorkSummary).filter((w): w is WorkSummary => w !== null);
+      const week = await getJson<{ works?: OlSearchDoc[] }>(fetchFn, name, 'https://openlibrary.org/trending/weekly.json?limit=40');
+      const trending = known(week?.works);
+      if (trending.length >= 6) return trending.slice(0, 12);
+      const classics = await getJson<{ works?: (OlSearchDoc & { authors?: { name: string }[]; cover_id?: number })[] }>(
+        fetchFn,
+        name,
+        'https://openlibrary.org/subjects/classic_literature.json?limit=24',
+      );
+      // The subjects API names a few fields differently.
+      const docs = (classics?.works ?? []).map((w) => ({ ...w, author_name: w.authors?.map((a) => a.name), cover_i: w.cover_id }));
+      return [...trending, ...known(docs)].slice(0, 12);
+    },
+
     /** Up to 100 editions of a work. Open Library lists authors per work, so they're passed in. */
     async editions(key: string, authors: string[]): Promise<ProviderEdition[]> {
       const body = await getJson<{ entries?: OlEdition[] }>(fetchFn, name, `https://openlibrary.org/works/${key}/editions.json?limit=100`);

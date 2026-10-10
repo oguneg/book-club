@@ -288,3 +288,17 @@ function randomIsbn(): string {
   const sum = [...core].reduce((acc, ch, i) => acc + Number(ch) * (i % 2 === 0 ? 1 : 3), 0);
   return `${core}${(10 - (sum % 10)) % 10}`;
 }
+
+describe('popular books', () => {
+  it('lists well-known books with covers from this week, then serves them from the cache', async () => {
+    const doc = (i: number, extra: object = {}) => ({ key: `/works/OL${9000 + i}W`, title: `Book ${i}`, author_name: ['A. Writer'], cover_i: 100 + i, edition_count: 40, ...extra });
+    const week = { works: [doc(1), doc(2, { cover_i: undefined }), doc(3, { edition_count: 2 }), doc(4), doc(5), doc(6), doc(7), doc(8)] };
+    const ctx = await setup([[/trending\/weekly\.json/, () => json(week)]]);
+    const first = bookSearchResponse.parse(await (await ctx.browser.request('/api/books/popular')).json()).works;
+    // No cover, or too few editions to be well known: left out.
+    expect(first.map((w) => w.title)).toEqual(['Book 1', 'Book 4', 'Book 5', 'Book 6', 'Book 7', 'Book 8']);
+    expect(first[0]).toMatchObject({ key: 'OL9001W', cover: 'ol-101-M' });
+    await ctx.browser.request('/api/books/popular');
+    expect(ctx.calls.filter((u) => u.includes('trending'))).toHaveLength(1);
+  });
+});

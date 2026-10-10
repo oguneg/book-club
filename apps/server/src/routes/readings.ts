@@ -27,6 +27,7 @@ export function readingRoutes({ auth, readings }: { auth: Auth; readings: Readin
   const app = new Hono<SignedInEnv>();
   app.use('/readings', requireSession(auth));
   app.use('/readings/*', requireSession(auth));
+  app.use('/reading-stats', requireSession(auth));
   app.use('/want-to-read', requireSession(auth));
   app.use('/want-to-read/*', requireSession(auth));
   for (const path of ['/readings/*', '/want-to-read', '/want-to-read/*']) {
@@ -62,6 +63,8 @@ export function readingRoutes({ auth, readings }: { auth: Auth; readings: Readin
   app.post('/readings/:id/finish', async (c) => c.json({ reading: await readings.finish(readingId(c), c.get('user').id) }));
   app.post('/readings/:id/stop', async (c) => c.json({ reading: await readings.stop(readingId(c), c.get('user').id) }));
   app.post('/readings/:id/resume', async (c) => c.json({ reading: await readings.resume(readingId(c), c.get('user').id) }));
+
+  app.get('/reading-stats', async (c) => c.json({ stats: await readings.stats(c.get('user').id) }));
 
   app.get('/want-to-read', async (c) => c.json({ books: await readings.wantList(c.get('user').id) }));
   app.post('/want-to-read', async (c) => c.json({ book: await readings.addWant(c.get('user').id, (await body(c, addWantToReadInput)).editionId) }, 201));

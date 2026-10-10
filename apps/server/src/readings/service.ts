@@ -8,6 +8,7 @@ import {
   type MemberProgress,
   type Reading,
   type ReadingDetail,
+  type ReadingStats,
   type WantToRead,
 } from '@bookclub/shared';
 import { and, asc, desc, eq, gte, inArray, ne, sql } from 'drizzle-orm';
@@ -138,6 +139,50 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
       await db.delete(wantToRead).where(and(eq(wantToRead.userId, userId), eq(wantToRead.bookKey, bookKey)));
       await changed(userId, bookKey);
       return detail(id, userId);
+    },
+
+    /**
+     * Your reading, gently counted: pages moved forward in the last 12 weeks (each in its own book's
+     * copy), books finished this year, and pages this year. Corrections backwards don't count.
+     */
+    async stats(userId: string, now = new Date()): Promise<ReadingStats> {
+      const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+      const recentStart = new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000);
+      const rows = await db.select({ reading, edition }).from(reading).innerJoin(edition, eq(edition.id, reading.editionId)).where(eq(reading.userId, userId));
+      const events = rows.length
+        ? await db
+            .select()
+            .from(progressEvent)
+            .where(inArray(progressEvent.readingId, rows.map((r) => r.reading.id)))
+            .orderBy(asc(progressEvent.createdAt))
+        : [];
+      const recent: ReadingStats['recent'] = [];
+      let pagesThisYear = 0;
+      for (const { reading: r } of rows) {
+        const pageCount = Math.max(1, r.endPage - r.startPage + 1);
+        let previous = 0;
+        for (const ev of events.filter((e) => e.readingId === r.id)) {
+          const pages = Math.round(((ev.position - previous) / POSITION_SCALE) * pageCount);
+          previous = ev.position;
+          if (pages <= 0) continue;
+          if (ev.createdAt >= recentStart) recent.push({ at: ev.createdAt.toISOString(), pages });
+          if (ev.createdAt >= yearStart) pagesThisYear += pages;
+        }
+      }
+      const finished = rows
+        .filter((r) => r.reading.status === 'finished' && r.reading.finishedAt && r.reading.finishedAt >= yearStart)
+        .sort((a, b) => b.reading.finishedAt!.getTime() - a.reading.finishedAt!.getTime());
+      const covers = await borrowedCovers(db, finished.map((r) => r.edition));
+      return {
+        recent: recent.sort((a, b) => a.at.localeCompare(b.at)),
+        finishedThisYear: finished.map((r) => ({
+          id: r.reading.id,
+          title: r.edition.title,
+          cover: withCover(r.edition, covers).cover,
+          finishedAt: r.reading.finishedAt!.toISOString(),
+        })),
+        pagesThisYear,
+      };
     },
 
     /** Books saved for later, most recently added first. */

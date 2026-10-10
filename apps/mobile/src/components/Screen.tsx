@@ -8,7 +8,18 @@ import { useTheme } from '@/theme';
  * Page wrapper: safe areas, theme background, and a readable column width (`wide` leaves room for a side
  * rail). `overlay` stays put while the page scrolls (a floating "+ Note"); the page leaves room for it.
  */
-export function Screen({ children, width = 'default', overlay }: { children: ReactNode; width?: 'default' | 'narrow' | 'wide'; overlay?: ReactNode }) {
+export function Screen({
+  children,
+  width = 'default',
+  overlay,
+  region,
+}: {
+  children: ReactNode;
+  width?: 'default' | 'narrow' | 'wide';
+  overlay?: ReactNode;
+  /** Shown beside another page (a desktop pane): a named region rather than a second main. */
+  region?: string;
+}) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   // Under a header (a book, a club, a form opened from a tab) the header already clears the status bar.
@@ -27,7 +38,7 @@ export function Screen({ children, width = 'default', overlay }: { children: Rea
           },
         ]}
       >
-        <View role="main" style={[styles.column, { maxWidth: theme.layout[width === 'default' ? 'column' : width] }]}>
+        <View role={region ? 'region' : 'main'} aria-label={region} style={[styles.column, { maxWidth: theme.layout[width === 'default' ? 'column' : width] }]}>
           {children}
         </View>
       </ScrollView>
