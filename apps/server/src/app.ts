@@ -14,6 +14,7 @@ import type { ReadingService } from './readings/service';
 import type { Database } from './db/client';
 import type { Env } from './env';
 import { accountRoutes } from './routes/account';
+import { preferenceRoutes } from './routes/preferences';
 import { adminRoutes } from './routes/admin';
 import { monitoringRoutes } from './routes/monitoring';
 import { createErrorReporter, type ErrorReporter } from './monitoring/sentry';
@@ -111,6 +112,7 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 
   app.route('/api/account', accountRoutes({ auth, db: database.db }));
+  app.route('/api/preferences', preferenceRoutes({ auth, db: database.db, live }));
   app.route('/api/activity', activityRoutes({ auth, activity: createActivityService({ db: database.db }) }));
   app.route('/api', bookRoutes({ auth, books }));
   app.route('/api', clubRoutes({ auth, clubs, readings, live }));

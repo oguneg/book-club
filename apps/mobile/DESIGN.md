@@ -173,7 +173,7 @@ It stays calm and quiet: warm paper in light, a dark study in dark mode, ink for
 - One floating "+ Note" button wherever you can write; one filled button per screen.
 - Literata for titles, note text and figures; the system UI face for controls and metadata. Lucide line icons.
 - Light and dark are both first-class, from the same roles.
-- Three styles, chosen per device on You › Appearance (with System, Light or Dark): **Classic** (this document's paper, ink and bookcloth), **Sleek** and **Playful**. A style is a whole set of tokens, never a per-screen switch.
+- Three styles, chosen on You › Appearance (with System, Light or Dark) and following you to every device: **Classic** (this document's paper, ink and bookcloth), **Sleek** and **Playful**. A style is a whole set of tokens, never a per-screen switch.
 
 ## Styles
 
@@ -183,7 +183,7 @@ Every style fills the same roles (background, surface, text, muted text, border,
 - **Sleek:** cool near-white #F4F5F7 on white surfaces, near-black ink #14161B, ink blue #2E4BD1; Manrope (600 headings, 700 bold, 400 notes); tighter corners 4 / 8 / 12 and cooler, thinner shadows. Dark: #0E1014 with periwinkle #93A6FF.
 - **Playful:** blush cream #FFF4EE on white, plum ink #2E2140, raspberry #C2356B; Fredoka headings and Nunito for notes; round corners 10 / 16 / 24 (buttons are near-pills) and plum-tinted shadows. Dark: plum night #1B1428 with candy pink #FF8CB7.
 
-The choice is kept on the device and read before the first paint, so the app starts in its style; a style's fonts load the first time it's used (on the web, that's when they download), and the last fonts stay on screen until the new ones are in. The Appearance page draws each choice in its own style: a book with its progress and its two buttons.
+The choice follows the account (a change on one device reaches the others at once) and is also kept on the device, read before the first paint, so the app starts in its style before it can ask the server; once signed in, the account's choice wins, and an account without one takes the device's; a style's fonts load the first time it's used (on the web, that's when they download), and the last fonts stay on screen until the new ones are in. The Appearance page draws each choice in its own style: a book with its progress and its two buttons.
 
 ## Colors
 

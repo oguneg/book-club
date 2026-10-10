@@ -8,7 +8,8 @@ type LiveEvent =
   | { type: 'readings' }
   | { type: 'club'; clubId: string }
   | { type: 'club-progress'; clubId: string }
-  | { type: 'notes'; bookKey: string };
+  | { type: 'notes'; bookKey: string }
+  | { type: 'preferences' };
 
 /** React Native's WebSocket also takes headers (the DOM type in our tsconfig doesn't know that). */
 type NativeWebSocket = new (url: string, protocols: string | string[] | undefined, options: { headers: Record<string, string> }) => WebSocket;
@@ -50,6 +51,8 @@ export function useLive() {
       } else if (event.type === 'notes') {
         void queryClient.invalidateQueries({ queryKey: ['notes', event.bookKey] });
         void queryClient.invalidateQueries({ queryKey: ['activity'] });
+      } else if (event.type === 'preferences') {
+        void queryClient.invalidateQueries({ queryKey: ['preferences'] });
       }
     };
 

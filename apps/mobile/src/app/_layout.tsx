@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { setUpNativeQueryManagers } from '@/api/nativeManagers';
 import { authClient } from '@/auth/client';
@@ -43,6 +44,14 @@ function Navigator() {
   const theme = useTheme();
   const session = authClient.useSession();
   const signedIn = Boolean(session.data);
+  // Someone else signing in (or nobody) never sees the last account's books, clubs or settings, even briefly.
+  const queryClient = useQueryClient();
+  const userId = session.data?.user.id ?? null;
+  const lastUser = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (lastUser.current !== undefined && lastUser.current !== userId) queryClient.clear();
+    lastUser.current = userId;
+  }, [userId, queryClient]);
   // Better Auth reports `isPending` again on every background refresh while signed out (e.g. when the
   // tab regains focus). Only the first check may hold the app back, or a half-filled form would vanish.
   const [ready, setReady] = useState(false);

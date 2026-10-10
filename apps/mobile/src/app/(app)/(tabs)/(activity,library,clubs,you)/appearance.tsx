@@ -2,6 +2,7 @@ import { Check } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
+import { useChangeAppearance } from '@/api/preferences';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { Hint } from '@/components/ui/Section';
@@ -16,7 +17,8 @@ export default function AppearancePage() {
   const { t } = useTranslation();
   const theme = useTheme();
   const { colors, fonts, fontSize, space } = theme;
-  const { appearance, setAppearance } = useAppearance();
+  const { appearance } = useAppearance();
+  const setAppearance = useChangeAppearance();
   // So each card can show its own type, load every style's fonts while this page is open.
   const [, setFontsIn] = useState(0);
   useEffect(() => {

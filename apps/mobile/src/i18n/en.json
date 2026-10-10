@@ -888,7 +888,7 @@
     "system": "Like the system",
     "light": "Light",
     "dark": "Dark",
-    "onDevice": "Saved on this device.",
+    "onDevice": "Follows you to every device you sign in on.",
     "styles": {
       "classic": {
         "name": "Classic",

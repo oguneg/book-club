@@ -8,4 +8,5 @@ export * from './isbn';
 export * from './notes';
 export * from './pace';
 export * from './position';
+export * from './preferences';
 export * from './reading';

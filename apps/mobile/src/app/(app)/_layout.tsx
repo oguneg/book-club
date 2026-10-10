@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import { useAppearanceSync } from '@/api/preferences';
 import { useLive } from '@/live/useLive';
 import { useProgressSyncEngine } from '@/readings/useProgressSyncEngine';
 import { useTheme } from '@/theme';
@@ -12,5 +13,7 @@ export default function AppGroupLayout() {
   useLive();
   // Progress logged offline (or left from a visit without a connection) goes out when it can.
   useProgressSyncEngine();
+  // Your style and light/dark follow your account from device to device.
+  useAppearanceSync();
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />;
 }

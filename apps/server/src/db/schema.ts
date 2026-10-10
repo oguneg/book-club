@@ -266,6 +266,19 @@ export const readingGoal = pgTable('reading_goal', {
     .$onUpdate(() => new Date()),
 });
 
+/** Settings that follow a reader to every device: for now, how the app looks. No choice yet, no row. */
+export const userPreference = pgTable('user_preference', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  appearanceStyle: text('appearance_style', { enum: ['classic', 'sleek', 'playful'] }).notNull(),
+  appearanceMode: text('appearance_mode', { enum: ['system', 'light', 'dark'] }).notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
+
 /** Books someone wants to read, each with the edition they'd start in. Starting a reading takes it off. */
 export const wantToRead = pgTable(
   'want_to_read',
