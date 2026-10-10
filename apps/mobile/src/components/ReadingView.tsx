@@ -1,4 +1,4 @@
-import { paceAt, positionToPage, type ClubDetail } from '@bookclub/shared';
+import type { ClubDetail } from '@bookclub/shared';
 import { MoreHorizontal, Plus, Users } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import { useNavigation } from 'expo-router';
@@ -11,15 +11,17 @@ import { useClubProgress, useReading, useReadingActions } from '@/api/readings';
 import { authClient } from '@/auth/client';
 import { formatAuthors } from '@/books/format';
 import { formatDate, formatMeetingTime } from '@/clubs/format';
-import { pacePlan } from '@/clubs/pace';
 import { readingErrorMessage } from '@/readings/errors';
 import { readingLine } from '@/readings/format';
+import { pagesFromRabbit, rabbitAt, readingTarget } from '@/readings/targets';
 import { BookCover } from '@/components/BookCover';
 import { BookLine, type LineMember } from '@/components/BookLine';
 import { BookMenu } from '@/components/BookMenu';
+import { FinishBySheet } from '@/components/FinishBySheet';
 import { FinishedSheet } from '@/components/FinishedSheet';
 import { NoteSheet } from '@/components/NoteSheet';
 import { NotesFeed } from '@/components/Notes';
+import { PaceLines } from '@/components/Pace';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { UpdatePageSheet } from '@/components/UpdatePageSheet';
@@ -55,7 +57,7 @@ export function ReadingView({
   const reading = query.data;
   const actions = useReadingActions(readingId);
   // Arriving with a job to do opens on it: "Where are you?" right after starting, or a note to write.
-  const [sheet, setSheet] = useState<'update' | 'note' | 'menu' | 'finished' | null>(open ?? null);
+  const [sheet, setSheet] = useState<'update' | 'note' | 'menu' | 'finished' | 'finishBy' | null>(open ?? null);
   const [message, setMessage] = useState<string>();
   const [notesFor, setNotesFor] = useState<'club' | 'all'>('club');
   const [before, setBefore] = useState<{ page: number | null; position: number }>();
@@ -67,7 +69,10 @@ export function ReadingView({
   const progress = useClubProgress(clubId ?? '', { enabled: Boolean(clubId) }).data;
   const { data: session } = authClient.useSession();
   const [now] = useState(() => Date.now());
-  const pace = club?.currentBook ? paceAt(now, pacePlan(club.currentBook)) : null;
+  // Today's ask: pages a day to the next date (the club's meeting or finish, or your own finish-by), and the rabbit.
+  const clubBook = club?.currentBook ?? null;
+  const pace = reading ? rabbitAt(reading, clubBook, new Date(now)) : null;
+  const target = reading && reading_ ? readingTarget(reading, clubBook, new Date(now)) : null;
   const photos = new Map(club?.members.map((m) => [m.userId, m.image]) ?? []);
   const members: LineMember[] | undefined = progress?.map((m) => ({
     userId: m.userId,
@@ -132,13 +137,7 @@ export function ReadingView({
 
           <View style={{ gap: space.md }}>
             <BookLine bookKey={reading.bookKey} scope={scope} startPage={reading.startPage} endPage={reading.endPage} members={members} pace={pace} />
-            {pace !== null && pace > 0 && (
-              // The key to the dashed tick on the line.
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-                <View aria-hidden style={{ height: 15, width: 0, borderLeftWidth: 2, borderStyle: 'dashed', borderColor: colors.text }} />
-                <Hint>{t('clubs.club.paceToday', { page: positionToPage(pace, { startPage: reading.startPage, endPage: reading.endPage }) })}</Hint>
-              </View>
-            )}
+            {reading_ && <PaceLines target={target} rabbitPages={pace === null ? null : pagesFromRabbit(reading.position, pace, reading)} />}
             {club && <ClubStrip club={club} />}
           </View>
 
@@ -192,7 +191,9 @@ export function ReadingView({
               setBefore(b);
               setSheet('finished');
             }}
+            onFinishBy={() => setSheet('finishBy')}
           />
+          <FinishBySheet key={reading.targetDate ?? 'none'} reading={reading} visible={sheet === 'finishBy'} onClose={() => setSheet(null)} />
           <FinishedSheet
             reading={reading}
             before={before}

@@ -344,7 +344,9 @@
       "nextMeetingLabel": "Next meeting",
       "noBookAdmin": "Choose the book the club will read first.",
       "openBook": "Open the book",
-      "whoIsWhere": "Who’s where"
+      "whoIsWhere": "Who’s where",
+      "readToday_one": "Read 1 page today",
+      "readToday_other": "Read {{count}} pages today"
     },
     "roles": {
       "owner": "Owner",
@@ -814,5 +816,68 @@
     "allow": "Allow the camera",
     "openSettings": "Open Settings",
     "typeInstead": "Type it instead"
+  },
+  "pace": {
+    "ahead_one": "1 page ahead of the rabbit",
+    "ahead_other": "{{count}} pages ahead of the rabbit",
+    "behind_one": "1 page behind the rabbit",
+    "behind_other": "{{count}} pages behind the rabbit",
+    "level": "Right with the rabbit",
+    "rabbitAt": "The rabbit is on p. {{page}} today",
+    "toPage_one": "1 page a day to reach p. {{page}} by {{day}}",
+    "toPage_other": "{{count}} pages a day to reach p. {{page}} by {{day}}",
+    "toPageToday_one": "1 page today to reach p. {{page}}",
+    "toPageToday_other": "{{count}} pages today to reach p. {{page}}",
+    "toEnd_one": "1 page a day to finish by {{day}}",
+    "toEnd_other": "{{count}} pages a day to finish by {{day}}",
+    "toEndToday_one": "1 page today to finish",
+    "toEndToday_other": "{{count}} pages today to finish",
+    "readyMeeting": "Ready for {{day}}: you’re past p. {{page}}",
+    "readyEnd": "On track to finish by {{day}}"
+  },
+  "today": {
+    "streak_one": "1-week streak",
+    "streak_other": "{{count}}-week streak",
+    "streakStart": "Read on {{days}} days this week to start a streak",
+    "weekDays": "{{done}} of {{need}} reading days this week",
+    "weekDone_one": "This week counts: {{count}} reading day",
+    "weekDone_other": "This week counts: {{count}} reading days",
+    "weekLabel": "Days you read this week: {{days}}",
+    "noDays": "none yet",
+    "pagesToday_one": "1 page today",
+    "pagesToday_other": "{{count}} pages today",
+    "goalProgress": "{{done}} of {{goal}} pages today",
+    "goalDone": "{{done}} of {{goal}} pages today · goal met",
+    "setDailyGoal": "Set a daily goal"
+  },
+  "goals": {
+    "title": "Goals",
+    "edit": "Edit",
+    "set": "Set goals",
+    "sheetTitle": "Your goals",
+    "sheetBody": "Both are optional. Leave one empty for no goal.",
+    "yearly": "Books to finish in {{year}}",
+    "daily": "Pages a day",
+    "none": "No goal",
+    "invalid": "A whole number from 1 to {{max}}, or empty.",
+    "save": "Save goals",
+    "saved": "Goals saved",
+    "yearProgress": "{{done}} of {{goal}} books in {{year}}",
+    "yearCount_one": "1 book finished in {{year}}",
+    "yearCount_other": "{{count}} books finished in {{year}}"
+  },
+  "finishBy": {
+    "menu": "Finish by a date…",
+    "menuSet": "Finish by {{date}} (change)",
+    "title": "Finish by",
+    "body": "Pick a day to finish this book. You’ll see how many pages a day that takes, and a rabbit to race.",
+    "week": "In a week",
+    "twoWeeks": "In two weeks",
+    "month": "In a month",
+    "monthEnd": "End of the month",
+    "date": "Or pick a date",
+    "save": "Save the date",
+    "remove": "Remove the date",
+    "invalid": "Pick a day from today on."
   }
 }

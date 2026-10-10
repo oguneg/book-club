@@ -8,6 +8,7 @@ import { useNotes, type NoteScope } from '@/api/notes';
 import { whereEveryoneIs, type LineMember } from '@/clubs/where';
 import { placeLabel } from '@/notes/format';
 import { Avatar } from '@/components/Avatar';
+import { RabbitMark } from '@/components/Pace';
 import { NoteCard } from '@/components/NoteCard';
 import { Notice } from '@/components/ui/Notice';
 import { Hint } from '@/components/ui/Section';
@@ -92,8 +93,11 @@ export function BookLine({
         {/* The whole book, and what you've read of it. */}
         <View aria-hidden style={{ position: 'absolute', left: 0, right: 0, top: lineY, height: 1, backgroundColor: colors.control }} />
         {you !== null && <View aria-hidden style={{ position: 'absolute', left: 0, top: lineY - 1, height: 3, borderRadius: 2, width: `${you * 100}%`, backgroundColor: colors.accent }} />}
+        {/* The rabbit: where you'd be today at the pace set for this book. */}
         {pace != null && (
-          <View aria-hidden style={{ position: 'absolute', left: `${(pace / POSITION_SCALE) * 100}%`, top: lineY - 7, height: 15, width: 0, borderLeftWidth: 2, borderStyle: 'dashed', borderColor: colors.text }} />
+          <View aria-hidden style={{ position: 'absolute', left: `${(pace / POSITION_SCALE) * 100}%`, marginLeft: -11, top: lineY - 11 }}>
+            <RabbitMark />
+          </View>
         )}
         {people.map((p) => {
           const face = p.items[0]!;

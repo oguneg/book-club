@@ -2,9 +2,11 @@ import {
   clubListResponse,
   clubResponse,
   invitePreview,
+  type ClubBook,
   type ClubDetail,
+  type Reading,
 } from '@bookclub/shared';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from './client';
 
@@ -15,12 +17,26 @@ export function useClubs() {
   });
 }
 
+const clubQuery = (id: string) => ({
+  queryKey: ['club', id],
+  queryFn: async ({ signal }: { signal: AbortSignal }) => (await apiGet(`/api/clubs/${encodeURIComponent(id)}`, clubResponse, signal)).club,
+});
+
 export function useClub(id: string, { enabled = true }: { enabled?: boolean } = {}) {
-  return useQuery({
-    queryKey: ['club', id],
-    queryFn: async ({ signal }) => (await apiGet(`/api/clubs/${encodeURIComponent(id)}`, clubResponse, signal)).club,
-    enabled: enabled && Boolean(id),
+  return useQuery({ ...clubQuery(id), enabled: enabled && Boolean(id) });
+}
+
+/** For the books you're reading that a club of yours is reading too: that club's book (meetings, pace), by book. */
+export function useClubBooks(readings: readonly Reading[]): Map<string, ClubBook> {
+  const keys = new Set(readings.map((r) => r.bookKey));
+  const clubs = (useClubs().data ?? []).filter((c) => c.currentBook && keys.has(c.currentBook.bookKey));
+  const details = useQueries({ queries: clubs.map((c) => clubQuery(c.id)) });
+  const byBook = new Map<string, ClubBook>();
+  clubs.forEach((c, i) => {
+    const book = details[i]?.data?.currentBook;
+    if (book && !byBook.has(c.currentBook!.bookKey)) byBook.set(c.currentBook!.bookKey, book);
   });
+  return byBook;
 }
 
 export function useInvite(code: string) {

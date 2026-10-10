@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { edition } from './books';
+import { isoDate } from './goals';
 
 export const CLUB_MEMBER_CAP = 50;
 export const MAX_CLUB_NAME = 80;
@@ -114,8 +115,6 @@ export const invitePreview = z.object({
 export type InvitePreview = z.infer<typeof invitePreview>;
 
 // ---- Inputs ----
-
-const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((d) => !Number.isNaN(Date.parse(`${d}T00:00:00Z`)), 'invalid date');
 
 export const createClubInput = z.object({
   name: z.string().trim().min(1).max(MAX_CLUB_NAME),

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { edition, MAX_PAGE_COUNT } from './books';
+import { isoDate } from './goals';
 import { POSITION_SCALE } from './position';
 
 /**
@@ -34,6 +35,11 @@ export const reading = z.object({
   status: readingStatus,
   startedAt: z.string(),
   finishedAt: z.string().nullable(),
+  /** "Finish by": a date the reader set for themselves (YYYY-MM-DD), or null. */
+  targetDate: z.string().nullable(),
+  /** When it was set (ISO) and the position then: the rabbit runs from there to the end on that date. */
+  targetSetAt: z.string().nullable(),
+  targetFrom: z.number().int().nullable(),
   updatedAt: z.string(),
 });
 export type Reading = z.infer<typeof reading>;
@@ -51,7 +57,7 @@ export const startReadingInput = z
   .refine((r) => r.endPage > r.startPage, { message: 'endPage must be after startPage', path: ['endPage'] });
 
 export const updateReadingInput = z
-  .object({ editionId: z.string().uuid().optional(), startPage: page.optional(), endPage: page.optional() })
+  .object({ editionId: z.string().uuid().optional(), startPage: page.optional(), endPage: page.optional(), targetDate: isoDate.nullable().optional() })
   .refine((r) => !(r.startPage && r.endPage) || r.endPage > r.startPage, { message: 'endPage must be after startPage', path: ['endPage'] });
 
 // ---- Your reading, gently counted: no streaks, no goals ----
@@ -62,6 +68,8 @@ export const readingStats = z.object({
   /** Books finished this calendar year, newest first. */
   finishedThisYear: z.array(z.object({ id: z.string(), title: z.string(), cover: z.string().nullable(), finishedAt: z.string() })),
   pagesThisYear: z.number().int(),
+  /** Days with reading (YYYY-MM-DD in the reader's time zone), oldest first, for about the last two years. */
+  readingDays: z.array(z.string()),
 });
 export type ReadingStats = z.infer<typeof readingStats>;
 export const readingStatsResponse = z.object({ stats: readingStats });
@@ -99,6 +107,7 @@ export const memberProgress = z.object({
       id: z.string(),
       position: z.number().int(),
       currentPage: z.number().int().nullable(),
+      startPage: z.number().int(),
       endPage: z.number().int(),
       editionTitle: z.string(),
       status: readingStatus,

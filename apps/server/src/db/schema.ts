@@ -223,6 +223,11 @@ export const reading = pgTable(
     status: text('status', { enum: ['reading', 'finished', 'stopped'] }).notNull().default('reading'),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     finishedAt: timestamp('finished_at', { withTimezone: true }),
+    /** "Finish by": a date the reader set for themselves. */
+    targetDate: date('target_date', { mode: 'string' }),
+    /** When the date was set, and where the reader was then: the rabbit starts from there. */
+    targetSetAt: timestamp('target_set_at', { withTimezone: true }),
+    targetFrom: integer('target_from'),
     ...timestamps,
   },
   (table) => [
@@ -247,6 +252,19 @@ export const progressEvent = pgTable(
   },
   (table) => [index('progress_event_reading_idx').on(table.readingId, table.createdAt)],
 );
+
+/** A reader's own goals, each optional: books this year, pages a day. No goals, no row. */
+export const readingGoal = pgTable('reading_goal', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  yearlyBooks: integer('yearly_books'),
+  dailyPages: integer('daily_pages'),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
 
 /** Books someone wants to read, each with the edition they'd start in. Starting a reading takes it off. */
 export const wantToRead = pgTable(

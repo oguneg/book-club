@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 import { useIsModerator } from '@/api/admin';
 import { authClient } from '@/auth/client';
 import { Avatar } from '@/components/Avatar';
+import { GoalsSummary } from '@/components/Goals';
 import { PageTitle } from '@/components/PageTitle';
 import { ReadingStats } from '@/components/ReadingStats';
 import { Screen } from '@/components/Screen';
@@ -30,6 +31,10 @@ export default function YouTab() {
           </Text>
           <Text style={{ color: colors.textMuted, fontSize: fontSize.sm }}>{user?.email}</Text>
         </View>
+      </View>
+
+      <View style={{ marginBottom: space.xl }}>
+        <GoalsSummary />
       </View>
 
       <View style={{ gap: space.md, marginBottom: space.xl }}>

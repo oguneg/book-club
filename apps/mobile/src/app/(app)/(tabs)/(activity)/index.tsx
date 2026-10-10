@@ -20,6 +20,7 @@ import { FinishedSheet } from '@/components/FinishedSheet';
 import { PopularBooks } from '@/components/PopularBooks';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
+import { TodayCard } from '@/components/TodayCard';
 import { UpdatePageSheet } from '@/components/UpdatePageSheet';
 import { Button } from '@/components/ui/Button';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -65,6 +66,9 @@ export default function Home() {
               .join(' · ')}
           </Text>
         </View>
+
+        {/* Today: the streak, your daily goal, and what each book with a date asks of you. */}
+        {current.length > 0 && <TodayCard readings={current} />}
 
         {readings.isPending ? (
           <ActivityIndicator color={colors.accent} />

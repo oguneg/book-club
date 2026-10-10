@@ -8,19 +8,34 @@ import {
   type MemberProgress,
   type Reading,
   type ReadingDetail,
+  type ReadingGoals,
   type ReadingStats,
   type WantToRead,
 } from '@bookclub/shared';
 import { and, asc, desc, eq, gte, inArray, ne, sql } from 'drizzle-orm';
 import type { z } from 'zod';
-import type { logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
+import type { logProgressInput, startReadingInput, updateReadingGoalsInput, updateReadingInput } from '@bookclub/shared';
 import { borrowedCovers, toEdition, withCover } from '../books/service';
 import type { Db } from '../db/client';
-import { clubBook, clubMember, edition, progressEvent, reading, user, wantToRead } from '../db/schema';
+import { clubBook, clubMember, edition, progressEvent, reading, readingGoal, user, wantToRead } from '../db/schema';
 import type { LiveHub } from '../live';
 
 /** Logs this close together replace each other, so adjusting a typo doesn't pile up history. */
 const MERGE_WINDOW_MS = 60_000;
+
+/** How far back reading days go (enough for any streak worth showing). */
+const READING_DAYS_BACK_MS = 2 * 366 * 24 * 60 * 60 * 1000;
+
+/** Dates as YYYY-MM-DD in a time zone the app sent; one we don't know (or none) means UTC. */
+function dayFormatter(timeZone: string | undefined): Intl.DateTimeFormat {
+  const options = { year: 'numeric', month: '2-digit', day: '2-digit' } as const;
+  try {
+    if (timeZone && timeZone.length <= 64) return new Intl.DateTimeFormat('en-CA', { ...options, timeZone });
+  } catch {
+    // An unknown zone: fall through.
+  }
+  return new Intl.DateTimeFormat('en-CA', { ...options, timeZone: 'UTC' });
+}
 
 export class ReadingError extends Error {
   constructor(
@@ -48,6 +63,9 @@ function toReading(r: ReadingRow, e: EditionRow, covers: Map<string, string> = n
     status: r.status,
     startedAt: r.startedAt.toISOString(),
     finishedAt: r.finishedAt?.toISOString() ?? null,
+    targetDate: r.targetDate ?? null,
+    targetSetAt: r.targetSetAt?.toISOString() ?? null,
+    targetFrom: r.targetFrom ?? null,
     updatedAt: r.updatedAt.toISOString(),
   };
 }
@@ -147,9 +165,13 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
      * Your reading, gently counted: pages moved forward in the last 12 weeks (each in its own book's
      * copy), books finished this year, and pages this year. Corrections backwards don't count.
      */
-    async stats(userId: string, now = new Date()): Promise<ReadingStats> {
+    /** Lately, this year, and the days with reading (as dates in `timeZone`, for the weekly streak). */
+    async stats(userId: string, { now = new Date(), timeZone }: { now?: Date; timeZone?: string } = {}): Promise<ReadingStats> {
       const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
       const recentStart = new Date(now.getTime() - 84 * 24 * 60 * 60 * 1000);
+      const daysStart = new Date(now.getTime() - READING_DAYS_BACK_MS);
+      const dayOf = dayFormatter(timeZone);
+      const readingDays = new Set<string>();
       const rows = await db.select({ reading, edition }).from(reading).innerJoin(edition, eq(edition.id, reading.editionId)).where(eq(reading.userId, userId));
       const events = rows.length
         ? await db
@@ -169,6 +191,7 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
           if (pages <= 0) continue;
           if (ev.createdAt >= recentStart) recent.push({ at: ev.createdAt.toISOString(), pages });
           if (ev.createdAt >= yearStart) pagesThisYear += pages;
+          if (ev.createdAt >= daysStart) readingDays.add(dayOf.format(ev.createdAt));
         }
       }
       const finished = rows
@@ -184,7 +207,28 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
           finishedAt: r.reading.finishedAt!.toISOString(),
         })),
         pagesThisYear,
+        readingDays: [...readingDays].sort(),
       };
+    },
+
+    async goals(userId: string): Promise<ReadingGoals> {
+      const [row] = await db.select().from(readingGoal).where(eq(readingGoal.userId, userId));
+      return { yearlyBooks: row?.yearlyBooks ?? null, dailyPages: row?.dailyPages ?? null };
+    },
+
+    /** Sets the goals given (null clears one); the others stay as they were. */
+    async setGoals(userId: string, input: z.infer<typeof updateReadingGoalsInput>): Promise<ReadingGoals> {
+      const [row] = await db.select().from(readingGoal).where(eq(readingGoal.userId, userId));
+      const next: ReadingGoals = {
+        yearlyBooks: input.yearlyBooks === undefined ? (row?.yearlyBooks ?? null) : input.yearlyBooks,
+        dailyPages: input.dailyPages === undefined ? (row?.dailyPages ?? null) : input.dailyPages,
+      };
+      if (next.yearlyBooks === null && next.dailyPages === null) {
+        await db.delete(readingGoal).where(eq(readingGoal.userId, userId));
+      } else {
+        await db.insert(readingGoal).values({ userId, ...next }).onConflictDoUpdate({ target: readingGoal.userId, set: next });
+      }
+      return next;
     },
 
     /** Books saved for later, most recently added first. */
@@ -239,7 +283,14 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
       const endPage = input.endPage ?? r.endPage;
       if (endPage <= startPage) throw new ReadingError(400, 'invalid_range');
       const currentPage = r.position > 0 ? positionToPage(r.position, { startPage, endPage }) : null;
-      await db.update(reading).set({ editionId, startPage, endPage, currentPage }).where(eq(reading.id, id));
+      // A new finish-by date starts the rabbit from here and now; clearing it clears that too.
+      const target =
+        input.targetDate === undefined || input.targetDate === r.targetDate
+          ? {}
+          : input.targetDate === null
+            ? { targetDate: null, targetSetAt: null, targetFrom: null }
+            : { targetDate: input.targetDate, targetSetAt: new Date(), targetFrom: r.position };
+      await db.update(reading).set({ editionId, startPage, endPage, currentPage, ...target }).where(eq(reading.id, id));
       await changed(userId, r.bookKey);
       return detail(id, userId);
     },
@@ -379,6 +430,7 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
             id: r.id,
             position: r.position,
             currentPage: r.currentPage,
+            startPage: r.startPage,
             endPage: r.endPage,
             editionTitle: found.editionTitle,
             status: r.status,

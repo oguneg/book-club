@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { AddressInfo } from 'node:net';
 import { serve } from '@hono/node-server';
-import { clubProgressResponse, clubResponse, readingListResponse, readingResponse, readingStatsResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
+import { clubProgressResponse, clubResponse, readingGoalsResponse, readingListResponse, readingResponse, readingStatsResponse, wantToReadListResponse, wantToReadResponse, type ReadingDetail } from '@bookclub/shared';
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
@@ -363,5 +363,64 @@ describe('reading stats', () => {
     expect(stats.recent.map((e) => e.pages).sort((a, b) => a - b)).toEqual([20, 200]);
     expect(stats.pagesThisYear).toBe(220);
     expect(stats.finishedThisYear.map((b) => b.title)).toEqual(['Dune']);
+  });
+
+  it('lists the days with reading in the app\'s time zone, for the weekly streak', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    const r = await start(ann.browser, await anEdition(newWork()));
+    await logPage(ann.browser, r.id, { page: 40 });
+    // Late evening two days ago in London is already the next morning in Tokyo.
+    const late = new Date();
+    late.setUTCDate(late.getUTCDate() - 2);
+    late.setUTCHours(23, 30, 0, 0);
+    await database.db.update(progressEvent).set({ createdAt: late }).where(eq(progressEvent.readingId, r.id));
+    const utcDay = late.toISOString().slice(0, 10);
+    const tokyoDay = new Date(late.getTime() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const days = async (query: string) => readingStatsResponse.parse(await (await ann.browser.request(`/api/reading-stats${query}`)).json()).stats.readingDays;
+    expect(await days('?tz=Asia/Tokyo')).toEqual([tokyoDay]);
+    expect(await days('')).toEqual([utcDay]);
+    // A zone nobody knows counts as UTC rather than failing.
+    expect(await days('?tz=Mars/Olympus_Mons')).toEqual([utcDay]);
+  });
+});
+
+describe('goals and finish-by dates', () => {
+  it('keeps each reader\'s own goals, set and cleared one at a time', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    const bob = await ctx.user('Bob Reader');
+    const goals = async (who: typeof ann) => readingGoalsResponse.parse(await (await who.browser.request('/api/reading-goals')).json()).goals;
+    const set = (who: typeof ann, body: object) => who.browser.request('/api/reading-goals', { method: 'PUT', json: body });
+
+    expect(await goals(ann)).toEqual({ yearlyBooks: null, dailyPages: null });
+    expect((await set(ann, { yearlyBooks: 24 })).status).toBe(200);
+    expect((await set(ann, { dailyPages: 20 })).status).toBe(200);
+    expect(await goals(ann)).toEqual({ yearlyBooks: 24, dailyPages: 20 });
+    await set(ann, { yearlyBooks: null });
+    expect(await goals(ann)).toEqual({ yearlyBooks: null, dailyPages: 20 });
+    expect((await set(ann, { dailyPages: 0 })).status).toBe(400);
+    expect(await goals(bob)).toEqual({ yearlyBooks: null, dailyPages: null });
+  });
+
+  it('sets and clears a finish-by date on a reading', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    const r = await start(ann.browser, await anEdition(newWork()));
+    const patch = (body: object) => ann.browser.request(`/api/readings/${r.id}`, { method: 'PATCH', json: body });
+
+    await logPage(ann.browser, r.id, { page: 30 });
+    const dated = readingResponse.parse(await (await patch({ targetDate: '2026-12-01' })).json()).reading;
+    expect(dated.targetDate).toBe('2026-12-01');
+    // The rabbit starts from where you were when you set it.
+    expect(dated.targetFrom).toBe(dated.position);
+    expect(Date.now() - Date.parse(dated.targetSetAt!)).toBeLessThan(60_000);
+    const listed = readingListResponse.parse(await (await ann.browser.request('/api/readings')).json()).readings;
+    expect(listed.find((x) => x.id === r.id)?.targetDate).toBe('2026-12-01');
+    // Changing the pages keeps the date; null clears it; a date that isn't one is refused.
+    expect(readingResponse.parse(await (await patch({ endPage: 280 })).json()).reading.targetDate).toBe('2026-12-01');
+    expect(readingResponse.parse(await (await patch({ targetDate: null })).json()).reading).toMatchObject({ targetDate: null, targetSetAt: null, targetFrom: null });
+    expect((await patch({ targetDate: '2026-13-01' })).status).toBe(400);
   });
 });

@@ -1,4 +1,4 @@
-import { addWantToReadInput, logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
+import { addWantToReadInput, logProgressInput, startReadingInput, updateReadingGoalsInput, updateReadingInput } from '@bookclub/shared';
 import { Hono, type Context } from 'hono';
 import type { z } from 'zod';
 import type { Auth } from '../auth';
@@ -28,6 +28,7 @@ export function readingRoutes({ auth, readings }: { auth: Auth; readings: Readin
   app.use('/readings', requireSession(auth));
   app.use('/readings/*', requireSession(auth));
   app.use('/reading-stats', requireSession(auth));
+  app.use('/reading-goals', requireSession(auth));
   app.use('/want-to-read', requireSession(auth));
   app.use('/want-to-read/*', requireSession(auth));
   for (const path of ['/readings/*', '/want-to-read', '/want-to-read/*']) {
@@ -64,7 +65,11 @@ export function readingRoutes({ auth, readings }: { auth: Auth; readings: Readin
   app.post('/readings/:id/stop', async (c) => c.json({ reading: await readings.stop(readingId(c), c.get('user').id) }));
   app.post('/readings/:id/resume', async (c) => c.json({ reading: await readings.resume(readingId(c), c.get('user').id) }));
 
-  app.get('/reading-stats', async (c) => c.json({ stats: await readings.stats(c.get('user').id) }));
+  // The app's time zone decides which day a late-evening log belongs to.
+  app.get('/reading-stats', async (c) => c.json({ stats: await readings.stats(c.get('user').id, { timeZone: c.req.query('tz') }) }));
+
+  app.get('/reading-goals', async (c) => c.json({ goals: await readings.goals(c.get('user').id) }));
+  app.put('/reading-goals', async (c) => c.json({ goals: await readings.setGoals(c.get('user').id, await body(c, updateReadingGoalsInput)) }));
 
   app.get('/want-to-read', async (c) => c.json({ books: await readings.wantList(c.get('user').id) }));
   app.post('/want-to-read', async (c) => c.json({ book: await readings.addWant(c.get('user').id, (await body(c, addWantToReadInput)).editionId) }, 201));

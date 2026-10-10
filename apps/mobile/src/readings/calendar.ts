@@ -4,7 +4,7 @@ import type { ReadingStats } from '@bookclub/shared';
 export const WEEKS = 12;
 
 /** YYYY-MM-DD in the reader's own time zone. */
-const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+export const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 /** How much a day's reading was, as one of four steps (0 = no reading). */
 export function dayLevel(pages: number): number {
@@ -36,5 +36,5 @@ export function calendarOf(stats: Pick<ReadingStats, 'recent'>, today: Date) {
   const lastWeekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
   const weekPages = [...pages].filter(([day]) => day >= localDay(lastWeekStart)).reduce((sum, [, n]) => sum + n, 0);
   const daysRead = weeks.flat().filter((c) => c.pages > 0);
-  return { weeks, weekPages, daysRead };
+  return { weeks, weekPages, daysRead, todayPages: pages.get(localDay(today)) ?? 0 };
 }

@@ -2,7 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type { Auth } from '../auth';
 import type { Db } from '../db/client';
-import { account, club, clubMember, edition, note, noteReaction, noteReport, progressEvent, reading, session, user as userTable, userBlock, wantToRead } from '../db/schema';
+import { account, club, clubMember, edition, note, noteReaction, noteReport, progressEvent, reading, readingGoal, session, user as userTable, userBlock, wantToRead } from '../db/schema';
 import { createRateLimiter } from '../rate-limit';
 import { requireSession, type SignedInEnv } from '../session';
 
@@ -38,6 +38,7 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
         status: reading.status,
         startedAt: reading.startedAt,
         finishedAt: reading.finishedAt,
+        finishBy: reading.targetDate,
       })
       .from(reading)
       .innerJoin(edition, eq(edition.id, reading.editionId))
@@ -108,6 +109,7 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
       progress: progress.filter((e) => e.readingId === id).map(({ page, position: at, ...e }) => ({ ...e, page, percent: percent(at) })),
     })),
     wantToRead: wanted,
+    goals: (await db.select({ yearlyBooks: readingGoal.yearlyBooks, dailyPages: readingGoal.dailyPages }).from(readingGoal).where(eq(readingGoal.userId, user.id)))[0] ?? null,
     notes: notes.map(({ position, ...n }) => ({ ...n, percent: percent(position) })),
     reactions,
     reports,

@@ -1,4 +1,4 @@
-import { paceAt, positionToPage, roleAtLeast, type ClubBook, type ClubDetail, type Meeting, type MemberProgress } from '@bookclub/shared';
+import { paceAt, pageToPosition, positionToPage, roleAtLeast, type ClubBook, type ClubDetail, type Meeting, type MemberProgress } from '@bookclub/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Settings, UserPlus } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
@@ -13,11 +13,14 @@ import { clubErrorMessage } from '@/clubs/errors';
 import { formatDate, formatMeetingTime } from '@/clubs/format';
 import { pacePlan } from '@/clubs/pace';
 import { readingLine } from '@/readings/format';
+import { pagesFromRabbit, pagesToday, readingTarget } from '@/readings/targets';
 import { Avatar } from '@/components/Avatar';
 import { BookCover } from '@/components/BookCover';
+import { ClubTrack } from '@/components/ClubTrack';
 import { InviteBody } from '@/components/Invite';
 import { MARGIN } from '@/components/NoteCard';
 import { PageTitle } from '@/components/PageTitle';
+import { PaceLines, RabbitMark } from '@/components/Pace';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
@@ -120,9 +123,13 @@ function YourStep({ club, book, me }: { club: ClubDetail; book: ClubBook; me?: M
 
   if (me?.reading) {
     const reading = me.reading;
+    const now = new Date();
+    const target = reading.status === 'reading' ? readingTarget(reading, book, now) : null;
+    const rabbit = reading.status === 'reading' ? paceAt(now, pacePlan(book)) : null;
     return (
       <View style={{ gap: space.sm }}>
         <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{t('clubs.club.youAre', { where: readingLine(t, reading) })}</Text>
+        <PaceLines target={target} rabbitPages={rabbit === null ? null : pagesFromRabbit(reading.position, rabbit, reading)} />
         <Button label={t('clubs.club.openBook')} onPress={() => openReading(reading.id)} />
       </View>
     );
@@ -168,24 +175,41 @@ function WhoIsWhere({ club, book, progress, myUserId, onInvite }: { club: ClubDe
   const where = new Map(progress.map((p) => [p.userId, p.reading]));
   const pace = paceAt(now, pacePlan(book));
   const pages = book.edition.pageCount ?? 0;
+  const clubPages = { startPage: 1, endPage: Math.max(pages, 2) };
   const members = [...club.members].sort((a, b) => (where.get(b.userId)?.position ?? -1) - (where.get(a.userId)?.position ?? -1));
+  const checkpoints = book.meetings.filter((m) => m.readToPage !== null).map((m) => pageToPosition(Math.min(m.readToPage!, clubPages.endPage), clubPages));
   return (
     <View style={{ gap: space.sm }}>
       <SectionHead>{t('clubs.club.whoIsWhere')}</SectionHead>
-      {pace !== null && pace > 0 && <Hint>{t('clubs.club.paceToday', { page: positionToPage(pace, { startPage: 1, endPage: Math.max(pages, 2) }) })}</Hint>}
+      <ClubTrack
+        members={club.members.map((m) => ({ userId: m.userId, name: m.name, image: m.image, position: where.get(m.userId)?.position ?? null, me: m.userId === myUserId }))}
+        rabbit={pace}
+        checkpoints={checkpoints}
+      />
+      {pace !== null && pace > 0 && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+          <RabbitMark size={18} />
+          <Hint>{t('pace.rabbitAt', { page: positionToPage(pace, clubPages) })}</Hint>
+        </View>
+      )}
       <View role="list">
         {members.map((m) => {
           const reading = where.get(m.userId);
           const isMe = m.userId === myUserId;
+          const today = reading ? pagesToday(reading.history, reading, new Date(now)) : 0;
           const line = [isMe ? t('clubs.progress.you') : null, m.role !== 'member' ? t(`clubs.roles.${m.role}`) : null, reading ? readingLine(t, reading) : t('reading.notStarted')]
             .filter(Boolean)
             .join(' · ');
+          const label = today > 0 ? `${line}, ${t('clubs.club.readToday', { count: today })}` : line;
           const row = (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm }}>
               <Avatar id={m.userId} name={m.name} image={m.image} me={isMe} size={40} />
               <View style={{ flex: 1 }}>
                 <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600' }}>{m.name}</Text>
                 <Text style={{ color: colors.textMuted, fontSize: fontSize.sm, fontVariant: ['tabular-nums'] }}>{line}</Text>
+                {today > 0 && (
+                  <Text style={{ color: colors.success, fontSize: fontSize.sm, fontWeight: '600', fontVariant: ['tabular-nums'] }}>{t('clubs.club.readToday', { count: today })}</Text>
+                )}
               </View>
             </View>
           );
@@ -194,7 +218,7 @@ function WhoIsWhere({ club, book, progress, myUserId, onInvite }: { club: ClubDe
               {isAdmin && !isMe ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={`${m.name}, ${line}`}
+                  accessibilityLabel={`${m.name}, ${label}`}
                   onPress={() => router.push({ pathname: '/clubs/[id]/member/[userId]', params: { id: club.id, userId: m.userId } })}
                   style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
                 >

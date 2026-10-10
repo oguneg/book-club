@@ -37,11 +37,20 @@ export function useClubProgress(clubId: string, { enabled = true }: { enabled?: 
   });
 }
 
-/** Your reading, gently counted (see the server's stats). */
+/** This device's time zone, so a late-evening log counts for the day it was in. */
+const timeZone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  } catch {
+    return 'UTC';
+  }
+};
+
+/** Your reading, gently counted (see the server's stats), with the days you read for the weekly streak. */
 export function useReadingStats() {
   return useQuery({
     queryKey: ['reading-stats'],
-    queryFn: async ({ signal }) => (await apiGet('/api/reading-stats', readingStatsResponse, signal)).stats,
+    queryFn: async ({ signal }) => (await apiGet(`/api/reading-stats?tz=${encodeURIComponent(timeZone())}`, readingStatsResponse, signal)).stats,
   });
 }
 
@@ -97,6 +106,8 @@ export function useReadingActions(id: string) {
     stop: () => store(() => apiPost(`${base}/stop`, {}, readingResponse)),
     resume: () => store(() => apiPost(`${base}/resume`, {}, readingResponse)),
     setRange: (startPage: number, endPage: number) => store(() => apiPatch(base, { startPage, endPage }, readingResponse)),
+    /** "Finish by" (YYYY-MM-DD), or null to clear it. */
+    setTargetDate: (targetDate: string | null) => store(() => apiPatch(base, { targetDate }, readingResponse)),
     remove: async () => {
       await apiDelete(base, z.undefined());
       queryClient.removeQueries({ queryKey: ['reading', id] });

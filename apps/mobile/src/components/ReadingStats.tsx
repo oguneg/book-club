@@ -11,8 +11,8 @@ import { useTheme } from '@/theme';
 const CELL_GAP = 3;
 
 /**
- * Your reading, gently counted: no streaks, no goals, nothing to keep up. Three numbers, a quiet calendar of
- * the days you read (with the same in words, and as a list), and this year's shelf.
+ * Your reading, counted: three numbers, a quiet calendar of the days you read (with the same in words, and
+ * as a list), and this year's shelf. Goals and the weekly streak sit above it (see Goals).
  */
 export function ReadingStats() {
   const { t } = useTranslation();

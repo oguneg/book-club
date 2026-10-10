@@ -67,7 +67,7 @@ None yet: no users, testimonials or metrics exist, and none may be invented.
 2. Spoilers are opt-in: nothing ahead of you is readable without a deliberate tap, including in notifications.
 3. Logging progress takes one action and must never fail silently (offline queue, visible sync state).
 4. A club is a private room: invite only, no discovery. Outside clubs, only what a reader chooses to make public (notes, under their display name) is visible to others.
-5. Calm, not engagement-bait: notifications are useful and few, with no streak pressure and no ads.
+5. Calm, not engagement-bait: notifications are useful and few, and no ads. The streak is weekly (a week counts with reading on 3 days), so a quiet day never breaks it; goals (books a year, pages a day, a finish-by date) are optional and off until you set them. Encouragement, not guilt: no lost-streak alarms. (Changed 2026-10-11 from "no streaks" at the owner's request, for retention in clubs.)
 
 ## Accessibility & Inclusion
 

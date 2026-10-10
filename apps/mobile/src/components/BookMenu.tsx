@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useReadingActions } from '@/api/readings';
-import { formatMeetingTime } from '@/clubs/format';
+import { formatDate, formatMeetingTime } from '@/clubs/format';
 import { readingErrorMessage } from '@/readings/errors';
 import { readingLine } from '@/readings/format';
 import { PageRangeFields, parsePageRange } from '@/components/PageRangeFields';
@@ -22,12 +22,15 @@ export function BookMenu({
   visible,
   onClose,
   onFinished,
+  onFinishBy,
 }: {
   reading: ReadingDetail;
   visible: boolean;
   onClose: () => void;
   /** After "I finished it": the page around shows the ending, whose Undo goes back to `before`. */
   onFinished: (before: { page: number | null; position: number }) => void;
+  /** "Finish by a date": the page around opens its sheet. */
+  onFinishBy?: () => void;
 }) {
   const { t } = useTranslation();
   const { colors, fontSize, space } = useTheme();
@@ -70,6 +73,12 @@ export function BookMenu({
                   }
                 }}
               />
+              {onFinishBy && (
+                <TextButton
+                  label={reading.targetDate ? t('finishBy.menuSet', { date: formatDate(reading.targetDate) }) : t('finishBy.menu')}
+                  onPress={onFinishBy}
+                />
+              )}
               <ConfirmButton quiet label={t('reading.stop')} question={t('reading.stopQuestion')} confirmLabel={t('reading.stopConfirm')} onConfirm={attempt(actions.stop)} />
             </>
           ) : (
