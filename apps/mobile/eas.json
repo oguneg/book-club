@@ -20,7 +20,11 @@
     }
   },
   "submit": {
-    "testflight": {},
+    "testflight": {
+      "ios": {
+        "appName": "Ogun Bookclub"
+      }
+    },
     "production": {}
   }
 }

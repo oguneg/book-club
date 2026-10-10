@@ -33,9 +33,18 @@ export function reportCrash(error: unknown): void {
   }).catch(() => {});
 }
 
-/** On the web: errors nothing caught, anywhere in the page. (Native gets its handler with the iOS app.) */
+/** Errors nothing caught, anywhere: the page's handlers on the web, React Native's global handler on phones. */
 export function installCrashReporting(): void {
-  if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+  if (Platform.OS !== 'web') {
+    // Report, then let React Native do what it would have done (in a release build, a fatal error still closes the app).
+    const previous = ErrorUtils.getGlobalHandler();
+    ErrorUtils.setGlobalHandler((error, isFatal) => {
+      reportCrash(error);
+      previous(error, isFatal);
+    });
+    return;
+  }
+  if (typeof window === 'undefined') return;
   window.addEventListener('error', (event) => reportCrash(event.error ?? event.message));
   window.addEventListener('unhandledrejection', (event) => reportCrash(event.reason));
 }

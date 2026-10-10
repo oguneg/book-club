@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
+import { File as FsFile, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
-import { authClient } from '@/auth/client';
+import { authClient, sessionHeaders } from '@/auth/client';
 import { API_URL } from '@/config';
 import { ApiError } from './client';
 
@@ -28,15 +30,25 @@ export function useDeviceCount() {
   });
 }
 
-/** Saves the data export as a file. Web only for now; the iOS step adds the share sheet. */
+/** Saves the data export as a file: a download on the web, the share sheet on phones (Files, Mail, AirDrop). */
 export async function downloadMyData(): Promise<void> {
-  const res = await fetch(`${API_URL}/api/account/export`, { credentials: 'include' });
+  const res = await fetch(`${API_URL}/api/account/export`, {
+    credentials: Platform.OS === 'web' ? 'include' : 'omit',
+    headers: await sessionHeaders(),
+  });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new ApiError(res.status, `export failed with ${res.status}`, body.error);
   }
-  const filename = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'bookclub-data.json';
-  if (Platform.OS !== 'web') return;
+  const named = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? 'bookclub-data.json';
+  const filename = named.replace(/[^\w.-]/g, '-');
+  if (Platform.OS !== 'web') {
+    const file = new FsFile(Paths.cache, filename);
+    file.create({ overwrite: true });
+    file.write(await res.text());
+    await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: filename });
+    return;
+  }
   const url = URL.createObjectURL(await res.blob());
   const link = document.createElement('a');
   link.href = url;

@@ -40,10 +40,12 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
   - [x] The app works natively: the session lives in secure storage (Better Auth's Expo plugin), our API and live updates get it as a header, Google sign-in returns through `bookclub://`, covers are public so images load without a session.
   - [x] Sign in with Apple on iPhones (App Review 4.8, since Google sign-in is offered): Apple's ID token, checked against the bundle ID `se.ogun.bookclub`; no Apple secret needed.
   - [x] `eas.json`: a `testflight` profile (staging API, build numbers kept by EAS) and `production`; `app.json`: Sign in with Apple capability, no non-exempt encryption. `expo-doctor` clean; the iOS bundle exports.
-  - [ ] Owner: Apple Developer Program membership; App Store Connect app record (name, primary language, bundle ID `se.ogun.bookclub`, SKU).
-  - [ ] Owner, in a terminal: `npx eas-cli@latest build -p ios --profile testflight` (signs in to Apple, lets EAS create the certificate and profile), then `npx eas-cli@latest submit -p ios --latest --profile testflight`.
-  - [ ] Owner: add internal testers in App Store Connect › TestFlight; try sign-in (email, Google, Apple), logging, notes, clubs on a phone.
-  - [ ] Before the App Store (not needed for TestFlight): revoke Apple tokens on account deletion (Sign in with Apple REST API, needs a key), App Privacy answers, screenshots.
+  - [x] A real app icon (book and ribbon on bookcloth), splash, Android adaptive and themed icons, favicon. The data export opens the share sheet on phones; crashes on phones reach our server like the web's. A scripted "native client" (no Origin, cookie as a header) passes sign-in, the API, the export, the live socket and sign-out.
+  - [x] Owner: Apple Developer Program membership (already has one, with a published app).
+  - [ ] App Store name: undecided. The first submission creates the App Store Connect record under the placeholder in `eas.json` (`submit.testflight.ios.appName`); the name can be changed there before release. The home-screen name is `expo.name` ("Bookclub").
+  - [ ] Owner, in a terminal in `apps/mobile` (Windows is fine; EAS builds in the cloud): `npx eas-cli@latest build -p ios --profile testflight --auto-submit` (signs in to Apple, registers the bundle ID with Sign in with Apple, creates the certificate and profile, builds, then submits and creates the app record).
+  - [ ] Owner: add internal testers in App Store Connect › TestFlight; try sign-in (email, Google, Apple), logging, notes, clubs, the data export on a phone. External testers later need Beta App Review: a beta description, a feedback email and a review account on staging.
+  - [ ] Before the App Store (not needed for TestFlight): revoke Apple tokens on account deletion (Sign in with Apple REST API, needs a key), App Privacy answers, screenshots. Maybe: universal links (`applinks:`) so invite and email links open the app instead of Safari.
 - [ ] **10. Production** at bookclub.ogun.se: deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving (unlike staging today). Google consent screen published.
 
 ## Later
