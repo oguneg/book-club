@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "spring",
+        "createdAt": "2026-10-10T23:23:03.675Z",
+        "reason": "user requested bouncier animations for Playful (2026-10-11); springs come from per-style tokens, critically damped in Classic and Sleek"
+      }
+    ]
+  }
+}
