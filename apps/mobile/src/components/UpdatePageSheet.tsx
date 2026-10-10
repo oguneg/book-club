@@ -66,13 +66,19 @@ export function UpdatePageSheet({
     setBusy(true);
     setError(undefined);
     try {
-      await (mode === 'page' ? actions.logPage(n) : actions.logPercent(n));
+      const result = await (mode === 'page' ? actions.logPage(n) : actions.logPercent(n));
       if ((mode === 'page' && n >= reading.endPage) || (mode === 'percent' && n >= 100)) setFinishedPrompt(true);
       else {
         close();
-        // A little "well done" for moving on; a correction backwards is just saved.
+        // A little "well done" for moving on; a correction backwards is just saved. Offline, it's kept here.
         const moved = mode === 'page' ? n - current : 0;
-        toast(moved > 0 ? t('reading.update.toastPages', { count: moved }) : t('reading.update.toastSaved'));
+        toast(
+          result === 'waiting'
+            ? t('reading.update.toastWaiting')
+            : moved > 0
+              ? t('reading.update.toastPages', { count: moved })
+              : t('reading.update.toastSaved'),
+        );
         feelSaved();
       }
     } catch (err) {

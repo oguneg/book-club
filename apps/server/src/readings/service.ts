@@ -86,17 +86,19 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
     await live?.readingChanged(userId, bookKey).catch(() => {});
   }
 
-  async function record(r: ReadingRow, position: number, page: number | null) {
-    const [last] = await db
-      .select()
-      .from(progressEvent)
-      .where(eq(progressEvent.readingId, r.id))
-      .orderBy(desc(progressEvent.createdAt))
-      .limit(1);
-    if (last && Date.now() - last.createdAt.getTime() < MERGE_WINDOW_MS) {
-      await db.update(progressEvent).set({ position, page, createdAt: new Date() }).where(eq(progressEvent.id, last.id));
+  async function lastEvent(readingId: string) {
+    const [last] = await db.select().from(progressEvent).where(eq(progressEvent.readingId, readingId)).orderBy(desc(progressEvent.createdAt)).limit(1);
+    return last;
+  }
+
+  /** Adds a point to the history at `at`, folding it into the last one when that was less than a minute before. */
+  async function record(r: ReadingRow, position: number, page: number | null, at = new Date()) {
+    const last = await lastEvent(r.id);
+    const since = last ? at.getTime() - last.createdAt.getTime() : Infinity;
+    if (last && since >= 0 && since < MERGE_WINDOW_MS) {
+      await db.update(progressEvent).set({ position, page, createdAt: at }).where(eq(progressEvent.id, last.id));
     } else {
-      await db.insert(progressEvent).values({ id: randomUUID(), readingId: r.id, position, page });
+      await db.insert(progressEvent).values({ id: randomUUID(), readingId: r.id, position, page, createdAt: at });
     }
   }
 
@@ -256,11 +258,19 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
         position = percentToPosition(input.percent);
         page = null;
       }
-      await db
-        .update(reading)
-        .set({ position, currentPage: page ?? (position > 0 ? positionToPage(position, range) : null) })
-        .where(eq(reading.id, id));
-      await record(r, position, page);
+      // A log made offline arrives later, with the time it was made: never in the future, never before the
+      // reading began. One older than the last log (another device has logged since) joins the history but
+      // doesn't move you back.
+      const now = Date.now();
+      const at = new Date(input.at ? Math.min(now, Math.max(Date.parse(input.at), r.startedAt.getTime())) : now);
+      const last = await lastEvent(r.id);
+      if (!last || at >= last.createdAt) {
+        await db
+          .update(reading)
+          .set({ position, currentPage: page ?? (position > 0 ? positionToPage(position, range) : null) })
+          .where(eq(reading.id, id));
+      }
+      await record(r, position, page, at);
       await changed(userId, r.bookKey);
       return detail(id, userId);
     },

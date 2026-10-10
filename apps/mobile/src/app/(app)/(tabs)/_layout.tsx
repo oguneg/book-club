@@ -3,6 +3,7 @@ import { BottomTabBar } from 'expo-router/js-tabs';
 import { CircleUser, House, Library, Users } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useWindowDimensions, View } from 'react-native';
+import { SyncBar } from '@/components/SyncBar';
 import { useTheme } from '@/theme';
 
 /**
@@ -18,9 +19,14 @@ export default function TabsLayout() {
     <Tabs
       // The tab bar is the app's main navigation; say so to screen readers.
       tabBar={(props) => (
-        // In a row on wide screens, so the sidebar runs the full height.
-        <View role="navigation" aria-label={t('tabs.label')} style={wide ? { flexDirection: 'row' } : undefined}>
-          <BottomTabBar {...props} />
+        // In a row on wide screens, so the sidebar runs the full height. Progress waiting to sync shows
+        // just above the tab bar, or at the foot of the sidebar.
+        <View style={wide ? { flexDirection: 'row' } : undefined}>
+          {!wide && <SyncBar />}
+          <View role="navigation" aria-label={t('tabs.label')} style={wide ? { flexDirection: 'row' } : undefined}>
+            <BottomTabBar {...props} />
+          </View>
+          {wide && <SyncBar placement="sidebar" />}
         </View>
       )}
       screenOptions={{

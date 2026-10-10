@@ -80,10 +80,14 @@ export const wantToReadListResponse = z.object({ books: z.array(wantToRead) });
 export const wantToReadResponse = z.object({ book: wantToRead });
 export const addWantToReadInput = z.object({ editionId: z.string().uuid() });
 
+/** When a log was made, for one sent later (made offline): ISO date-time. Defaults to when it arrives. */
+const loggedAt = { at: z.iso.datetime({ offset: true }).optional() };
+
 export const logProgressInput = z.union([
-  z.object({ page: z.number().int().min(0).max(MAX_PAGE_COUNT) }),
-  z.object({ percent: z.number().min(0).max(100) }),
+  z.object({ page: z.number().int().min(0).max(MAX_PAGE_COUNT), ...loggedAt }),
+  z.object({ percent: z.number().min(0).max(100), ...loggedAt }),
 ]);
+export type LogProgressInput = z.infer<typeof logProgressInput>;
 
 // ---- A club's view of its members' readings ----
 

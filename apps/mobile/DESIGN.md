@@ -271,6 +271,9 @@ Bookcloth pill, 52px tall, a plus and "Note" in on-bookcloth, at the bottom righ
 ### Sheets
 A bottom sheet on phones (grabber, title in Literata 20px, ×, scrolling content, safe-area padding) and a centred 480px dialog from 1024px. The Modal is the dialog and carries the title as its name. Used for: Update page (with "I'm just starting" before the first log), + Note, the notes at a place on the line, the book's ⋯ menu, inviting to a club, and the ending.
 
+### Sync state
+Logging never waits for the network. A log goes into the device's queue, the bar moves at once, and the toast says "Saved on this device. It will sync when you're online." when it couldn't be sent. While anything waits, a quiet bar sits just above the tab bar (at the foot of the sidebar from 1024px): a cloud-off mark, "2 updates saved here, waiting to sync" and Sync now. A log the server refuses takes its place with the reason and OK, so nothing disappears silently. Nothing shows when everything is sent.
+
 ### One page per book
 Each book has one page: yours. When your club is reading it, the club is a layer on that page, not a second page: faces on the line, a club strip under it (a row with the club's name and "Next: Fri, Oct 16, 6:30 PM · read to p. 120", opening the club), and a Club · Everyone switch on the notes (Club first). The club page is the book with one "Open the book" (or "Start reading the book"), who's where (furthest first, the pace on top), meetings (upcoming first), and invite; no second notes feed, Update page or "+ Note".
 

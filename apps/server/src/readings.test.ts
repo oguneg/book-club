@@ -6,7 +6,7 @@ import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
 import type { Database } from './db/client';
-import { edition, progressEvent } from './db/schema';
+import { edition, progressEvent, reading as readingTable } from './db/schema';
 import { attachLive, MAX_SOCKETS_PER_USER } from './live';
 import { Browser, captureMailer, log, signedInUser, testApp, testDatabase } from './test/helpers';
 
@@ -74,6 +74,38 @@ describe('reading on your own', () => {
     await database.db.update(progressEvent).set({ createdAt: sql`now() - interval '1 hour'` }).where(eq(progressEvent.readingId, r.id));
     const later = readingResponse.parse(await (await logPage(ann.browser, r.id, { page: 90 })).json()).reading;
     expect(later.history.map((h) => h.page)).toEqual([60, 90]);
+  });
+
+  it('places a log made offline at the time it was made, and never lets it move you back', async () => {
+    const ctx = setup();
+    const ann = await ctx.user('Ann Reader');
+    const r = await start(ann.browser, await anEdition(newWork()));
+    await database.db.update(readingTable).set({ startedAt: sql`now() - interval '2 hours'` }).where(eq(readingTable.id, r.id));
+    const ago = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();
+    const log = async (body: object) => readingResponse.parse(await (await logPage(ann.browser, r.id, body)).json()).reading;
+
+    const hourAgo = ago(60);
+    const offline = await log({ page: 40, at: hourAgo });
+    expect(offline.currentPage).toBe(40);
+    expect(offline.history.map((h) => h.at)).toEqual([hourAgo]);
+
+    // From before the reading began: placed at its start, and older than what's known, so you stay at p.40.
+    const early = await log({ page: 20, at: ago(180) });
+    expect(early.currentPage).toBe(40);
+    expect(early.history.map((h) => h.page)).toEqual([20, 40]);
+    expect(Date.parse(early.history[0]!.at)).toBeGreaterThanOrEqual(Date.parse(ago(121)));
+
+    // Another device logged p.80 since; the phone's p.60 from half an hour ago joins the history only.
+    await log({ page: 80 });
+    const stale = await log({ page: 60, at: ago(30) });
+    expect(stale.currentPage).toBe(80);
+    expect(stale.history.map((h) => h.page)).toEqual([20, 40, 60, 80]);
+
+    // A clock ahead of ours doesn't put logs in the future; a time that isn't one is refused.
+    const ahead = await log({ page: 90, at: new Date(Date.now() + 86_400_000).toISOString() });
+    expect(ahead.currentPage).toBe(90);
+    expect(Date.parse(ahead.history.at(-1)!.at)).toBeLessThanOrEqual(Date.now());
+    expect((await logPage(ann.browser, r.id, { page: 95, at: 'yesterday' })).status).toBe(400);
   });
 
   it('one active reading per book, across editions; rereading after finishing is fine', async () => {

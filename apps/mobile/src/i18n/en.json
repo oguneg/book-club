@@ -512,7 +512,8 @@
       "justStarted": "I’m just starting",
       "toastPages_one": "+1 page",
       "toastPages_other": "+{{count}} pages",
-      "toastSaved": "Saved"
+      "toastSaved": "Saved",
+      "toastWaiting": "Saved on this device. It will sync when you’re online."
     },
     "menu": {
       "label": "More for this book",
@@ -781,5 +782,16 @@
   "popular": {
     "title": "Popular this week",
     "orStart": "Or start with one of these"
+  },
+  "sync": {
+    "waiting_one": "1 update saved here, waiting to sync",
+    "waiting_other": "{{count}} updates saved here, waiting to sync",
+    "syncing": "Syncing…",
+    "now": "Sync now",
+    "whatPage": "Page {{page}}",
+    "whatPercent": "{{percent}}%",
+    "yourBook": "your book",
+    "refused": "{{what}} in {{title}} wasn’t saved. {{reason}}",
+    "dismiss": "OK"
   }
 }

@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { setUpNativeQueryManagers } from '@/api/nativeManagers';
 import { authClient } from '@/auth/client';
 import { CrashScreen } from '@/components/CrashScreen';
 import { WebChrome } from '@/components/WebChrome';
@@ -20,6 +21,7 @@ import { ThemeProvider, useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
 installCrashReporting();
+setUpNativeQueryManagers();
 
 /** A crash anywhere below: report it and offer a way out (expo-router renders this instead of the layout). */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {

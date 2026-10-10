@@ -39,7 +39,7 @@ deploy/          update.sh, backup scripts, compose files
 ## Client
 
 - **Expo** (current SDK), **Expo Router** for navigation and deep links (`/join/<code>` opens the app through universal links / app links).
-- **TanStack Query** for server state; WebSocket events update its cache. Mutations for progress logging are persisted, so they queue offline and replay on reconnect.
+- **TanStack Query** for server state; WebSocket events update its cache. Progress logs go through a small queue of their own (`src/readings/sync.ts`), kept on the device and sent in order with the time each was made; screens show readings with the waiting logs applied.
 - **Typed API client** from the server's Hono routes (`hc`), so the client and server can't disagree on shapes.
 - **i18n:** i18next + expo-localization, English catalog only at launch. No hard-coded user-facing strings.
 - **UI:** React Native primitives + a small token-based theme (light/dark, warm paper palette, serif headings bundled with the app, not loaded from a CDN). Charts drawn with react-native-svg, which also works on web.
