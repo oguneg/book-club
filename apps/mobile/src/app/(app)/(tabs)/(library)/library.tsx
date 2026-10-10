@@ -14,6 +14,7 @@ import { readingLine } from '@/readings/format';
 import { BookRow } from '@/components/BookRow';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { FinishedSheet } from '@/components/FinishedSheet';
+import { Mascot } from '@/components/Mascot';
 import { PopularBooks } from '@/components/PopularBooks';
 import { PageTitle } from '@/components/PageTitle';
 import { ReadingView } from '@/components/ReadingView';
@@ -294,6 +295,7 @@ function WhatAreYouReading() {
   const go = () => router.push({ pathname: '/books', params: { pick: 'read', ...(q.trim() ? { q: q.trim() } : {}) } });
   return (
     <View style={{ gap: space.lg, paddingTop: space.md }}>
+      <Mascot pose="reading" />
       <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xl, lineHeight: fontSize.xl * 1.2, color: colors.text }}>
         {t('reading.empty.title')}
       </Text>

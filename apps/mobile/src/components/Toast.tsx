@@ -1,39 +1,46 @@
 import { Check } from 'lucide-react-native';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Animated, Easing, Text, View } from 'react-native';
+import { Animated, Easing, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/theme';
+import { nativeDriver, spring, useReducedMotion, useTheme } from '@/theme';
 
 const ToastContext = createContext<(message: string) => void>(() => {});
 
-/** A short confirmation that rises from the bottom ("+26 pages", "Saved to Want to read") and fades away. */
+/**
+ * A short confirmation that rises from the bottom ("+26 pages", "Saved to Want to read") and fades away.
+ * Playful's pops up with a bounce; with reduced motion it only fades.
+ */
 export function useToast() {
   return useContext(ToastContext);
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const { colors, fontSize, space } = useTheme();
+  const { colors, fontSize, motion, space, style } = useTheme();
   const insets = useSafeAreaInsets();
   const [message, setMessage] = useState<string | null>(null);
   const [shown] = useState(() => new Animated.Value(0));
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [reduceMotion, setReduceMotion] = useState(false);
+  const reduce = useReducedMotion();
+  const pops = style === 'playful' && !reduce;
 
-  useEffect(() => {
-    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
-  }, []);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
   const show = useCallback(
     (text: string) => {
       clearTimeout(timer.current);
       setMessage(text);
-      shown.setValue(reduceMotion ? 1 : 0);
-      Animated.timing(shown, { toValue: 1, duration: reduceMotion ? 0 : 260, easing: Easing.out(Easing.exp), useNativeDriver: false }).start();
+      shown.setValue(0);
+      (reduce
+        ? Animated.timing(shown, { toValue: 1, duration: 160, useNativeDriver: nativeDriver })
+        : spring(shown, 1, pops ? motion.pop : motion.arrive)
+      ).start();
       timer.current = setTimeout(() => {
-        Animated.timing(shown, { toValue: 0, duration: reduceMotion ? 0 : 200, useNativeDriver: false }).start(() => setMessage(null));
+        Animated.timing(shown, { toValue: 0, duration: motion.leave, easing: Easing.in(Easing.cubic), useNativeDriver: nativeDriver }).start(({ finished }) => {
+          if (finished) setMessage(null);
+        });
       }, 2400);
     },
-    [shown, reduceMotion],
+    [shown, reduce, pops, motion],
   );
 
   return (
@@ -45,8 +52,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             accessibilityLiveRegion="polite"
             role="status"
             style={{
-              opacity: shown,
-              transform: [{ translateY: shown.interpolate({ inputRange: [0, 1], outputRange: [16, 0] }) }],
+              opacity: shown.interpolate({ inputRange: [0, 1], outputRange: [0, 1], extrapolate: 'clamp' }),
+              transform: reduce
+                ? []
+                : [
+                    { translateY: shown.interpolate({ inputRange: [0, 1], outputRange: [pops ? 24 : 16, 0] }) },
+                    { scale: shown.interpolate({ inputRange: [0, 1], outputRange: [pops ? 0.6 : 0.96, 1] }) },
+                  ],
               flexDirection: 'row',
               alignItems: 'center',
               gap: space.sm,

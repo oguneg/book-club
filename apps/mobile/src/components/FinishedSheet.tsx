@@ -9,6 +9,8 @@ import { formatAuthors } from '@/books/format';
 import { useStartReading } from '@/books/start';
 import { readingErrorMessage } from '@/readings/errors';
 import { BookCover } from '@/components/BookCover';
+import { Confetti } from '@/components/Confetti';
+import { Mascot } from '@/components/Mascot';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { Sheet } from '@/components/ui/Sheet';
@@ -36,7 +38,7 @@ export function FinishedSheet({
   before?: { page: number | null; position: number };
 }) {
   const { t } = useTranslation();
-  const { colors, fonts, fontSize, space } = useTheme();
+  const { art, colors, fonts, fontSize, space } = useTheme();
   const notes = useNotes(reading.bookKey, 'all');
   const actions = useReadingActions(reading.id);
   const next = useWantToRead().data?.[0];
@@ -49,6 +51,13 @@ export function FinishedSheet({
   return (
     <Sheet visible={visible} onClose={onClose} title={t('finished.title', { title: reading.edition.title })}>
       <View style={{ gap: space.lg, paddingBottom: space.sm }}>
+        {/* Playful cheers (the other styles keep the ending quiet). */}
+        {art && (
+          <View>
+            <Mascot pose="cheering" size={128} />
+            <Confetti />
+          </View>
+        )}
         {error && <Notice message={error} />}
         <Text style={{ color: colors.text, fontFamily: fonts.reading, fontSize: fontSize.md, lineHeight: fontSize.md * 1.6 }}>
           {[thisYear > 0 ? t('finished.countThisYear', { count: thisYear, ordinal: true }) : null, others > 0 ? t('finished.notesOpen', { count: others }) : t('finished.allOpen')]

@@ -3,11 +3,22 @@ import { Rabbit, Target } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import type { ReadingTarget } from '@/readings/targets';
+import { BunnyHead } from '@/components/Mascot';
 import { useTheme } from '@/theme';
 
-/** The rabbit: where you'd be today at the pace you (or your club) set. A small round mark on a line. */
+/**
+ * The rabbit: where you'd be today at the pace you (or your club) set. A small round mark on a line; in
+ * Playful, the bunny's head.
+ */
 export function RabbitMark({ size = 22 }: { size?: number }) {
-  const { colors } = useTheme();
+  const { art, colors } = useTheme();
+  if (art) {
+    return (
+      <View aria-hidden style={{ width: size, height: size }}>
+        <BunnyHead size={size} art={art} />
+      </View>
+    );
+  }
   return (
     <View
       aria-hidden

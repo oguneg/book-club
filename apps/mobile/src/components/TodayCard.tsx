@@ -2,7 +2,7 @@ import { STREAK_DAYS_PER_WEEK, weeklyStreak, type Reading } from '@bookclub/shar
 import { Flame } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useClubBooks } from '@/api/clubs';
 import { useReadingGoals } from '@/api/goals';
 import { useReadingStats } from '@/api/readings';
@@ -12,6 +12,7 @@ import { pagesFromRabbit, rabbitAt, readingTarget } from '@/readings/targets';
 import { BookCover } from '@/components/BookCover';
 import { GoalsSheet } from '@/components/GoalsSheet';
 import { PaceLines } from '@/components/Pace';
+import { usePopIn } from '@/components/ui/motion';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
@@ -56,7 +57,7 @@ export function TodayCard({ readings }: { readings: readonly Reading[] }) {
       {streak && (
         <View style={{ gap: space.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-            <Flame size={20} color={streak.weeks > 0 ? colors.accent : colors.textMuted} strokeWidth={1.75} aria-hidden />
+            <StreakFlame lit={streak.weeks > 0} />
             <Text style={{ flex: 1, fontFamily: fonts.heading, fontSize: fontSize.md, color: colors.text }}>
               {streak.weeks > 0 ? t('today.streak', { count: streak.weeks }) : t('today.streakStart', { days: STREAK_DAYS_PER_WEEK })}
             </Text>
@@ -73,22 +74,12 @@ export function TodayCard({ readings }: { readings: readonly Reading[] }) {
               aria-label={t('today.weekLabel', { days: week.filter((d) => read.has(localDay(d))).map((d) => long.format(d)).join(', ') || t('today.noDays') })}
               style={{ flexDirection: 'row', gap: 6 }}
             >
-              {week.map((d) => {
+              {week.map((d, i) => {
                 const day = localDay(d);
                 const isToday = day === today;
-                const did = read.has(day);
                 return (
                   <View key={day} style={{ alignItems: 'center', gap: 3 }}>
-                    <View
-                      style={{
-                        width: 14,
-                        height: 14,
-                        borderRadius: 7,
-                        backgroundColor: did ? colors.accent : 'transparent',
-                        borderWidth: did ? 0 : isToday ? 1.5 : 1,
-                        borderColor: isToday ? colors.accent : colors.control,
-                      }}
-                    />
+                    <DayDot read={read.has(day)} today={isToday} order={i} />
                     <Text style={{ color: isToday ? colors.text : colors.textMuted, fontSize: 10, fontWeight: isToday ? '700' : '400' }}>{narrow.format(d)}</Text>
                   </View>
                 );
@@ -137,5 +128,39 @@ export function TodayCard({ readings }: { readings: readonly Reading[] }) {
 
       <GoalsSheet visible={editing} onClose={() => setEditing(false)} />
     </View>
+  );
+}
+
+/** The streak's flame: lit in the accent once a week counts. Playful's wobbles into place. */
+function StreakFlame({ lit }: { lit: boolean }) {
+  const { colors, style } = useTheme();
+  const pop = usePopIn(lit && style === 'playful', 150);
+  return (
+    <Animated.View
+      style={{
+        transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] }) }, { rotate: pop.interpolate({ inputRange: [0, 0.5, 1], outputRange: ['-24deg', '12deg', '0deg'] }) }],
+      }}
+    >
+      <Flame size={20} color={lit ? colors.accent : colors.textMuted} strokeWidth={style === 'playful' && lit ? 2.25 : 1.75} aria-hidden />
+    </Animated.View>
+  );
+}
+
+/** A day this week: filled if you read, ringed if it's today. Playful's filled days pop in, one after another. */
+function DayDot({ read, today, order }: { read: boolean; today: boolean; order: number }) {
+  const { colors, style } = useTheme();
+  const pop = usePopIn(read && style === 'playful', 250 + order * 70);
+  return (
+    <Animated.View
+      style={{
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        backgroundColor: read ? colors.accent : 'transparent',
+        borderWidth: read ? 0 : today ? 1.5 : 1,
+        borderColor: today ? colors.accent : colors.control,
+        transform: [{ scale: pop }],
+      }}
+    />
   );
 }

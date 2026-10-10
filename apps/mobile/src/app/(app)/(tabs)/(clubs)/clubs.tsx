@@ -6,6 +6,7 @@ import { useClubs } from '@/api/clubs';
 import { clubErrorMessage } from '@/clubs/errors';
 import { formatMeetingTime } from '@/clubs/format';
 import { BookCover } from '@/components/BookCover';
+import { Mascot } from '@/components/Mascot';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
@@ -28,6 +29,7 @@ export default function ClubsTab() {
       </Text>
       {clubs.isPending && <ActivityIndicator color={colors.accent} />}
       {clubs.isError && <Notice message={clubErrorMessage(t, clubs.error)} />}
+      {none && <Mascot pose="waving" style={{ marginBottom: space.lg }} />}
       {none && <Text style={{ color: colors.textMuted, fontSize: fontSize.md, lineHeight: fontSize.md * 1.5, marginBottom: space.lg }}>{t('clubs.tab.empty')}</Text>}
       <View style={{ gap: space.sm }}>
         {clubs.data?.map((club) => (

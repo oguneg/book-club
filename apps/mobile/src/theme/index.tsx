@@ -3,10 +3,11 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { useColorScheme } from 'react-native';
 import { loadAppearance, saveAppearance, type Appearance } from './appearance';
 import { styleFonts } from './fonts';
-import { fontSize, layout, minTouch, space, styles, type Fonts, type Palette, type Style, type StyleName } from './tokens';
+import { fontSize, layout, minTouch, space, styles, type Art, type Fonts, type Motion, type Palette, type Style, type StyleName } from './tokens';
 
 export type { Appearance, Mode } from './appearance';
-export { STYLE_NAMES, type StyleName } from './tokens';
+export { nativeDriver, spring, useReducedMotion } from './motion';
+export { STYLE_NAMES, type Spring, type StyleName } from './tokens';
 
 export interface Theme {
   style: StyleName;
@@ -16,6 +17,9 @@ export interface Theme {
   fontSize: typeof fontSize;
   space: typeof space;
   radius: Style['radius'];
+  motion: Motion;
+  /** Playful's drawing colours; other styles don't draw. */
+  art: Art | null;
   minTouch: number;
   layout: typeof layout;
 }
@@ -23,7 +27,19 @@ export interface Theme {
 /** A style in light or dark, with the fonts of `fontStyle` (a style's own once they've loaded). */
 export function themeFor(style: StyleName, scheme: 'light' | 'dark', fontStyle: StyleName = style): Theme {
   const s = styles[style];
-  return { style, scheme, colors: s.palettes[scheme], fonts: styles[fontStyle].fonts, fontSize, space, radius: s.radius, minTouch, layout };
+  return {
+    style,
+    scheme,
+    colors: s.palettes[scheme],
+    fonts: styles[fontStyle].fonts,
+    fontSize,
+    space,
+    radius: s.radius,
+    motion: s.motion,
+    art: s.art?.[scheme] ?? null,
+    minTouch,
+    layout,
+  };
 }
 
 const loaded = new Set<StyleName>();

@@ -1,7 +1,8 @@
 // Design tokens. The app comes in three styles, each in light and dark:
 //   classic  a reading journal: warm paper and ink, bookcloth red, Literata for headings and notes;
 //   sleek    clean and crisp: cool near-white (or near-black), ink blue, Manrope, tighter corners;
-//   playful  soft and friendly: blush cream (or plum night), raspberry, Fredoka and Nunito, round corners.
+//   playful  soft and friendly: blush cream (or plum night), raspberry, Fredoka and Nunito, round corners,
+//            bouncy springs and a bunny (the pace rabbit, drawn) on empty pages and endings.
 // Screens use these tokens, never raw values. Every palette passes WCAG contrast: text 7:1, muted text,
 // accent text and status colours 4.5:1, control edges 3:1, on both the page and raised surfaces.
 
@@ -46,10 +47,52 @@ export interface Fonts {
   readingItalic: string;
 }
 
+/** A spring, as Animated.spring takes it. Damping at 2·√(stiffness·mass) settles without overshoot; less bounces. */
+export interface Spring {
+  stiffness: number;
+  damping: number;
+  mass: number;
+}
+
+/**
+ * How a style moves: Classic settles calmly, Sleek is quick and exact, Playful overshoots and bounces. With
+ * reduced motion on, movement gives way to fades (or nothing).
+ */
+export interface Motion {
+  /** Things arriving: a sheet, a dialog, a page, a tab, the toast. */
+  arrive: Spring;
+  /** Small answers: a button let go, a tab icon, the segmented pill, a day's dot filling in. */
+  pop: Spring;
+  /** Progress bars gliding to their new place. */
+  glide: Spring;
+  /** How far a pressed control sinks (its scale). */
+  press: number;
+  /** How far a page or tab slides as it arrives, px. */
+  shift: number;
+  /** Leaving takes this long (ms): quicker than arriving, and never bouncy. */
+  leave: number;
+}
+
+/** Playful's drawings: the bunny (line, fur, blush, nose), the blob behind it, a book's pages and the sparkles. */
+export interface Art {
+  line: string;
+  fur: string;
+  blush: string;
+  nose: string;
+  blob: string;
+  page: string;
+  sun: string;
+  mint: string;
+  lilac: string;
+}
+
 export interface Style {
   palettes: Record<'light' | 'dark', Palette>;
   fonts: Fonts;
   radius: { sm: number; md: number; lg: number };
+  motion: Motion;
+  /** Only Playful draws. */
+  art?: Record<'light' | 'dark', Art>;
 }
 
 const PEOPLE = ['#6B4E9B', '#2F6F6A', '#8A5A1F', '#3E5C8A', '#7A3E5D', '#4F6B2E', '#9A4A2C', '#55567A'] as const;
@@ -100,6 +143,14 @@ export const styles: Record<StyleName, Style> = {
     },
     fonts: { heading: 'Literata_600SemiBold', headingBold: 'Literata_700Bold', reading: 'Literata_400Regular', readingItalic: 'Literata_400Regular_Italic' },
     radius: { sm: 6, md: 10, lg: 16 },
+    motion: {
+      arrive: { stiffness: 230, damping: 30, mass: 1 },
+      pop: { stiffness: 420, damping: 40, mass: 1 },
+      glide: { stiffness: 90, damping: 19, mass: 1 },
+      press: 0.98,
+      shift: 16,
+      leave: 200,
+    },
   },
   sleek: {
     palettes: {
@@ -140,6 +191,14 @@ export const styles: Record<StyleName, Style> = {
     },
     fonts: { heading: 'Manrope_600SemiBold', headingBold: 'Manrope_700Bold', reading: 'Manrope_400Regular', readingItalic: 'Manrope_400Regular' },
     radius: { sm: 4, md: 8, lg: 12 },
+    motion: {
+      arrive: { stiffness: 440, damping: 42, mass: 1 },
+      pop: { stiffness: 700, damping: 52, mass: 1 },
+      glide: { stiffness: 170, damping: 26, mass: 1 },
+      press: 0.97,
+      shift: 12,
+      leave: 150,
+    },
   },
   playful: {
     palettes: {
@@ -180,6 +239,19 @@ export const styles: Record<StyleName, Style> = {
     },
     fonts: { heading: 'Fredoka_600SemiBold', headingBold: 'Fredoka_700Bold', reading: 'Nunito_400Regular', readingItalic: 'Nunito_400Regular_Italic' },
     radius: { sm: 10, md: 16, lg: 24 },
+    motion: {
+      arrive: { stiffness: 260, damping: 22, mass: 1 },
+      pop: { stiffness: 520, damping: 14, mass: 1 },
+      glide: { stiffness: 120, damping: 12, mass: 1 },
+      press: 0.92,
+      shift: 28,
+      leave: 170,
+    },
+    // The bunny stays a white sticker with a plum line in both modes; only the blob behind it changes.
+    art: {
+      light: { line: '#2E2140', fur: '#FFFFFF', blush: '#FFB3C9', nose: '#E8648F', blob: '#FFE2EB', page: '#FFFFFF', sun: '#FFC94D', mint: '#6CCFB5', lilac: '#A98BFF' },
+      dark: { line: '#2E2140', fur: '#FFF6F9', blush: '#FFB3C9', nose: '#E8648F', blob: '#2E2343', page: '#FFFFFF', sun: '#FFC94D', mint: '#6CCFB5', lilac: '#B9A0FF' },
+    },
   },
 };
 

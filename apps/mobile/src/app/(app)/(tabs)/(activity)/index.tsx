@@ -17,6 +17,7 @@ import { readingLine } from '@/readings/format';
 import { Avatar } from '@/components/Avatar';
 import { BookCover } from '@/components/BookCover';
 import { FinishedSheet } from '@/components/FinishedSheet';
+import { Mascot } from '@/components/Mascot';
 import { PopularBooks } from '@/components/PopularBooks';
 import { PageTitle } from '@/components/PageTitle';
 import { Screen } from '@/components/Screen';
@@ -180,6 +181,7 @@ function StartReading() {
   const { colors, fonts, fontSize, radius, space } = useTheme();
   return (
     <View style={{ gap: space.md, padding: space.lg, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border }}>
+      <Mascot pose="reading" />
       <Text accessibilityRole="header" aria-level={2} style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xl, color: colors.text }}>
         {t('reading.empty.title')}
       </Text>

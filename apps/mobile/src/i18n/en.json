@@ -885,7 +885,7 @@
     "title": "Appearance",
     "style": "Style",
     "mode": "Light or dark",
-    "system": "Like the system",
+    "system": "Automatic",
     "light": "Light",
     "dark": "Dark",
     "onDevice": "Follows you to every device you sign in on.",
