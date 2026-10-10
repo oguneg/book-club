@@ -26,7 +26,7 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
           accessibilityRole="button"
           accessibilityLabel={t('common.close')}
           onPress={onClose}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(20, 15, 10, 0.4)' }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: colors.backdrop }}
         />
         <View
           style={{

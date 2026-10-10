@@ -143,7 +143,7 @@ function NowReading({ reading, onUpdate }: { reading: Reading; onUpdate: () => v
   return (
     <View style={{ width: 128, gap: space.sm }}>
       <Pressable accessibilityRole="link" accessibilityLabel={`${reading.edition.title}, ${readingLine(t, reading)}`} onPress={() => openReading(reading.id)} style={({ pressed }) => ({ gap: space.sm, opacity: pressed ? 0.8 : 1 })}>
-        <View style={{ borderRadius: 8, boxShadow: '0px 2px 4px rgba(42,33,25,0.12), 0px 12px 24px -12px rgba(42,33,25,0.45)' }}>
+        <View style={{ borderRadius: 8, boxShadow: colors.coverShadow }}>
           <BookCover cover={reading.edition.cover} title={reading.edition.title} size="lg" />
         </View>
         <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.md, lineHeight: fontSize.md * 1.25, color: colors.text }}>

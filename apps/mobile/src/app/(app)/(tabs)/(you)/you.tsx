@@ -1,4 +1,4 @@
-import { CircleHelp, FileText, Flag, LogOut, Settings, Shield } from 'lucide-react-native';
+import { CircleHelp, FileText, Flag, LogOut, Palette, Settings, Shield } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useIsModerator } from '@/api/admin';
@@ -10,7 +10,7 @@ import { ReadingStats } from '@/components/ReadingStats';
 import { Screen } from '@/components/Screen';
 import { Button } from '@/components/ui/Button';
 import { NavRow } from '@/components/ui/NavRow';
-import { useTheme } from '@/theme';
+import { useAppearance, useTheme } from '@/theme';
 
 /** You: your account, help, sign out. (Your books have their own tab.) */
 export default function YouTab() {
@@ -18,6 +18,7 @@ export default function YouTab() {
   const { colors, fonts, fontSize, space } = useTheme();
   const { data: session } = authClient.useSession();
   const moderator = useIsModerator();
+  const { appearance } = useAppearance();
   const user = session?.user;
 
   return (
@@ -46,6 +47,12 @@ export default function YouTab() {
 
       <View style={{ gap: space.sm }}>
         <NavRow href="/account" icon={Settings} title={t('you.account')} detail={t('you.accountDetail')} />
+        <NavRow
+          href="/appearance"
+          icon={Palette}
+          title={t('you.appearance')}
+          detail={`${t(`appearance.styles.${appearance.style}.name`)} · ${t(`appearance.${appearance.mode}`)}`}
+        />
         {moderator && <NavRow href="/admin/reports" icon={Flag} title={t('admin.open')} />}
         <NavRow href="/help" icon={CircleHelp} title={t('legal.help')} />
         <NavRow href="/privacy" icon={Shield} title={t('legal.privacy')} />

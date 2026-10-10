@@ -173,6 +173,17 @@ It stays calm and quiet: warm paper in light, a dark study in dark mode, ink for
 - One floating "+ Note" button wherever you can write; one filled button per screen.
 - Literata for titles, note text and figures; the system UI face for controls and metadata. Lucide line icons.
 - Light and dark are both first-class, from the same roles.
+- Three styles, chosen per device on You › Appearance (with System, Light or Dark): **Classic** (this document's paper, ink and bookcloth), **Sleek** and **Playful**. A style is a whole set of tokens, never a per-screen switch.
+
+## Styles
+
+Every style fills the same roles (background, surface, text, muted text, border, control, accent, success, danger, desk and cover shadows, backdrop, calendar ramp) in light and dark, plus its own fonts and corner radii; screens only read tokens (`src/theme/tokens.ts`). Each palette passes contrast on both the page and raised surfaces: text 7:1, muted text, accent text and status colours 4.5:1, control edges 3:1. The calendar ramp runs in even OKLab steps from the border to the accent.
+
+- **Classic:** warm paper #F6F0E4 and ink #2A2119, bookcloth #8A3B2E; Literata for headings and notes; corners 6 / 10 / 16. Dark: a study at night (#1B1814, terracotta #D9876F).
+- **Sleek:** cool near-white #F4F5F7 on white surfaces, near-black ink #14161B, ink blue #2E4BD1; Manrope (600 headings, 700 bold, 400 notes); tighter corners 4 / 8 / 12 and cooler, thinner shadows. Dark: #0E1014 with periwinkle #93A6FF.
+- **Playful:** blush cream #FFF4EE on white, plum ink #2E2140, raspberry #C2356B; Fredoka headings and Nunito for notes; round corners 10 / 16 / 24 (buttons are near-pills) and plum-tinted shadows. Dark: plum night #1B1428 with candy pink #FF8CB7.
+
+The choice is kept on the device and read before the first paint, so the app starts in its style; a style's fonts load the first time it's used (on the web, that's when they download), and the last fonts stay on screen until the new ones are in. The Appearance page draws each choice in its own style: a book with its progress and its two buttons.
 
 ## Colors
 

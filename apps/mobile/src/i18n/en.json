@@ -704,7 +704,8 @@
   },
   "you": {
     "account": "Account",
-    "accountDetail": "Name, sign-in, devices, your data"
+    "accountDetail": "Name, sign-in, devices, your data",
+    "appearance": "Appearance"
   },
   "myBooks": {
     "title": "My books",
@@ -879,5 +880,34 @@
     "save": "Save the date",
     "remove": "Remove the date",
     "invalid": "Pick a day from today on."
+  },
+  "appearance": {
+    "title": "Appearance",
+    "style": "Style",
+    "mode": "Light or dark",
+    "system": "Like the system",
+    "light": "Light",
+    "dark": "Dark",
+    "onDevice": "Saved on this device.",
+    "styles": {
+      "classic": {
+        "name": "Classic",
+        "body": "Paper and ink, with a serif to read in."
+      },
+      "sleek": {
+        "name": "Sleek",
+        "body": "Clean and crisp, in cool tones."
+      },
+      "playful": {
+        "name": "Playful",
+        "body": "Soft colours, round and friendly."
+      }
+    },
+    "sample": {
+      "title": "The Hobbit",
+      "where": "Page 188 of 320 · 59%",
+      "update": "Update page",
+      "note": "+ Note"
+    }
   }
 }

@@ -44,7 +44,7 @@ export function CoverRow({ title, items }: { title: string; items: CoverItem[] }
             onPress={() => router.push(w.href)}
             style={({ pressed }) => ({ width: 96, gap: space.xs, opacity: pressed ? 0.75 : 1 })}
           >
-            <View style={{ alignSelf: 'flex-start', borderRadius: 6, boxShadow: '0px 1px 2px rgba(42,33,25,0.12), 0px 8px 18px -10px rgba(42,33,25,0.45)' }}>
+            <View style={{ alignSelf: 'flex-start', borderRadius: 6, boxShadow: colors.coverShadow }}>
               <BookCover cover={w.cover} title={w.title} size="md" />
             </View>
             <Text numberOfLines={2} style={{ fontFamily: fonts.heading, fontSize: fontSize.sm, lineHeight: fontSize.sm * 1.3, color: colors.text }}>

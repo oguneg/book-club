@@ -122,7 +122,7 @@ export function ReadingView({
               </View>
             )}
             <View style={{ flexDirection: 'row', gap: space.lg, alignItems: 'flex-end' }}>
-              <View style={{ borderRadius: 8, boxShadow: '0px 2px 4px rgba(42,33,25,0.14), 0px 14px 28px -12px rgba(42,33,25,0.5)' }}>
+              <View style={{ borderRadius: 8, boxShadow: colors.coverShadow }}>
                 <BookCover cover={reading.edition.cover} title={reading.edition.title} size="lg" />
               </View>
               <View style={{ flex: 1, gap: space.xs, paddingBottom: space.xs }}>
