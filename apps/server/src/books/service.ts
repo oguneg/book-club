@@ -126,9 +126,9 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
   }
 
   return {
-    /** Popular books (see openLibrary.popular), refreshed daily. */
+    /** Popular novels (see openLibrary.popular), refreshed daily. */
     async popular(): Promise<WorkSummary[]> {
-      return cached('popular', TTL.popular, () => ol.popular());
+      return cached('popular:fiction', TTL.popular, () => ol.popular());
     },
 
     async searchWorks(query: string): Promise<WorkSummary[]> {

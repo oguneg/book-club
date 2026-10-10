@@ -292,13 +292,35 @@ function randomIsbn(): string {
 }
 
 describe('popular books', () => {
-  it('lists well-known books with covers from this week, then serves them from the cache', async () => {
-    const doc = (i: number, extra: object = {}) => ({ key: `/works/OL${9000 + i}W`, title: `Book ${i}`, author_name: ['A. Writer'], cover_i: 100 + i, edition_count: 40, ...extra });
-    const week = { works: [doc(1), doc(2, { cover_i: undefined }), doc(3, { edition_count: 2 }), doc(4), doc(5), doc(6), doc(7), doc(8)] };
+  it("lists this week's well-known novels with covers, then serves them from the cache", async () => {
+    const doc = (i: number, extra: object = {}) => ({
+      key: `/works/OL${9000 + i}W`,
+      title: `Book ${i}`,
+      author_name: ['A. Writer'],
+      cover_i: 100 + i,
+      edition_count: 40,
+      subject_key: ['fiction', 'fiction,_general'],
+      ...extra,
+    });
+    const week = {
+      works: [
+        doc(1),
+        doc(2, { cover_i: undefined }),
+        doc(3, { edition_count: 2 }),
+        doc(4),
+        doc(5, { subject_key: ['self-help', 'success'] }),
+        doc(6, { subject_key: ['fiction', 'juvenile_fiction'] }),
+        doc(7, { title: 'Преступление и наказание' }),
+        doc(8),
+        doc(9),
+        doc(10),
+        doc(11),
+      ],
+    };
     const ctx = await setup([[/trending\/weekly\.json/, () => json(week)]]);
     const first = bookSearchResponse.parse(await (await ctx.browser.request('/api/books/popular')).json()).works;
-    // No cover, or too few editions to be well known: left out.
-    expect(first.map((w) => w.title)).toEqual(['Book 1', 'Book 4', 'Book 5', 'Book 6', 'Book 7', 'Book 8']);
+    // No cover, too few editions to be well known, not a novel, a children's book, a title the app can't show well: left out.
+    expect(first.map((w) => w.title)).toEqual(['Book 1', 'Book 4', 'Book 8', 'Book 9', 'Book 10', 'Book 11']);
     expect(first[0]).toMatchObject({ key: 'OL9001W', cover: 'ol-101-M' });
     await ctx.browser.request('/api/books/popular');
     expect(ctx.calls.filter((u) => u.includes('trending'))).toHaveLength(1);

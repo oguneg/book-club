@@ -69,6 +69,21 @@ interface OlSearchDoc {
   cover_i?: number;
   first_publish_year?: number;
   edition_count?: number;
+  /** Normalised subjects, e.g. "fiction", "fiction,_romance,_contemporary", "nonfiction". */
+  subject_key?: string[];
+}
+
+/** Subjects that make a "fiction"-tagged work something else for our purposes: self-help, children's books. */
+const NOT_A_NOVEL = new Set(['nonfiction', 'non-fiction', 'self-help', 'psychology', 'success', 'business', 'personal_development', 'juvenile_fiction', 'juvenile_literature', "children's_fiction"]);
+
+/**
+ * A novel for grown-ups, by Open Library's subjects; with a title in the Latin alphabet, since the app is in
+ * English (a work's title is often its original one).
+ */
+function isAdultFiction(doc: OlSearchDoc): boolean {
+  const keys = doc.subject_key ?? [];
+  const fiction = keys.some((k) => k === 'fiction' || k.startsWith('fiction,') || k.startsWith('fiction_'));
+  return fiction && !keys.some((k) => NOT_A_NOVEL.has(k)) && /^[\p{Script=Latin}\p{N}\p{P}\p{S}\s]+$/u.test(doc.title ?? '');
 }
 
 interface OlEdition {
@@ -144,8 +159,13 @@ export function openLibrary(fetchFn: Fetch) {
     async popular(): Promise<WorkSummary[]> {
       const known = (docs: OlSearchDoc[] | undefined) =>
         (docs ?? []).filter((d) => d.cover_i && (d.edition_count ?? 0) >= 10).map(toWorkSummary).filter((w): w is WorkSummary => w !== null);
-      const week = await getJson<{ works?: OlSearchDoc[] }>(fetchFn, name, 'https://openlibrary.org/trending/weekly.json?limit=40');
-      const trending = known(week?.works);
+      // Novels people are reading this week (a book club's kind of book), not the week's self-help.
+      const week = await getJson<{ works?: OlSearchDoc[] }>(
+        fetchFn,
+        name,
+        'https://openlibrary.org/trending/weekly.json?limit=100&fields=key,title,author_name,cover_i,edition_count,first_publish_year,subject_key',
+      );
+      const trending = known(week?.works?.filter(isAdultFiction));
       if (trending.length >= 6) return trending.slice(0, 12);
       const classics = await getJson<{ works?: (OlSearchDoc & { authors?: { name: string }[]; cover_id?: number })[] }>(
         fetchFn,
