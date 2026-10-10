@@ -13,6 +13,7 @@
     "preview": "node --env-file=preview.env --enable-source-maps dist/server.mjs"
   },
   "dependencies": {
+    "@better-auth/expo": "^1.7.7",
     "@bookclub/shared": "*",
     "@hono/node-server": "^2.1.4",
     "better-auth": "^1.7.7",

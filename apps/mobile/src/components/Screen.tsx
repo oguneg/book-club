@@ -1,5 +1,6 @@
-import { useContext, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { useContext, useState, type ReactNode } from 'react';
+import { Platform, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { HeaderShownContext } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
@@ -24,10 +25,19 @@ export function Screen({
   const insets = useSafeAreaInsets();
   // Under a header (a book, a club, a form opened from a tab) the header already clears the status bar.
   const underHeader = useContext(HeaderShownContext);
+  // Pull to refresh, as phones expect: everything on screen asks the server again.
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = async () => {
+    setRefreshing(true);
+    await queryClient.refetchQueries({ type: 'active' }).catch(() => {});
+    setRefreshing(false);
+  };
   return (
     <View style={styles.fill}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        refreshControl={Platform.OS === 'web' ? undefined : <RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={theme.colors.accent} />}
         style={{ backgroundColor: theme.colors.background }}
         contentContainerStyle={[
           styles.content,

@@ -2,11 +2,12 @@ import { MAX_NAME_LENGTH, MIN_PASSWORD_LENGTH, looksLikeEmail } from '@bookclub/
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TextInput } from 'react-native';
+import { Platform, type TextInput } from 'react-native';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage } from '@/auth/errors';
 import { FormLayout, OrDivider } from '@/components/FormLayout';
+import { AppleButton } from '@/components/AppleButton';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
@@ -61,6 +62,13 @@ export default function SignUp() {
     router.replace({ pathname: '/check-email', params: { email: email.trim(), reason: 'signup' } });
   }
 
+  // Sign in with Apple (iPhone): Apple's ID token, plus the name it shares on the very first sign-in only.
+  async function apple(token: string, name: { firstName?: string; lastName?: string } | null) {
+    setError(undefined);
+    const result = await authClient.signIn.social({ provider: 'apple', idToken: { token, ...(name ? { user: { name } } : {}) } });
+    if (result.error) setError(authErrorMessage(t, result.error));
+  }
+
   async function google() {
     setError(undefined);
     const result = await authClient.signIn.social({
@@ -74,12 +82,9 @@ export default function SignUp() {
   return (
     <FormLayout title={t('auth.signUp.title')} subtitle={t('auth.signUp.subtitle')}>
       {error && <Notice message={error} />}
-      {config.data?.google && (
-        <>
-          <GoogleButton onPress={google} />
-          <OrDivider />
-        </>
-      )}
+      <AppleButton type="signUp" onSignIn={(token, name) => void apple(token, name)} onError={() => setError(t('auth.appleFailed'))} />
+      {config.data?.google && <GoogleButton onPress={google} />}
+      {(config.data?.google || Platform.OS === 'ios') && <OrDivider />}
       <TextField
         label={t('auth.signUp.name')}
         hint={t('auth.signUp.nameHint')}

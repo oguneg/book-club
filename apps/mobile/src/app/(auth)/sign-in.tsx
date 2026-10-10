@@ -2,12 +2,13 @@ import { looksLikeEmail } from '@bookclub/shared';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, type TextInput } from 'react-native';
+import { Platform, View, type TextInput } from 'react-native';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
 import { takeFlash } from '@/auth/flash';
 import { FormLayout, OrDivider } from '@/components/FormLayout';
+import { AppleButton } from '@/components/AppleButton';
 import { GoogleButton } from '@/components/GoogleButton';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
@@ -50,6 +51,13 @@ export default function SignIn() {
     // On success the session changes and the root layout switches to the signed-in pages.
   }
 
+  // Sign in with Apple (iPhone): Apple's ID token, plus the name it shares on the very first sign-in only.
+  async function apple(token: string, name: { firstName?: string; lastName?: string } | null) {
+    setError(undefined);
+    const result = await authClient.signIn.social({ provider: 'apple', idToken: { token, ...(name ? { user: { name } } : {}) } });
+    if (result.error) setError(authErrorMessage(t, result.error));
+  }
+
   async function google() {
     setError(undefined);
     const result = await authClient.signIn.social({
@@ -64,12 +72,9 @@ export default function SignIn() {
     <FormLayout title={t('auth.signIn.title')} subtitle={t('auth.signIn.subtitle')}>
       {deleted && <Notice tone="info" message={t('auth.signIn.accountDeleted')} />}
       {error && <Notice message={error} />}
-      {config.data?.google && (
-        <>
-          <GoogleButton onPress={google} />
-          <OrDivider />
-        </>
-      )}
+      <AppleButton type="signIn" onSignIn={(token, name) => void apple(token, name)} onError={() => setError(t('auth.appleFailed'))} />
+      {config.data?.google && <GoogleButton onPress={google} />}
+      {(config.data?.google || Platform.OS === 'ios') && <OrDivider />}
       <TextField
         label={t('common.email')}
         value={email}

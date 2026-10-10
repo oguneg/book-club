@@ -130,7 +130,7 @@ export function UpdatePageSheet({
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.md }}>
             <Text style={{ color: colors.textMuted, fontSize: fontSize.md }}>{mode === 'page' ? t('reading.update.page') : ''}</Text>
             <TextInput
-              autoFocus
+              autoFocus={Platform.OS === 'web'}
               accessibilityLabel={mode === 'page' ? t('reading.logPage') : t('reading.logPercent')}
               aria-invalid={Boolean(error)}
               value={value}

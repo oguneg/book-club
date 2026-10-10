@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { AppState, Platform } from 'react-native';
+import { sessionHeaders } from '@/auth/client';
 import { API_URL } from '@/config';
 
 type LiveEvent =
@@ -8,6 +9,9 @@ type LiveEvent =
   | { type: 'club'; clubId: string }
   | { type: 'club-progress'; clubId: string }
   | { type: 'notes'; bookKey: string };
+
+/** React Native's WebSocket also takes headers (the DOM type in our tsconfig doesn't know that). */
+type NativeWebSocket = new (url: string, protocols: string | string[] | undefined, options: { headers: Record<string, string> }) => WebSocket;
 
 /** ws(s)://<api>/api/live: the API's origin, or the page's own origin when the web app is served by the API. */
 function liveUrl(): string | null {
@@ -49,9 +53,12 @@ export function useLive() {
       }
     };
 
-    const connect = () => {
+    const connect = async () => {
       if (stopped) return;
-      socket = new WebSocket(url);
+      // Native sockets carry the stored session cookie; browsers send theirs by themselves.
+      const headers = await sessionHeaders();
+      if (stopped) return;
+      socket = Platform.OS === 'web' ? new WebSocket(url) : new (WebSocket as unknown as NativeWebSocket)(url, undefined, { headers });
       socket.onopen = () => {
         delay = 1000;
         if (everConnected) void queryClient.invalidateQueries();
@@ -67,18 +74,18 @@ export function useLive() {
       socket.onclose = () => {
         socket = null;
         if (stopped) return;
-        retry = setTimeout(connect, delay);
+        retry = setTimeout(() => void connect(), delay);
         delay = Math.min(delay * 2, 30_000);
       };
     };
 
-    connect();
+    void connect();
     // Coming back to the app: reconnect right away instead of waiting out the backoff.
     const appState = AppState.addEventListener('change', (state) => {
       if (state === 'active' && !socket) {
         clearTimeout(retry);
         delay = 1000;
-        connect();
+        void connect();
       }
     });
 

@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "se.ogun.bookclub"
+      "bundleIdentifier": "se.ogun.bookclub",
+      "usesAppleSignIn": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "se.ogun.bookclub",
@@ -42,7 +46,10 @@
         }
       ],
       "expo-localization",
-      "expo-image"
+      "expo-image",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true

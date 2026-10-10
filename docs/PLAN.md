@@ -36,11 +36,19 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
   - [x] Simpler flows (critique 25/40): one page per book (a club book's page carries the club's faces, the next meeting and a Club · Everyone notes switch; the club page is the book, who's where and meetings); starting opens "Where are you?"; finishing is one tap with a quiet ending and Undo; a new club is set up in three skippable steps; faces never merge with you and say where everyone is in your own pages; abridged editions are no longer the default.
   - [x] A livelier, app-like structure: four tabs (Home · My books · Clubs · You), each with its own history so the tab bar or sidebar never disappears, and headers with a back arrow. Home shows your books face out and what your clubs did lately (spoiler-safe, from a new `/api/activity`). Covers are borrowed from other editions when the picked one has none; people get photos or their own colour; progress animates and a toast says "+26 pages".
   - [x] The rest of the livelier pass: "Your reading" on the You tab (pages this week, books and pages this year, a 12-week calendar with a text summary and list, the year's shelf; `/api/reading-stats`), a one-line week on Home, "That's your 7th book this year" when you finish, popular books on empty shelves (`/api/books/popular`, Open Library's weekly trending), a success haptic on phones when you log, and My books as list + book side by side from 1200px.
+- [ ] **9b. TestFlight** (before production), against staging:
+  - [x] The app works natively: the session lives in secure storage (Better Auth's Expo plugin), our API and live updates get it as a header, Google sign-in returns through `bookclub://`, covers are public so images load without a session.
+  - [x] Sign in with Apple on iPhones (App Review 4.8, since Google sign-in is offered): Apple's ID token, checked against the bundle ID `se.ogun.bookclub`; no Apple secret needed.
+  - [x] `eas.json`: a `testflight` profile (staging API, build numbers kept by EAS) and `production`; `app.json`: Sign in with Apple capability, no non-exempt encryption. `expo-doctor` clean; the iOS bundle exports.
+  - [ ] Owner: Apple Developer Program membership; App Store Connect app record (name, primary language, bundle ID `se.ogun.bookclub`, SKU).
+  - [ ] Owner, in a terminal: `npx eas-cli@latest build -p ios --profile testflight` (signs in to Apple, lets EAS create the certificate and profile), then `npx eas-cli@latest submit -p ios --latest --profile testflight`.
+  - [ ] Owner: add internal testers in App Store Connect › TestFlight; try sign-in (email, Google, Apple), logging, notes, clubs on a phone.
+  - [ ] Before the App Store (not needed for TestFlight): revoke Apple tokens on account deletion (Sign in with Apple REST API, needs a key), App Privacy answers, screenshots.
 - [ ] **10. Production** at bookclub.ogun.se: deploy from version tags behind an approval step; a new version that fails its health check must leave the previous one serving (unlike staging today). Google consent screen published.
 
 ## Later
 
-- [ ] **iOS:** EAS builds (Expo account `ogunse` is linked), Sign in with Apple (required once Google sign-in is offered), native Google sign-in, push notifications, barcode scanner, TestFlight, App Store.
+- [ ] **iOS, after TestFlight:** push notifications, barcode scanner, App Store release.
 - [ ] **Android (much later):** Play Console, the mandatory 12-tester / 14-day closed test, Play Store.
 
 ## Needs the owner

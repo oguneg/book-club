@@ -112,7 +112,8 @@
       "invalidPassword": "Your current password is wrong.",
       "googleEmailMismatch": "That Google account uses a different email address. You can only connect a Google account with the same address as your Bookclub account.",
       "googleTaken": "That Google account is already connected to another Bookclub account."
-    }
+    },
+    "appleFailed": "Sign in with Apple didn’t work. Try again, or use your email."
   },
   "server": {
     "checking": "Checking the server…",
@@ -712,7 +713,8 @@
     "finished": "Finished {{date}}",
     "didntFinish": "Didn’t finish",
     "stoppedAt": "Stopped at p. {{page}}",
-    "stoppedEarly": "Stopped before page 1"
+    "stoppedEarly": "Stopped before page 1",
+    "addShort": "Add"
   },
   "finished": {
     "title": "You finished {{title}}",

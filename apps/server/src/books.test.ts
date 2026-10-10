@@ -236,6 +236,8 @@ describe('covers', () => {
       expect(new Uint8Array(await res.arrayBuffer())).toEqual(JPEG);
     }
     expect(ctx.calls).toEqual([`https://covers.openlibrary.org/b/id/${id}-M.jpg?default=false`]);
+    // Covers are public pictures: the native app's image requests carry no session.
+    expect((await new Browser(ctx.app, ctx.env.APP_URL).request(`/api/covers/ol-${id}-M`)).status).toBe(200);
   });
 
   it('only fetches known cover sources and remembers missing covers', async () => {

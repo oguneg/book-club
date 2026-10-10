@@ -30,6 +30,10 @@ const schema = z
     APP_URL: z.url().optional(),
     /** Signs sessions and tokens. At least 32 random characters on a server (openssl rand -hex 32). */
     BETTER_AUTH_SECRET: z.string().min(32).optional(),
+    /** The native app's URL scheme (app.json "scheme"): where sign-in returns to in the app. */
+    APP_SCHEME: z.string().default('bookclub'),
+    /** The iOS app's bundle ID: Sign in with Apple tokens from the app are issued to it. */
+    APPLE_BUNDLE_ID: z.string().default('se.ogun.bookclub'),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
     /** Google Books API key (ISBN lookups). Without it, ISBNs are looked up on Open Library only. */

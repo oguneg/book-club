@@ -1,4 +1,5 @@
 import { MAX_NAME_LENGTH, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '@bookclub/shared';
+import { expo } from '@better-auth/expo';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { haveIBeenPwned } from 'better-auth/plugins/haveibeenpwned';
@@ -27,13 +28,20 @@ export interface AuthDeps {
 }
 
 export function createAuth({ env, db, mailer, log, beforeUserDelete }: AuthDeps) {
+  const isDev = env.APP_ENV === 'development';
   return betterAuth({
     appName: 'Bookclub',
     baseURL: env.PUBLIC_URL,
     basePath: '/api/auth',
     secret: env.BETTER_AUTH_SECRET,
-    // Where sign-in may redirect back to (the web app), and which browser origins may call it.
-    trustedOrigins: [...new Set([env.APP_URL, env.PUBLIC_URL, ...env.CORS_ORIGINS])],
+    // Where sign-in may redirect back to (the web app, the native app's scheme), and which browser
+    // origins may call it. Expo Go (exp://) only in development.
+    trustedOrigins: [
+      ...new Set([env.APP_URL, env.PUBLIC_URL, ...env.CORS_ORIGINS]),
+      `${env.APP_SCHEME}://`,
+      'https://appleid.apple.com',
+      ...(isDev ? ['exp://', 'exp://**'] : []),
+    ],
     database: drizzleAdapter(db, { provider: 'pg', schema }),
 
     emailAndPassword: {
@@ -64,10 +72,21 @@ export function createAuth({ env, db, mailer, log, beforeUserDelete }: AuthDeps)
       },
     },
 
-    socialProviders:
-      env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
-        ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET, prompt: 'select_account' } }
-        : {},
+    socialProviders: {
+      ...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
+        ? { google: { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET, prompt: 'select_account' as const } }
+        : {}),
+      // Sign in with Apple from the iOS app: the app sends Apple's ID token, checked against Apple's
+      // public keys and our bundle ID, so no secret is needed. (The web redirect flow would need a
+      // Service ID and key; the web app doesn't offer Apple.) Expo Go's own ID only in development:
+      // any app run in Expo Go gets tokens for it.
+      apple: {
+        clientId: env.APPLE_BUNDLE_ID,
+        clientSecret: '',
+        appBundleIdentifier: env.APPLE_BUNDLE_ID,
+        audience: isDev ? [env.APPLE_BUNDLE_ID, 'host.exp.Exponent'] : [env.APPLE_BUNDLE_ID],
+      },
+    },
     account: {
       // Google sign-in joins an existing account with the same address, but only one whose email was
       // confirmed (Better Auth's default), so an unconfirmed sign-up can't capture someone's Google login.
@@ -126,7 +145,8 @@ export function createAuth({ env, db, mailer, log, beforeUserDelete }: AuthDeps)
       useSecureCookies: env.PUBLIC_URL.startsWith('https://'),
     },
 
-    plugins: env.PASSWORD_BREACH_CHECK ? [haveIBeenPwned()] : [],
+    // expo(): the native app keeps its session in secure storage and signs in through deep links.
+    plugins: [expo(), ...(env.PASSWORD_BREACH_CHECK ? [haveIBeenPwned()] : [])],
   });
 }
 

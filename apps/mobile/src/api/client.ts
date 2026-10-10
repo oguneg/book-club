@@ -1,4 +1,6 @@
+import { Platform } from 'react-native';
 import type { z } from 'zod';
+import { sessionHeaders } from '@/auth/client';
 import { API_URL } from '@/config';
 
 export class ApiError extends Error {
@@ -20,9 +22,14 @@ type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 async function request<T>(method: Method, path: string, schema: z.ZodType<T>, body?: unknown, signal?: AbortSignal): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     method,
-    // The session cookie; in development the API is on another port of the same site.
-    credentials: 'include',
-    headers: { Accept: 'application/json', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    // Web: the browser's session cookie (in development the API is on another port of the same site).
+    // Native: the stored session cookie as a header, and nothing the platform might add on its own.
+    credentials: Platform.OS === 'web' ? 'include' : 'omit',
+    headers: {
+      Accept: 'application/json',
+      ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+      ...(await sessionHeaders()),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal,
   });

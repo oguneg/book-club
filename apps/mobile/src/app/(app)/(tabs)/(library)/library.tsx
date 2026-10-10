@@ -58,7 +58,7 @@ export default function MyBooks() {
         <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, lineHeight: fontSize.xxl * 1.15, color: colors.text }}>
           {t('myBooks.title')}
         </Text>
-        <IconButton icon={Plus} label={t('myBooks.add')} onPress={() => router.push({ pathname: '/books', params: { pick: 'read' } })} />
+        <IconButton icon={Plus} label={t('myBooks.addShort')} showLabel tone="accent" onPress={() => router.push({ pathname: '/books', params: { pick: 'read' } })} />
       </View>
       <Segmented
         label={t('myBooks.sections')}

@@ -21,8 +21,11 @@ export function bookRoutes({ auth, books }: { auth: Auth; books: BookService }) 
       if (!allowBooks(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
       await next();
     })
-    .use('/covers/*', signedIn, async (c, next) => {
-      if (!allowCovers(c.get('user').id)) return c.json({ error: 'rate_limited' }, 429);
+    // Covers are public pictures: no session needed (native image requests carry no cookie), so they're
+    // limited per address instead of per account.
+    .use('/covers/*', async (c, next) => {
+      const address = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'local';
+      if (!allowCovers(address)) return c.json({ error: 'rate_limited' }, 429);
       await next();
     })
     .onError((err, c) => {
