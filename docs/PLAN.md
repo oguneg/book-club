@@ -43,6 +43,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
   - [x] A real app icon (book and ribbon on bookcloth), splash, Android adaptive and themed icons, favicon. The data export opens the share sheet on phones; crashes on phones reach our server like the web's. A scripted "native client" (no Origin, cookie as a header) passes sign-in, the API, the export, the live socket and sign-out.
   - [x] Owner: Apple Developer Program membership (already has one, with a published app).
   - [x] Offline logging (Product principle 3): logs go into a queue on the device (localStorage on the web, a file on phones, one per account), show at once, and are sent in order with the time they were made, on sign-in, when the connection or the app comes back, and every 30 s while waiting. The server places a late log at its own time and never lets an older one move you back. A bar above the tab bar shows what's waiting (Sync now) or what the server refused and why. Not yet: opening the app from cold without a connection (needs the query cache kept on the phone; test in airplane mode on TestFlight first).
+  - [x] Find a book, never empty: your Want to read and popular books before you type, your own status on results ("You're reading this"), and on phones a barcode scanner (expo-camera, EAN-13 978/979 only, torch, camera permission asked on its own page; no microphone). Needs a new build to try.
   - [ ] App Store name: undecided. The first submission creates the App Store Connect record under the placeholder in `eas.json` (`submit.testflight.ios.appName`); the name can be changed there before release. The home-screen name is `expo.name` ("Bookclub").
   - [ ] Owner, in a terminal in `apps/mobile` (Windows is fine; EAS builds in the cloud): `npx eas-cli@latest build -p ios --profile testflight --auto-submit` (signs in to Apple, registers the bundle ID with Sign in with Apple, creates the certificate and profile, builds, then submits and creates the app record).
   - [ ] Owner: add internal testers in App Store Connect › TestFlight; try sign-in (email, Google, Apple), logging, notes, clubs, the data export on a phone. External testers later need Beta App Review: a beta description, a feedback email and a review account on staging.
@@ -51,7 +52,7 @@ owner to click through. Scope: [PRODUCT.md](../PRODUCT.md). Design: [ARCHITECTUR
 
 ## Later
 
-- [ ] **iOS, after TestFlight:** push notifications, barcode scanner, App Store release.
+- [ ] **iOS, after TestFlight:** push notifications, App Store release. (The barcode scanner came with 9b.)
 - [ ] **Android (much later):** Play Console, the mandatory 12-tester / 14-day closed test, Play Store.
 
 ## Needs the owner

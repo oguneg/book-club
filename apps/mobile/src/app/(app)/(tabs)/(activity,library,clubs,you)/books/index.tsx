@@ -1,17 +1,21 @@
 import { looksLikeIsbn, normalizeIsbn } from '@bookclub/shared';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { ScanBarcode } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { lookupIsbn, useBookSearch } from '@/api/books';
 import { useClub } from '@/api/clubs';
 import { ApiError } from '@/api/client';
+import { useReadings, useWantToRead } from '@/api/readings';
 import { bookErrorMessage } from '@/books/errors';
 import { parsePick } from '@/books/pick';
 import { formatAuthors } from '@/books/format';
 import { BookRow } from '@/components/BookRow';
 import { PageTitle } from '@/components/PageTitle';
+import { CoverRow, PopularBooks } from '@/components/PopularBooks';
 import { Screen } from '@/components/Screen';
+import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
 import { Hint } from '@/components/ui/Section';
 import { TextField } from '@/components/ui/TextField';
@@ -40,6 +44,18 @@ export default function FindBook() {
   }, [text]);
 
   const search = useBookSearch(query);
+  const readings = useReadings();
+  const want = useWantToRead();
+  // Your own relation to each book in the results: reading it beats having read it beats wanting it.
+  const status = useMemo(() => {
+    const byBook = new Map<string, string>();
+    for (const b of want.data ?? []) byBook.set(b.bookKey, t('books.status.want'));
+    for (const r of readings.data ?? []) if (r.status === 'finished') byBook.set(r.bookKey, t('books.status.finished'));
+    for (const r of readings.data ?? []) if (r.status === 'reading') byBook.set(r.bookKey, t('books.status.reading'));
+    return byBook;
+  }, [want.data, readings.data, t]);
+  // Before anything is typed: books you saved for later, and what people are reading this week.
+  const idle = text.trim().length < 2 && !isbnState.busy && !isbnState.notFound && !isbnState.error;
 
   async function submit() {
     if (!looksLikeIsbn(text)) {
@@ -82,7 +98,8 @@ export default function FindBook() {
             setText(value);
             setIsbnState({ busy: false });
           }}
-          autoFocus
+          // On the web the keyboard is already there; on phones it would cover Scan and the suggestions.
+          autoFocus={Platform.OS === 'web'}
           autoCorrect={false}
           returnKeyType="search"
           inputMode="search"
@@ -96,7 +113,33 @@ export default function FindBook() {
           </View>
         )}
         {search.isError && <Notice message={bookErrorMessage(t, search.error)} />}
+        {Platform.OS !== 'web' && (
+          <Button
+            variant="secondary"
+            label={t('books.scan')}
+            icon={<ScanBarcode size={20} color={colors.text} strokeWidth={1.75} />}
+            onPress={() => router.push({ pathname: '/books/scan', params: pick })}
+          />
+        )}
       </View>
+
+      {idle && (
+        <View style={{ marginTop: space.xl, gap: space.xl }}>
+          <CoverRow
+            title={t('books.fromWant')}
+            items={(want.data ?? []).map((b) => ({
+              key: b.id,
+              title: b.edition.title,
+              authors: b.edition.authors,
+              cover: b.edition.cover,
+              href: b.edition.workKey
+                ? { pathname: '/books/work/[key]', params: { key: b.edition.workKey, ...pick } }
+                : { pathname: '/books/edition/[id]', params: { id: b.edition.id, ...pick } },
+            }))}
+          />
+          <PopularBooks pick={params.pick} />
+        </View>
+      )}
 
       <View style={{ marginTop: space.lg, gap: space.xs }} accessibilityLiveRegion="polite">
         {(search.isFetching || isbnState.busy) && (
@@ -112,6 +155,7 @@ export default function FindBook() {
             href={{ pathname: '/books/work/[key]', params: { key: work.key, ...pick } }}
             cover={work.cover}
             title={work.title}
+            note={status.get(`w:${work.key}`)}
             lines={[
               formatAuthors(work.authors),
               [work.firstPublished ? t('books.firstPublished', { year: work.firstPublished }) : null, t('books.editions', { count: work.editionCount })]

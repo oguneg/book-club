@@ -13,6 +13,7 @@ export function BookRow({
   coverSize = 'sm',
   onPress,
   selected = false,
+  note,
 }: {
   href: Href;
   cover: string | null;
@@ -22,6 +23,8 @@ export function BookRow({
   /** Instead of following the link (e.g. show the book in the pane beside the list). */
   onPress?: () => void;
   selected?: boolean;
+  /** Your own relation to the book, e.g. "You're reading this". */
+  note?: string | null;
 }) {
   const { colors, fonts, fontSize, space, radius } = useTheme();
   // Link passes its props to the Pressable as a plain style, so a style function wouldn't apply here.
@@ -31,7 +34,7 @@ export function BookRow({
     <Pressable
       accessibilityRole={onPress ? 'button' : 'link'}
       onPress={onPress}
-      accessibilityLabel={[title, ...details].join(', ')}
+      accessibilityLabel={[title, ...details, note].filter(Boolean).join(', ')}
       onHoverIn={() => setHighlighted(true)}
       onHoverOut={() => setHighlighted(false)}
       onPressIn={() => setHighlighted(true)}
@@ -55,6 +58,11 @@ export function BookRow({
             {line}
           </Text>
         ))}
+        {note && (
+          <Text style={{ fontSize: fontSize.sm, fontWeight: '600', color: colors.accent }} numberOfLines={1}>
+            {note}
+          </Text>
+        )}
       </View>
     </Pressable>
   );

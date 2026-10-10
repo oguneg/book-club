@@ -252,6 +252,13 @@
       "wanted": "In your Want to read",
       "unwant": "Remove",
       "unwantLabel": "Remove from Want to read"
+    },
+    "scan": "Scan a barcode",
+    "fromWant": "From your Want to read",
+    "status": {
+      "reading": "You’re reading this",
+      "finished": "You’ve read this",
+      "want": "On your Want to read"
     }
   },
   "clubs": {
@@ -793,5 +800,19 @@
     "yourBook": "your book",
     "refused": "{{what}} in {{title}} wasn’t saved. {{reason}}",
     "dismiss": "OK"
+  },
+  "scan": {
+    "title": "Scan a book",
+    "point": "Point at the barcode on the back of the book",
+    "notABook": "That isn’t a book’s barcode. Look for the one starting 978 or 979.",
+    "looking": "Looking up ISBN {{isbn}}…",
+    "notFound": "We couldn’t find ISBN {{isbn}} in the catalogues. You can add the book by hand.",
+    "again": "Scan again",
+    "torch": "Torch",
+    "ask": "Point your camera at the barcode on the back of a book and we’ll find it. The camera is only on while this screen is open.",
+    "denied": "Camera access is off for this app. Turn it on in Settings to scan barcodes, or type the ISBN instead.",
+    "allow": "Allow the camera",
+    "openSettings": "Open Settings",
+    "typeInstead": "Type it instead"
   }
 }

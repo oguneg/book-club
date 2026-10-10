@@ -271,6 +271,9 @@ Bookcloth pill, 52px tall, a plus and "Note" in on-bookcloth, at the bottom righ
 ### Sheets
 A bottom sheet on phones (grabber, title in Literata 20px, ×, scrolling content, safe-area padding) and a centred 480px dialog from 1024px. The Modal is the dialog and carries the title as its name. Used for: Update page (with "I'm just starting" before the first log), + Note, the notes at a place on the line, the book's ⋯ menu, inviting to a club, and the ending.
 
+### Finding a book
+Never an empty page. Before anything is typed: "From your Want to read" and "Popular this week", each a row of covers face out (a tap opens the book, keeping what the search is for, e.g. choosing a club's book). Results say your own relation to a book in bookcloth under its details: "You're reading this", "You've read this", "On your Want to read". On phones the keyboard waits (it would cover the rest), and "Scan a barcode" opens the scanner: the camera full-bleed under the header, a white frame the shape of a barcode, one line of guidance on a dark pill ("Point at the barcode on the back of the book"; red frame and "That isn't a book's barcode" for anything else), a round torch switch for reading in bed, and a card at the foot while looking up or when the ISBN isn't known ("Add it by hand", "Scan again"). Asking for the camera is a page of its own that says why, with "Type it instead".
+
 ### Sync state
 Logging never waits for the network. A log goes into the device's queue, the bar moves at once, and the toast says "Saved on this device. It will sync when you're online." when it couldn't be sent. While anything waits, a quiet bar sits just above the tab bar (at the foot of the sidebar from 1024px): a cloud-off mark, "2 updates saved here, waiting to sync" and Sync now. A log the server refuses takes its place with the reason and OK, so nothing disappears silently. Nothing shows when everything is sent.
 
