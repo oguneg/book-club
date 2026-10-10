@@ -6,6 +6,13 @@ import { useTheme } from '@/theme';
 
 const SIZES = { sm: 48, md: 72, lg: 128 } as const;
 
+/** A steady cloth colour per title, so books without a cover still look like different books. */
+function clothOf(title: string, cloths: readonly string[]): string {
+  let h = 0;
+  for (let i = 0; i < title.length; i++) h = (h * 31 + title.charCodeAt(i)) >>> 0;
+  return cloths[h % cloths.length]!;
+}
+
 /** A book cover, or a cloth-coloured stand-in with the title's first letter when there is none. */
 export function BookCover({ cover, title, size = 'sm' }: { cover: string | null; title: string; size?: keyof typeof SIZES }) {
   const { colors, fonts, radius } = useTheme();
@@ -19,9 +26,9 @@ export function BookCover({ cover, title, size = 'sm' }: { cover: string | null;
     return (
       <View
         aria-hidden
-        style={{ width, height, borderRadius: radius.sm, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}
+        style={{ width, height, borderRadius: radius.sm, backgroundColor: clothOf(title, colors.people), alignItems: 'center', justifyContent: 'center' }}
       >
-        <Text style={{ color: colors.onAccent, fontFamily: fonts.headingBold, fontSize: width / 2.4 }}>{title.trim().charAt(0).toUpperCase()}</Text>
+        <Text style={{ color: '#FFFFFF', fontFamily: fonts.headingBold, fontSize: width / 2.4 }}>{title.trim().charAt(0).toUpperCase()}</Text>
       </View>
     );
   }

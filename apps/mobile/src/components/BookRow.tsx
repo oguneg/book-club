@@ -5,7 +5,19 @@ import { BookCover } from '@/components/BookCover';
 import { useTheme } from '@/theme';
 
 /** A tappable line in a list of books or editions: cover, title, then up to two lines of details. */
-export function BookRow({ href, cover, title, lines }: { href: Href; cover: string | null; title: string; lines: (string | null)[] }) {
+export function BookRow({
+  href,
+  cover,
+  title,
+  lines,
+  coverSize = 'sm',
+}: {
+  href: Href;
+  cover: string | null;
+  title: string;
+  lines: (string | null)[];
+  coverSize?: 'sm' | 'md';
+}) {
   const { colors, fonts, fontSize, space, radius } = useTheme();
   // Link passes its props to the Pressable as a plain style, so a style function wouldn't apply here.
   const [highlighted, setHighlighted] = useState(false);
@@ -28,7 +40,7 @@ export function BookRow({ href, cover, title, lines }: { href: Href; cover: stri
           backgroundColor: highlighted ? colors.surface : 'transparent',
         }}
       >
-        <BookCover cover={cover} title={title} />
+        <BookCover cover={cover} title={title} size={coverSize} />
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontFamily: fonts.heading, fontSize: fontSize.md, color: colors.text }} numberOfLines={2}>
             {title}

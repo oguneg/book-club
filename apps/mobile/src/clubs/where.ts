@@ -7,6 +7,8 @@ export interface LineMember {
   /** 0..10000, or null when they haven't started. */
   position: number | null;
   me: boolean;
+  /** Their photo, if they have one. */
+  image?: string | null;
 }
 
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? name;

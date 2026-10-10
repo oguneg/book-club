@@ -159,12 +159,13 @@ components:
 
 **Creative North Star: "The Reading Journal, one tap deep"**
 
-Every screen is a page of a well-kept reading journal, and every common job is one tap from it. Three places live in the tab bar: **My books** (what you're reading, each one tap from an update; what you want to read; what you've read), **Clubs**, and **You**. The book itself is the organizing line: first page to last, bookcloth red for what you've read, the faces of your club above it and note bubbles below it, like comments along a track. Updating your page, writing a note and reading the notes at a place each open a sheet over the page and close back to it; nothing sends you to another screen to do the everyday things.
+Every screen is a page of a well-kept reading journal, and every common job is one tap from it. Four places live in the tab bar: **Home** (your books face out, what's coming up, and what your clubs have been doing), **My books** (reading, want to read, read), **Clubs**, and **You**. Each tab keeps its own history, so the bar stays put while you go deeper. The book itself is the organizing line: first page to last, bookcloth red for what you've read, the faces of your club above it and note bubbles below it, like comments along a track. Updating your page, writing a note and reading the notes at a place each open a sheet over the page and close back to it; nothing sends you to another screen to do the everyday things.
 
 It stays calm and quiet: warm paper in light, a dark study in dark mode, ink for almost everything, bookcloth red spent on "you", the read part of the line and the screen's main action. Rare actions (finish, stop, edit pages, owner tools) wait behind a ⋯ or a gear, never on the page.
 
 **Key Characteristics:**
-- A tab bar with icons and labels (My books · Clubs · You) on phones; the same three as a slim sidebar from 1024px.
+- A tab bar with icons and labels (Home · My books · Clubs · You) on phones; the same four as a slim sidebar from 1024px, on every screen.
+- Home is alive with other people: who read how far, who left a note (its text only once you're there), who finished, who joined.
 - My books: Reading · Want to read · Read. Each book you're reading is a card with its progress and its own "Update page", so several books are one tap each.
 - One page per book: the book line (your ribbon, your club's faces, the notes) on your own reading, with the club as a layer, not a second page.
 - Start opens on "Where are you?"; finishing opens a quiet ending with Undo; a new club is three short steps.
@@ -220,7 +221,7 @@ Ink on warm paper with one bookcloth accent; dark mode is the same roles under l
 
 ## Layout
 
-One reading column (max 600px), 16px gutters, centred in whatever space the navigation leaves. Phones: the tab bar sits at the bottom (64px, icon over label) and the floating "+ Note" button rides 16px above the bottom, aligned to the column's right edge. From 1024px: the tabs become a 220px sidebar (icon beside label, the active one in a soft bookcloth pill), the column stays 600px, and sheets open as a centred 480px dialog. Detail pages (a reading, a club, a book) open over the tabs with a back link at the top. Section rhythm: 24px between sections, 12px within. Covers: 48px (lists), 72px (headers), 128px (a book's own page).
+One reading column (max 600px), 16px gutters, centred in whatever space the navigation leaves. Phones: the tab bar sits at the bottom (64px, icon over label) and the floating "+ Note" button rides 16px above the bottom, aligned to the column's right edge. From 1024px: the tabs become a 220px sidebar (icon beside label, the active one in a soft bookcloth pill), the column stays 600px, and sheets open as a centred 480px dialog. Detail pages (a book, a club, a form) open inside the tab you're in, under a header with a back arrow (and the page's rare actions, like ⋯, on the right); the tab bar or sidebar never goes away. Section rhythm: 24px between sections, 12px within. Covers are big wherever a book is the point: 128px face out on Home and a book's own page, 72px in My books, 48px in lists and the feed.
 
 ## Elevation & Depth
 
@@ -245,6 +246,15 @@ Gently rounded: 6px for chips and messages, 10px for buttons, fields and segment
 - **Secondary:** raised-paper fill with a control-edge border and an ink label (+5 / +10 / +25, "I have another edition").
 - **Icon button:** 44px round, a 20px Lucide icon in ink (⋯, gear, invite, ×); always has a label for screen readers.
 - **Quiet actions:** rare or destructive choices (finish, stop, remove) are text buttons in a menu sheet, with a confirm step.
+
+### Home
+A greeting by time of day and today's date; "Reading now", your books face out (128px covers with a soft shadow, a slim animated progress bar, "Page 188 of 320 · 59%", and an "Update" pill); "Coming up", the clubs' meetings in the next two weeks as cards; "In your clubs", the feed. Feed rows: the person's avatar with a small bookcloth badge for the kind (note, finished, joined), one bold line ("Sam read 26 pages", "Lena left a note at ≈ p. 61"), then the note in Literata or "Ahead of where you are" with an eye-off mark, and the club and time in faded ink; the book's cover on the right. Without clubs, a card invites you to start or join one.
+
+### People
+Avatars are photos when people have them, otherwise initials in white on a steady colour of their own, picked from eight muted hues (plum, teal, ochre, slate, wine, olive, rust, dusk; white passes 5.8:1 on each); you are bookcloth. Covers without art use the same hues, by title, with the title's first letter. When an edition has no cover, it borrows one from another edition of the same book.
+
+### Motion
+Progress bars glide to their new place (700ms, exponential ease-out) and a dark pill toast rises with "+26 pages" after an update (fades after 2.4s); both are still with reduced motion on. A book's own page has a soft wash of its cover, blurred and faded into the paper, behind a big cover with a lifted shadow.
 
 ### Floating note button
 Bookcloth pill, 52px tall, a plus and "Note" in on-bookcloth, at the bottom right of the column. Shown wherever you can write (your reading, a club whose book you're reading).
@@ -271,9 +281,9 @@ Two to four choices in one row: a paper track with a hairline edge, the selected
 - **Page field:** 140px wide, Literata 34px tabular figures, centred, between "Page" and "of 320" in the Update page sheet.
 
 ### Navigation
-- **Tabs:** My books (books on a shelf), Clubs (people), You (person in a circle); active in bookcloth, inactive in faded ink; wrapped in a navigation landmark.
+- **Tabs:** Home (house), My books (books on a shelf), Clubs (people), You (person in a circle); active in bookcloth, inactive in faded ink; wrapped in a navigation landmark. Each tab is its own stack; tapping the active tab returns to its first screen.
 - **Rows:** lists of places (clubs, account, help) are rows with an icon or cover, a title, one line of detail and a chevron, 56px tall.
-- **Back link:** a chevron and the parent's name in bookcloth at the top of every detail page.
+- **Header:** detail pages get a quiet header on the page colour: a bookcloth back arrow, no title (the page's own heading says it), actions on the right. Pages outside the tabs (privacy, terms, help) keep a back link.
 - Keyboard focus shows a 2px bookcloth outline at 2px offset on the web.
 
 ### Book Line (signature)

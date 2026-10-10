@@ -13,7 +13,7 @@ import {
 import { and, asc, desc, eq, gte, inArray, ne, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { logProgressInput, startReadingInput, updateReadingInput } from '@bookclub/shared';
-import { toEdition } from '../books/service';
+import { borrowedCovers, toEdition, withCover } from '../books/service';
 import type { Db } from '../db/client';
 import { clubBook, clubMember, edition, progressEvent, reading, user, wantToRead } from '../db/schema';
 import type { LiveHub } from '../live';
@@ -35,10 +35,10 @@ export class ReadingError extends Error {
 type ReadingRow = typeof reading.$inferSelect;
 type EditionRow = typeof edition.$inferSelect;
 
-function toReading(r: ReadingRow, e: EditionRow): Reading {
+function toReading(r: ReadingRow, e: EditionRow, covers: Map<string, string> = new Map()): Reading {
   return {
     id: r.id,
-    edition: toEdition(e),
+    edition: withCover(toEdition(e), covers),
     bookKey: r.bookKey,
     startPage: r.startPage,
     endPage: r.endPage,
@@ -69,13 +69,14 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
 
   async function detail(id: string, userId: string): Promise<ReadingDetail> {
     const row = await own(id, userId);
+    const covers = await borrowedCovers(db, [row.edition]);
     const history = await db
       .select()
       .from(progressEvent)
       .where(eq(progressEvent.readingId, id))
       .orderBy(asc(progressEvent.createdAt));
     return {
-      ...toReading(row.reading, row.edition),
+      ...toReading(row.reading, row.edition, covers),
       history: history.map((h) => ({ at: h.createdAt.toISOString(), position: h.position, page: h.page })),
     };
   }
@@ -112,7 +113,8 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
           sql`case ${reading.status} when 'reading' then 0 when 'finished' then 1 else 2 end`,
           desc(sql`coalesce(${reading.finishedAt}, ${reading.updatedAt})`),
         );
-      return rows.map((r) => toReading(r.reading, r.edition));
+      const covers = await borrowedCovers(db, rows.map((r) => r.edition));
+      return rows.map((r) => toReading(r.reading, r.edition, covers));
     },
 
     async start(userId: string, input: z.infer<typeof startReadingInput>): Promise<ReadingDetail> {
@@ -146,7 +148,8 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
         .innerJoin(edition, eq(edition.id, wantToRead.editionId))
         .where(eq(wantToRead.userId, userId))
         .orderBy(desc(wantToRead.createdAt));
-      return rows.map((r) => ({ id: r.want.id, edition: toEdition(r.edition), bookKey: r.want.bookKey, addedAt: r.want.createdAt.toISOString() }));
+      const covers = await borrowedCovers(db, rows.map((r) => r.edition));
+      return rows.map((r) => ({ id: r.want.id, edition: withCover(toEdition(r.edition), covers), bookKey: r.want.bookKey, addedAt: r.want.createdAt.toISOString() }));
     },
 
     /** Save a book for later; saving it again just changes the edition. Not for a book you're reading. */

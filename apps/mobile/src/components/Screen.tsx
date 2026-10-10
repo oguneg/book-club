@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { HeaderShownContext } from 'expo-router/react-navigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 
@@ -10,6 +11,8 @@ import { useTheme } from '@/theme';
 export function Screen({ children, width = 'default', overlay }: { children: ReactNode; width?: 'default' | 'narrow' | 'wide'; overlay?: ReactNode }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // Under a header (a book, a club, a form opened from a tab) the header already clears the status bar.
+  const underHeader = useContext(HeaderShownContext);
   return (
     <View style={styles.fill}>
       <ScrollView
@@ -18,7 +21,7 @@ export function Screen({ children, width = 'default', overlay }: { children: Rea
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: insets.top + theme.space.xl,
+            paddingTop: underHeader ? theme.space.sm : insets.top + theme.space.xl,
             paddingBottom: insets.bottom + theme.space.xl + (overlay ? 72 : 0),
             paddingHorizontal: theme.space.lg,
           },

@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { HeaderShownContext } from 'expo-router/react-navigation';
 import { Text, View } from 'react-native';
 import { authClient } from '@/auth/client';
 import { LegalLinks } from '@/components/LegalPage';
@@ -17,10 +18,12 @@ export function FormLayout({ title, subtitle, children }: { title: string; subti
   const { t } = useTranslation();
   // Signed-out visitors (sign-in, sign-up, invites) see where the privacy policy and terms are.
   const { data: session, isPending } = authClient.useSession();
+  // Opened from a tab, the header above already has the way back.
+  const underHeader = useContext(HeaderShownContext);
   return (
     <Screen width="narrow">
       <PageTitle title={title} />
-      {session ? (
+      {underHeader ? null : session ? (
         <BackButton label={t('common.back')} fallback="/" />
       ) : (
         <Text style={{ fontFamily: fonts.headingBold, fontSize: fontSize.lg, color: colors.accent }}>{t('appName')}</Text>

@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { normalizeIsbn, type Edition, type ManualEditionInput, type WorkSummary } from '@bookclub/shared';
-import { and, eq, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, lt, sql } from 'drizzle-orm';
 import type { Logger } from 'pino';
 import type { Db } from '../db/client';
 import { bookCache, cover, edition } from '../db/schema';
@@ -39,6 +39,26 @@ export function toEdition(row: EditionRow): Edition {
     cover: row.cover,
     source: row.source,
   };
+}
+
+/**
+ * Covers borrowed from another edition of the same work, for editions without one: Open Library often has
+ * no cover for the very edition someone picked, but the book has plenty. Keyed by work.
+ */
+export async function borrowedCovers(db: Db, editions: { cover: string | null; workKey: string | null }[]): Promise<Map<string, string>> {
+  const works = [...new Set(editions.filter((e) => !e.cover && e.workKey).map((e) => e.workKey!))];
+  if (works.length === 0) return new Map();
+  const rows = await db
+    .selectDistinctOn([edition.workKey], { workKey: edition.workKey, cover: edition.cover })
+    .from(edition)
+    .where(and(inArray(edition.workKey, works), isNotNull(edition.cover)))
+    .orderBy(edition.workKey, desc(edition.updatedAt));
+  return new Map(rows.map((r) => [r.workKey!, r.cover!]));
+}
+
+/** An edition with its own cover, or one borrowed from its work (see borrowedCovers). */
+export function withCover<T extends { cover: string | null; workKey: string | null }>(e: T, borrowed: Map<string, string>): T {
+  return e.cover || !e.workKey ? e : { ...e, cover: borrowed.get(e.workKey) ?? null };
 }
 
 const year = (published: string | null) => Number(/\d{4}/.exec(published ?? '')?.[0] ?? 0);

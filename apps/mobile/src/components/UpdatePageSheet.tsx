@@ -6,6 +6,7 @@ import { useReadingActions } from '@/api/readings';
 import { readingErrorMessage } from '@/readings/errors';
 import { Button } from '@/components/ui/Button';
 import { Notice } from '@/components/ui/Notice';
+import { useToast } from '@/components/Toast';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
@@ -34,6 +35,7 @@ export function UpdatePageSheet({
   const { t } = useTranslation();
   const { colors, fonts, fontSize, radius, space, minTouch } = useTheme();
   const actions = useReadingActions(reading.id);
+  const toast = useToast();
   const history = reading.history ?? [];
   const lastWasPercent = history.length > 0 && history[history.length - 1]?.page === null;
   const [mode, setMode] = useState<'page' | 'percent'>(lastWasPercent ? 'percent' : 'page');
@@ -60,7 +62,12 @@ export function UpdatePageSheet({
     try {
       await (mode === 'page' ? actions.logPage(n) : actions.logPercent(n));
       if ((mode === 'page' && n >= reading.endPage) || (mode === 'percent' && n >= 100)) setFinishedPrompt(true);
-      else close();
+      else {
+        close();
+        // A little "well done" for moving on; a correction backwards is just saved.
+        const moved = mode === 'page' ? n - current : 0;
+        toast(moved > 0 ? t('reading.update.toastPages', { count: moved }) : t('reading.update.toastSaved'));
+      }
     } catch (err) {
       setError(readingErrorMessage(t, err));
     }

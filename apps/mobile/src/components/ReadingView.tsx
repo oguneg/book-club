@@ -1,8 +1,11 @@
 import { paceAt, positionToPage, type ClubDetail } from '@bookclub/shared';
 import { MoreHorizontal, Plus, Users } from 'lucide-react-native';
-import { useEffect, useState, type ReactNode } from 'react';
+import { Image } from 'expo-image';
+import { useNavigation } from 'expo-router';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { coverUri } from '@/api/client';
 import { useClub, useClubs } from '@/api/clubs';
 import { useClubProgress, useReading, useReadingActions } from '@/api/readings';
 import { authClient } from '@/auth/client';
@@ -34,7 +37,7 @@ import { useTheme } from '@/theme';
  * book and below it, and "+ Note". When your club is reading it, the club is a layer on the same page:
  * everyone's faces on the line, the next meeting, and the club's notes first. Rare things are in ⋯.
  */
-export function ReadingView({ readingId, top, open, onOpened }: { readingId: string; top?: ReactNode; open?: 'update' | 'note'; onOpened?: () => void }) {
+export function ReadingView({ readingId, open, onOpened }: { readingId: string; open?: 'update' | 'note'; onOpened?: () => void }) {
   const { t } = useTranslation();
   const { colors, fonts, fontSize, space } = useTheme();
   const query = useReading(readingId);
@@ -54,31 +57,60 @@ export function ReadingView({ readingId, top, open, onOpened }: { readingId: str
   const { data: session } = authClient.useSession();
   const [now] = useState(() => Date.now());
   const pace = club?.currentBook ? paceAt(now, pacePlan(club.currentBook)) : null;
-  const members: LineMember[] | undefined = progress?.map((m) => ({ userId: m.userId, name: m.name, position: m.reading?.position ?? null, me: m.userId === session?.user.id }));
+  const photos = new Map(club?.members.map((m) => [m.userId, m.image]) ?? []);
+  const members: LineMember[] | undefined = progress?.map((m) => ({
+    userId: m.userId,
+    name: m.name,
+    image: photos.get(m.userId) ?? null,
+    position: m.reading?.position ?? null,
+    me: m.userId === session?.user.id,
+  }));
   const scope = club && notesFor === 'club' ? (`club:${club.id}` as const) : 'all';
 
   useEffect(() => {
     if (open && reading) onOpened?.();
   }, [open, reading, onOpened]);
 
+  // The rare things (finish, stop, pages, remove) wait behind ⋯ in the header.
+  const navigation = useNavigation();
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerRight: () => <IconButton icon={MoreHorizontal} label={t('reading.menu.label')} onPress={() => setSheet('menu')} /> });
+  }, [navigation, t]);
+
   return (
     <Screen overlay={reading_ ? <Fab icon={Plus} label={t('notes.sheet.fab')} onPress={() => setSheet('note')} /> : undefined}>
       <PageTitle title={reading?.edition.title} />
-      {top}
       {query.isPending && <ActivityIndicator color={colors.accent} />}
       {query.isError && <Notice message={readingErrorMessage(t, query.error)} />}
       {reading && (
         <View style={{ gap: space.xl }}>
-          <View style={{ flexDirection: 'row', gap: space.lg, alignItems: 'flex-start' }}>
-            <BookCover cover={reading.edition.cover} title={reading.edition.title} size="md" />
-            <View style={{ flex: 1, gap: space.xs }}>
-              <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xl, lineHeight: fontSize.xl * 1.2, color: colors.text }}>
-                {reading.edition.title}
-              </Text>
-              <Text style={{ color: colors.textMuted, fontSize: fontSize.md }}>{formatAuthors(reading.edition.authors)}</Text>
-              <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '600', fontVariant: ['tabular-nums'], marginTop: space.xs }}>{readingLine(t, reading)}</Text>
+          {/* The book, face out, over a soft wash of its own cover: every book's page looks like that book. */}
+          <View
+            style={{
+              marginHorizontal: -space.lg,
+              marginTop: -space.sm,
+              paddingHorizontal: space.lg,
+              paddingTop: space.lg,
+              paddingBottom: space.xl,
+              borderBottomLeftRadius: 24,
+              borderBottomRightRadius: 24,
+              overflow: 'hidden',
+              backgroundColor: colors.surface,
+            }}
+          >
+            <CoverWash cover={reading.edition.cover} />
+            <View style={{ flexDirection: 'row', gap: space.lg, alignItems: 'flex-end' }}>
+              <View style={{ borderRadius: 8, boxShadow: '0px 2px 4px rgba(42,33,25,0.14), 0px 14px 28px -12px rgba(42,33,25,0.5)' }}>
+                <BookCover cover={reading.edition.cover} title={reading.edition.title} size="lg" />
+              </View>
+              <View style={{ flex: 1, gap: space.xs, paddingBottom: space.xs }}>
+                <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xl, lineHeight: fontSize.xl * 1.2, color: colors.text }}>
+                  {reading.edition.title}
+                </Text>
+                <Text style={{ color: colors.textMuted, fontSize: fontSize.md }}>{formatAuthors(reading.edition.authors)}</Text>
+                <Text style={{ color: colors.text, fontSize: fontSize.md, fontWeight: '700', fontVariant: ['tabular-nums'], marginTop: space.sm }}>{readingLine(t, reading)}</Text>
+              </View>
             </View>
-            <IconButton icon={MoreHorizontal} label={t('reading.menu.label')} onPress={() => setSheet('menu')} />
           </View>
 
           <View style={{ gap: space.md }}>
@@ -170,4 +202,21 @@ function ClubStrip({ club }: { club: ClubDetail }) {
     ? [t('reading.club.next', { when: formatMeetingTime(next.startsAt) }), next.readToPage ? t('reading.club.readTo', { page: next.readToPage }) : null].filter(Boolean).join(' · ')
     : t('home.members', { count: club.members.length });
   return <NavRow href={{ pathname: '/clubs/[id]', params: { id: club.id } }} icon={Users} title={club.name} detail={detail} />;
+}
+
+/** The cover, blurred and faded into the page behind the book's header. */
+function CoverWash({ cover }: { cover: string | null }) {
+  const { colors, scheme } = useTheme();
+  if (!cover) return null;
+  return (
+    <View aria-hidden pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <Image
+        source={{ uri: coverUri(cover) }}
+        blurRadius={36}
+        contentFit="cover"
+        style={{ position: 'absolute', top: -48, left: -48, right: -48, bottom: -48, opacity: scheme === 'dark' ? 0.4 : 0.55 }}
+      />
+      <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background, opacity: scheme === 'dark' ? 0.45 : 0.4 }]} />
+    </View>
+  );
 }

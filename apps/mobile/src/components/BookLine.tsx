@@ -7,26 +7,20 @@ import Svg, { Path } from 'react-native-svg';
 import { useNotes, type NoteScope } from '@/api/notes';
 import { whereEveryoneIs, type LineMember } from '@/clubs/where';
 import { placeLabel } from '@/notes/format';
+import { Avatar } from '@/components/Avatar';
 import { NoteCard } from '@/components/NoteCard';
 import { Notice } from '@/components/ui/Notice';
 import { Hint } from '@/components/ui/Section';
 import { Sheet } from '@/components/ui/Sheet';
 import { useTheme } from '@/theme';
 
-const FACE = 28;
+const FACE = 32;
 /** Faces sit this far above the line on a stem, clear of your ribbon. */
 const FACE_LIFT = 26;
 const MARK = 26;
 /** Marks closer than this (in pixels) share one, with a count, so the line stays readable on a phone. */
 const MIN_GAP = 30;
 
-const initials = (name: string) =>
-  name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((w) => w.charAt(0).toUpperCase())
-    .join('');
 const percentOf = (position: number) => Math.round((position / POSITION_SCALE) * 100);
 
 export type { LineMember };
@@ -110,19 +104,9 @@ export function BookLine({
               aria-label={p.items.map((m) => t('notes.line.person', { name: m.name, percent: percentOf(m.position ?? 0) })).join(', ')}
               style={{ position: 'absolute', left: pct(p.x), marginLeft: -FACE / 2, top: lineY - FACE_LIFT - FACE, width: FACE, alignItems: 'center' }}
             >
-              <View
-                style={{
-                  width: FACE,
-                  height: FACE,
-                  borderRadius: FACE / 2,
-                  borderWidth: 1,
-                  borderColor: colors.control,
-                  backgroundColor: colors.surface,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ color: colors.text, fontSize: 11, fontWeight: '700', letterSpacing: 0.3 }}>{initials(face.name)}</Text>
+              {/* A ring of page colour lifts the face off the stem and the line. */}
+              <View style={{ width: FACE, height: FACE, borderRadius: FACE / 2, borderWidth: 2, borderColor: colors.background, backgroundColor: colors.background }}>
+                <Avatar id={face.userId} name={face.name} image={face.image} size={FACE - 4} />
                 {p.items.length > 1 && <Badge count={p.items.length} people />}
               </View>
               {/* A stem ties the face to its place on the line. */}
@@ -225,7 +209,7 @@ export function BookLine({
         <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>p. 1</Text>
         <Text style={{ color: colors.textMuted, fontSize: fontSize.xs }}>{`p. ${viewer?.endPage ?? endPage}`}</Text>
       </View>
-      {showFaces && <Hint>{whereEveryoneIs(t, others, mine, Math.max(1, endPage - startPage))}</Hint>}
+      {showFaces && <Hint>{whereEveryoneIs(t, others, mine, Math.max(1, endPage - startPage + 1))}</Hint>}
       <Sheet visible={Boolean(open)} onClose={() => setOpenKey(null)} title={open ? t('notes.line.sheetTitle', { place: placeOf(open.items) }) : ''}>
         {message && <Notice tone="info" message={message} />}
         <View style={{ gap: space.lg, paddingBottom: space.sm }}>

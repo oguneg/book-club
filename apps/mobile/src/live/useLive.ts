@@ -39,10 +39,13 @@ export function useLive() {
       } else if (event.type === 'club') {
         void queryClient.invalidateQueries({ queryKey: ['club', event.clubId] });
         void queryClient.invalidateQueries({ queryKey: ['clubs'] });
+        void queryClient.invalidateQueries({ queryKey: ['activity'] });
       } else if (event.type === 'club-progress') {
         void queryClient.invalidateQueries({ queryKey: ['club-progress', event.clubId] });
+        void queryClient.invalidateQueries({ queryKey: ['activity'] });
       } else if (event.type === 'notes') {
         void queryClient.invalidateQueries({ queryKey: ['notes', event.bookKey] });
+        void queryClient.invalidateQueries({ queryKey: ['activity'] });
       }
     };
 

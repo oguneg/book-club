@@ -137,7 +137,7 @@ export function BookMenu({
             onConfirm={async () => {
               await actions.remove();
               onClose();
-              router.dismissTo('/');
+              router.dismissTo('/library');
             }}
           />
         </View>

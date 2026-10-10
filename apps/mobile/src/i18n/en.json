@@ -508,7 +508,10 @@
       "endBody": "That's the end of the book. Mark it as finished?",
       "markFinished": "Yes, I finished it",
       "notYet": "Not yet",
-      "justStarted": "I’m just starting"
+      "justStarted": "I’m just starting",
+      "toastPages_one": "+1 page",
+      "toastPages_other": "+{{count}} pages",
+      "toastSaved": "Saved"
     },
     "menu": {
       "label": "More for this book",
@@ -682,6 +685,7 @@
     "home": "Go to the start"
   },
   "tabs": {
+    "home": "Home",
     "books": "My books",
     "clubs": "Clubs",
     "you": "You",
@@ -719,5 +723,28 @@
     "readNotes": "Read the notes",
     "nextUp": "Next up",
     "undo": "Not finished yet? Undo"
+  },
+  "homeFeed": {
+    "greeting": {
+      "morning": "Good morning, {{name}}",
+      "afternoon": "Good afternoon, {{name}}",
+      "evening": "Good evening, {{name}}"
+    },
+    "readingNow": "Reading now",
+    "seeAll": "See all",
+    "update": "Update",
+    "comingUp": "Coming up",
+    "inYourClubs": "In your clubs",
+    "quiet": "All quiet in your clubs these last two weeks.",
+    "together": "Reading is better together",
+    "togetherBody": "Start a club for friends or family, or join one with a code.",
+    "progress_one": "{{name}} read 1 page",
+    "progress_other": "{{name}} read {{count}} pages",
+    "progressDetail": "{{percent}}% through {{title}}",
+    "note": "{{name}} left a note at {{place}}",
+    "reply": "{{name}} replied to your note",
+    "noteAhead": "Ahead of where you are",
+    "finished": "{{name}} finished {{title}}",
+    "joined": "{{name}} joined {{club}}"
   }
 }

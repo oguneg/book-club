@@ -15,6 +15,7 @@ import { authClient } from '@/auth/client';
 import { CrashScreen } from '@/components/CrashScreen';
 import { WebChrome } from '@/components/WebChrome';
 import { installCrashReporting } from '@/monitoring/crashes';
+import { ToastProvider } from '@/components/Toast';
 import { ThemeProvider, useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -41,7 +42,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <Navigator />
+          <ToastProvider>
+            <Navigator />
+          </ToastProvider>
         </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

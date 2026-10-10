@@ -21,6 +21,8 @@ import { bookRoutes } from './routes/books';
 import { clubRoutes } from './routes/clubs';
 import { noteRoutes } from './routes/notes';
 import { readingRoutes } from './routes/readings';
+import { activityRoutes } from './routes/activity';
+import { createActivityService } from './activity/service';
 
 export interface AppDeps {
   env: Env;
@@ -109,6 +111,7 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw));
 
   app.route('/api/account', accountRoutes({ auth, db: database.db }));
+  app.route('/api/activity', activityRoutes({ auth, activity: createActivityService({ db: database.db }) }));
   app.route('/api', bookRoutes({ auth, books }));
   app.route('/api', clubRoutes({ auth, clubs, readings, live }));
   app.route('/api', readingRoutes({ auth, readings }));

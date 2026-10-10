@@ -15,7 +15,7 @@ import {
 import { and, asc, count, desc, eq, gt, inArray, ne, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 import type { createClubInput, meetingInput, setClubBookInput, updateClubBookInput, updateClubInput } from '@bookclub/shared';
-import { toEdition } from '../books/service';
+import { borrowedCovers, toEdition, withCover } from '../books/service';
 import type { Db } from '../db/client';
 import { club, clubBook, clubMember, edition, meeting, user } from '../db/schema';
 
@@ -103,9 +103,10 @@ export function createClubService({ db }: { db: Db }) {
           .orderBy(asc(meeting.startsAt))
       : [];
 
+    const covers = await borrowedCovers(db, books.map((b) => b.edition));
     const toClubBook = ({ book, edition: e }: (typeof books)[number]): ClubBook => ({
       id: book.id,
-      edition: toEdition(e),
+      edition: withCover(toEdition(e), covers),
       status: book.status,
       startDate: book.startDate,
       finishDate: book.finishDate,
@@ -137,7 +138,9 @@ export function createClubService({ db }: { db: Db }) {
       .from(clubBook)
       .innerJoin(edition, eq(edition.id, clubBook.editionId))
       .where(and(eq(clubBook.clubId, clubId), eq(clubBook.status, 'current')));
-    return row ? { title: row.title, authors: row.authors, cover: row.cover, bookKey: bookKeyOf(row) } : null;
+    if (!row) return null;
+    const { cover } = withCover(row, await borrowedCovers(db, [row]));
+    return { title: row.title, authors: row.authors, cover, bookKey: bookKeyOf(row) };
   }
 
   async function meetingOfClub(clubId: string, meetingId: string) {

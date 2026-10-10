@@ -1,11 +1,14 @@
 import { Tabs } from 'expo-router';
 import { BottomTabBar } from 'expo-router/js-tabs';
-import { CircleUser, Library, Users } from 'lucide-react-native';
+import { CircleUser, House, Library, Users } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { useWindowDimensions, View } from 'react-native';
 import { useTheme } from '@/theme';
 
-/** Three places, always one tap away: your books, your clubs, and you. */
+/**
+ * Four places, always one tap away: what's happening, your books, your clubs, and you. Each tab keeps its
+ * own history, so the bar (or the sidebar on a wide screen) stays put while you go deeper.
+ */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors, fontSize, layout } = useTheme();
@@ -37,9 +40,10 @@ export default function TabsLayout() {
         sceneStyle: { backgroundColor: colors.background },
       }}
     >
-      <Tabs.Screen name="index" options={{ title: t('tabs.books'), tabBarIcon: ({ color, size }) => <Library color={color} size={size} strokeWidth={1.75} /> }} />
-      <Tabs.Screen name="clubs" options={{ title: t('tabs.clubs'), tabBarIcon: ({ color, size }) => <Users color={color} size={size} strokeWidth={1.75} /> }} />
-      <Tabs.Screen name="you" options={{ title: t('tabs.you'), tabBarIcon: ({ color, size }) => <CircleUser color={color} size={size} strokeWidth={1.75} /> }} />
+      <Tabs.Screen name="(activity)" options={{ title: t('tabs.home'), tabBarIcon: ({ color, size }) => <House color={color} size={size} strokeWidth={1.75} /> }} />
+      <Tabs.Screen name="(library)" options={{ title: t('tabs.books'), tabBarIcon: ({ color, size }) => <Library color={color} size={size} strokeWidth={1.75} /> }} />
+      <Tabs.Screen name="(clubs)" options={{ title: t('tabs.clubs'), tabBarIcon: ({ color, size }) => <Users color={color} size={size} strokeWidth={1.75} /> }} />
+      <Tabs.Screen name="(you)" options={{ title: t('tabs.you'), tabBarIcon: ({ color, size }) => <CircleUser color={color} size={size} strokeWidth={1.75} /> }} />
     </Tabs>
   );
 }
