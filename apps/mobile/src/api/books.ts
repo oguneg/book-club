@@ -24,10 +24,12 @@ export function usePopularBooks({ enabled = true }: { enabled?: boolean } = {}) 
   });
 }
 
-export function useWork(key: string) {
+/** A book and its editions; `edition` is the one a search matched (an Open Library id), offered first. */
+export function useWork(key: string, edition?: string) {
   return useQuery({
-    queryKey: ['books', 'work', key],
-    queryFn: ({ signal }) => apiGet(`/api/books/works/${encodeURIComponent(key)}`, workEditionsResponse, signal),
+    queryKey: ['books', 'work', key, edition ?? null],
+    queryFn: ({ signal }) =>
+      apiGet(`/api/books/works/${encodeURIComponent(key)}${edition ? `?edition=${encodeURIComponent(edition)}` : ''}`, workEditionsResponse, signal),
     staleTime: 10 * 60 * 1000,
   });
 }

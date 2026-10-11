@@ -78,6 +78,8 @@ interface OlSearchDoc {
   title?: string;
   author_name?: string[];
   cover_i?: number;
+  /** The editions that matched the search, best first (when asked for). */
+  editions?: { docs?: { key?: string; title?: string; cover_i?: number }[] };
   first_publish_year?: number;
   edition_count?: number;
   /** Normalised subjects, e.g. "fiction", "fiction,_romance,_contemporary", "nonfiction". */
@@ -112,11 +114,19 @@ interface OlEdition {
 }
 
 const SEARCH_FIELDS = 'key,title,author_name,cover_i,first_publish_year,edition_count';
+const MATCH_FIELDS = 'editions,editions.key,editions.title,editions.cover_i';
 
 function toWorkSummary(doc: OlSearchDoc): WorkSummary | null {
   const key = workId(doc.key);
   const title = clean(doc.title);
   if (!key || !title) return null;
+  // The edition the search matched, when it goes by another title (a translation, usually).
+  const matched = doc.editions?.docs?.[0];
+  const matchTitle = clean(matched?.title);
+  const match =
+    matched?.key && matchTitle && simplify(matchTitle) !== simplify(title)
+      ? { key: editionId(matched.key), title: matchTitle, cover: positiveInt(matched.cover_i) ? `ol-${matched.cover_i}-M` : null }
+      : null;
   return {
     key,
     title,
@@ -124,7 +134,41 @@ function toWorkSummary(doc: OlSearchDoc): WorkSummary | null {
     firstPublished: positiveInt(doc.first_publish_year),
     editionCount: positiveInt(doc.edition_count) ?? 0,
     cover: positiveInt(doc.cover_i) ? `ol-${doc.cover_i}-M` : null,
+    ...(match ? { match } : {}),
   };
+}
+
+/**
+ * Search as you type: the words as typed, or the same with the last word as the start of a word, so
+ * "kürk mant" finds Kürk Mantolu Madonna while a complete "Dune" keeps its ranking (a wildcard alone ranks
+ * Jane Eyre first). Search syntax is taken out of what was typed. Empty when nothing searchable is left.
+ */
+export function searchQuery(typed: string): string {
+  const words = typed
+    .replace(/[+\-!(){}[\]^"~*?:\\/&|]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => (/^(AND|OR|NOT)$/.test(w) ? w.toLowerCase() : w));
+  const plain = words.join(' ');
+  const last = words.at(-1);
+  if (!last || !/^\p{L}{2,}$/u.test(last)) return plain;
+  return `(${plain}) OR (${[...words.slice(0, -1), `${last}*`].join(' ')})`;
+}
+
+/** Titles that are what was typed come first, then titles that start with it; otherwise Open Library's order. */
+function byTitleMatch(typed: string, works: WorkSummary[]): WorkSummary[] {
+  const wanted = simplify(typed);
+  const score = (w: WorkSummary) =>
+    Math.max(
+      ...[w.title, w.match?.title].map((t) => {
+        const s = t ? simplify(t) : '';
+        return s === wanted ? 2 : s.startsWith(wanted) ? 1 : 0;
+      }),
+    );
+  return works
+    .map((work, order) => ({ work, order, score: score(work) }))
+    .sort((a, b) => b.score - a.score || a.order - b.order)
+    .map((x) => x.work);
 }
 
 function fromOlEdition(raw: OlEdition, authors: string[]): ProviderEdition | null {
@@ -151,10 +195,16 @@ function fromOlEdition(raw: OlEdition, authors: string[]): ProviderEdition | nul
 export function openLibrary(fetchFn: Fetch) {
   const name = 'openlibrary';
   return {
+    /** Works matching a title or author as typed so far, each with the edition the search matched. */
     async searchWorks(query: string): Promise<WorkSummary[]> {
-      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=20&fields=${SEARCH_FIELDS}`;
+      const q = searchQuery(query);
+      if (!q) return [];
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=20&fields=${SEARCH_FIELDS},${MATCH_FIELDS}`;
       const body = await getJson<{ docs?: OlSearchDoc[] }>(fetchFn, name, url);
-      return (body?.docs ?? []).map(toWorkSummary).filter((w): w is WorkSummary => w !== null);
+      return byTitleMatch(
+        query,
+        (body?.docs ?? []).map(toWorkSummary).filter((w): w is WorkSummary => w !== null),
+      );
     },
 
     async work(key: string): Promise<WorkSummary | null> {
@@ -192,6 +242,12 @@ export function openLibrary(fetchFn: Fetch) {
     async editions(key: string, authors: string[]): Promise<ProviderEdition[]> {
       const body = await getJson<{ entries?: OlEdition[] }>(fetchFn, name, `https://openlibrary.org/works/${key}/editions.json?limit=100`);
       return (body?.entries ?? []).map((e) => fromOlEdition(e, authors)).filter((e): e is ProviderEdition => e !== null);
+    },
+
+    /** One edition by its Open Library id ("OL39492785M"). Open Library lists authors per work, so they're passed in. */
+    async edition(id: string, authors: string[]): Promise<ProviderEdition | null> {
+      const raw = await getJson<OlEdition>(fetchFn, name, `https://openlibrary.org/books/${id}.json`);
+      return raw ? fromOlEdition(raw, authors) : null;
     },
 
     /** The edition with this ISBN; authors are empty (the service fills them in from the work). */

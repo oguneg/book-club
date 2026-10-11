@@ -1,6 +1,6 @@
 import { bookSearchResponse, editionResponse, workEditionsResponse } from '@bookclub/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { Fetch } from './books/providers';
+import { searchQuery, type Fetch } from './books/providers';
 import { normalizeQuery } from './books/service';
 import { inArray } from 'drizzle-orm';
 import type { Database } from './db/client';
@@ -86,7 +86,8 @@ describe('book search', () => {
 
   it('finds works on Open Library and caches the answer', async () => {
     const f = fixtures(1);
-    const ctx = await setup([[/search\.json\?q=the%20hobbit/, () => json(f.search)]]);
+    // The words as typed, or with the last one as the start of a word (search as you type).
+    const ctx = await setup([[/search\.json\?q=\(the%20hobbit\)%20OR%20\(the%20hobbit\*\)&.*editions\.title/, () => json(f.search)]]);
     const q = `the hobbit`;
     const res = await ctx.browser.request(`/api/books/search?q=${encodeURIComponent(q)}`);
     expect(res.status).toBe(200);
@@ -109,6 +110,63 @@ describe('book search', () => {
 
   it('normalizes queries for the cache', () => {
     expect(normalizeQuery('  The\tHOBBIT ')).toBe('the hobbit');
+  });
+
+  it('searches as you type: the last word also counts as the start of a word, without search syntax', () => {
+    expect(searchQuery('kürk mant')).toBe('(kürk mant) OR (kürk mant*)');
+    expect(searchQuery('Dune')).toBe('(Dune) OR (Dune*)');
+    expect(searchQuery('Title: "Ab" (Cd)')).toBe('(Title Ab Cd) OR (Title Ab Cd*)');
+    expect(searchQuery('Volume 2 B')).toBe('Volume 2 B');
+    expect(searchQuery('1984')).toBe('1984');
+    expect(searchQuery('dune OR')).toBe('(dune or) OR (dune or*)');
+    expect(searchQuery('?!')).toBe('');
+  });
+
+  it('puts titles that are what was typed first, and names the edition a search matched', async () => {
+    const ctx = await setup([
+      [
+        /search\.json\?q=\(?of%20mice/,
+        () =>
+          json({
+            docs: [
+              { key: '/works/OL9W', title: 'Mice and Men in Literature', author_name: ['A. Critic'], edition_count: 2 },
+              {
+                key: '/works/OL23204W',
+                title: 'Of Mice and Men',
+                author_name: ['John Steinbeck'],
+                edition_count: 293,
+                cover_i: 14319003,
+                editions: { docs: [{ key: '/books/OL39492785M', title: 'Of Mice and Men', cover_i: 1 }] },
+              },
+            ],
+          }),
+      ],
+      [
+        /search\.json\?q=\(fareler/,
+        () =>
+          json({
+            docs: [
+              {
+                key: '/works/OL23204W',
+                title: 'Of Mice and Men',
+                author_name: ['John Steinbeck'],
+                edition_count: 293,
+                cover_i: 14319003,
+                editions: { docs: [{ key: '/books/OL39492785M', title: 'Fareler ve insanlar', cover_i: 12902969 }] },
+              },
+            ],
+          }),
+      ],
+    ]);
+    const english = bookSearchResponse.parse(await (await ctx.browser.request(`/api/books/search?q=of%20mice%20and%20men%20${ctx.n}`)).json());
+    expect(english.works.map((w) => w.key)).toEqual(['OL9W', 'OL23204W']);
+    const exact = bookSearchResponse.parse(await (await ctx.browser.request('/api/books/search?q=of%20mice%20and%20men')).json());
+    // An edition under the work's own title isn't a match worth naming.
+    expect(exact.works[0]).toMatchObject({ key: 'OL23204W' });
+    expect(exact.works[0]!.match).toBeUndefined();
+
+    const turkish = bookSearchResponse.parse(await (await ctx.browser.request('/api/books/search?q=fareler%20ve%20insanlar')).json());
+    expect(turkish.works[0]).toMatchObject({ key: 'OL23204W', title: 'Of Mice and Men', match: { key: 'OL39492785M', title: 'Fareler ve insanlar', cover: 'ol-12902969-M' } });
   });
 });
 
@@ -134,6 +192,31 @@ describe('editions of a work', () => {
 
     const one = await ctx.browser.request(`/api/books/editions/${editions[1]!.id}`);
     expect(editionResponse.parse(await one.json()).edition.title).toBe('The Hobbit');
+  });
+
+  it("fetches the edition a search matched when it isn't among the first Open Library lists", async () => {
+    const f = fixtures(8);
+    const turkish = `OL${f.work.slice(2, -1)}9M`;
+    const ctx = await setup([
+      [/search\.json\?q=key/, () => json(f.workDoc)],
+      [/editions\.json/, () => json(f.editions)],
+      [
+        new RegExp(`/books/${turkish}\\.json`),
+        () => json({ key: `/books/${turkish}`, title: 'Hobbit', publishers: ['İthaki'], number_of_pages: 352, languages: [{ key: '/languages/tur' }], works: [{ key: `/works/${f.work}` }] }),
+      ],
+      [/\/books\/OL1M\.json/, () => json({ key: '/books/OL1M', title: 'Another book', works: [{ key: '/works/OL1W' }] })],
+    ]);
+    const res = workEditionsResponse.parse(await (await ctx.browser.request(`/api/books/works/${f.work}?edition=${turkish}`)).json());
+    const matched = res.editions.find((e) => e.id === res.matched);
+    expect(matched).toMatchObject({ title: 'Hobbit', publisher: 'İthaki', language: 'tur', pageCount: 352, authors: ['J.R.R. Tolkien'], workKey: f.work });
+    expect(res.editions).toHaveLength(4);
+
+    // Known now; and an edition of another work, or no edition key at all, is ignored.
+    const again = workEditionsResponse.parse(await (await ctx.browser.request(`/api/books/works/${f.work}?edition=${turkish}`)).json());
+    expect(again.matched).toBe(res.matched);
+    expect(ctx.calls.filter((u) => u.includes(`/books/${turkish}`))).toHaveLength(1);
+    expect(workEditionsResponse.parse(await (await ctx.browser.request(`/api/books/works/${f.work}?edition=OL1M`)).json()).matched).toBeNull();
+    expect(workEditionsResponse.parse(await (await ctx.browser.request(`/api/books/works/${f.work}?edition=nope`)).json()).matched).toBeNull();
   });
 
   it('answers 404 for malformed and unknown works', async () => {

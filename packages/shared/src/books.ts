@@ -10,6 +10,11 @@ export const workSummary = z.object({
   editionCount: z.number().int(),
   /** Pass to /api/covers/{cover}; null when there is no cover. */
   cover: z.string().nullable(),
+  /**
+   * Search results only: the edition the search matched, when its title isn't the work's. That's usually a
+   * translation filed under the original ("Fareler ve İnsanlar" under Of Mice and Men).
+   */
+  match: z.object({ key: z.string(), title: z.string(), cover: z.string().nullable() }).optional(),
 });
 export type WorkSummary = z.infer<typeof workSummary>;
 
@@ -33,7 +38,12 @@ export const edition = z.object({
 export type Edition = z.infer<typeof edition>;
 
 export const bookSearchResponse = z.object({ works: z.array(workSummary) });
-export const workEditionsResponse = z.object({ work: workSummary, editions: z.array(edition) });
+export const workEditionsResponse = z.object({
+  work: workSummary,
+  editions: z.array(edition),
+  /** The id of the edition asked for with ?edition= (a search's match), when it belongs to this work. */
+  matched: z.string().nullable().optional(),
+});
 export const editionResponse = z.object({ edition });
 
 export const MAX_PAGE_COUNT = 20_000;

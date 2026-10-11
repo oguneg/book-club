@@ -64,7 +64,7 @@ deploy/          update.sh, backup scripts, compose files
 
 ## Books and editions
 
-- **Search** (`GET /api/books/search?q=`) asks Open Library for *works* (a book across all its editions), so the next step can list a work's editions (`GET /api/books/works/:key`, up to 100, stored as `edition` rows with our own ids). The app sorts editions in the reader's languages first and filters them as you type.
+- **Search** (`GET /api/books/search?q=`) asks Open Library for *works* (a book across all its editions), so the next step can list a work's editions (`GET /api/books/works/:key`, up to 100, stored as `edition` rows with our own ids). It searches as you type: the words as typed OR the same with the last word as a prefix (`(kürk mant) OR (kürk mant*)`; a wildcard alone ruins the ranking of complete titles), then titles that are what was typed, or start with it, move up. Each result carries the edition the search matched when it goes by another title (a translation filed under the original, e.g. "Fareler ve insanlar" under Of Mice and Men); opening it passes `?edition=OL…M`, which is fetched and stored if it isn't among the 100 and comes back as `matched`, so it's the edition offered. The app sorts the other editions in the reader's languages first and filters them as you type.
 - **ISBN** (`GET /api/books/isbn/:isbn`, ISBN-10 or -13, checksum validated): known locally, else Open Library (its editions belong to a work, so every edition counts as the same book), with Google Books as the failsafe (key stays on the server, ~1,000 requests a day by default): for an ISBN Open Library doesn't know or while it's down (joined to the Open Library work when title and author clearly match), and for the page count and cover when Open Library's edition lacks them. A Google answer only counts if the volume lists the ISBN, and its 503 gets one retry. "Nobody knows this ISBN" is remembered for a week, but not while Open Library is down.
 - **Caching:** provider answers live in `book_cache` (searches and edition lists for 7 days, work summaries 30), editions in `edition`. Repeat questions never reach a provider.
 - **Covers** (`GET /api/covers/:key`): keys are `ol-<id>-<S|M|L>` or `g-<volumeId>`, validated before the server builds the provider URL itself (no user-supplied URLs, so no SSRF). Images are fetched once, stored in Postgres (`cover`), and served with immutable cache headers. Only JPEG/PNG/GIF/WebP up to 2 MB. Covers and cached lookups are a cache: a daily job drops lookups older than 30 days and covers older than 6 months (fetched again when someone looks), and backups leave both tables' data out.
@@ -96,7 +96,7 @@ All of this lives in `packages/shared` with unit tests.
 |---|---|
 | `user`, `session`, `account`, `verification` | Better Auth's tables; `user` also has display name and avatar |
 | `edition` | source (openlibrary/google/manual) + source_id (unique), isbn13, title, subtitle, authors[], publisher, published, page_count, language (ISO 639-2), work_key, cover, created_by |
-| `book_cache` | key (`search:…`, `work:…`, `editions:…`, `isbn-missing:…`), value, fetched_at |
+| `book_cache` | key (`search2:…`, `work:…`, `editions:…`, `isbn-missing:…`), value, fetched_at |
 | `cover` | key, content_type, bytes (null = provider has none), fetched_at |
 | `club` | name, description, invite_code (unique, 8 chars without look-alikes), member_cap, created_by |
 | `club_member` | club_id + user_id, role (owner/admin/member; one owner per club, enforced by a partial unique index), joined_at |

@@ -7,6 +7,7 @@ import { createRateLimiter } from '../rate-limit';
 import { requireSession, type SignedInEnv } from '../session';
 
 const WORK_KEY = /^OL\d{1,12}W$/;
+const OL_EDITION = /^OL\d{1,12}M$/;
 const EDITION_ID = /^[0-9a-f-]{36}$/;
 
 export function bookRoutes({ auth, books }: { auth: Auth; books: BookService }) {
@@ -44,7 +45,9 @@ export function bookRoutes({ auth, books }: { auth: Auth; books: BookService }) 
   app.get('/books/works/:key', async (c) => {
     const key = c.req.param('key');
     if (!WORK_KEY.test(key)) return c.json({ error: 'not_found' }, 404);
-    const result = await books.workWithEditions(key);
+    // A search's matched edition; anything else is ignored.
+    const matched = c.req.query('edition');
+    const result = await books.workWithEditions(key, matched && OL_EDITION.test(matched) ? matched : undefined);
     return result ? c.json(result) : c.json({ error: 'not_found' }, 404);
   });
 

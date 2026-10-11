@@ -132,18 +132,24 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
     },
 
     async searchWorks(query: string): Promise<WorkSummary[]> {
-      const works = await cached(`search:${normalizeQuery(query)}`, TTL.search, () => ol.searchWorks(query));
-      // Remember each work's summary, so opening it doesn't ask Open Library again.
+      // "search2": answers from before searching as you type (an empty one for "kürk mant") don't count.
+      const works = await cached(`search2:${normalizeQuery(query)}`, TTL.search, () => ol.searchWorks(query));
+      // Remember each work's summary, so opening it doesn't ask Open Library again (without this search's match).
       if (works.length > 0) {
         await db
           .insert(bookCache)
-          .values(works.map((w) => ({ key: `work:${w.key}`, value: { v: w } })))
+          .values(works.map(({ match: _match, ...w }) => ({ key: `work:${w.key}`, value: { v: w } })))
           .onConflictDoNothing();
       }
       return works;
     },
 
-    async workWithEditions(key: string): Promise<{ work: WorkSummary; editions: Edition[] } | null> {
+    /**
+     * A work and its editions, most useful first. `matched` is the Open Library edition a search matched (a
+     * translation, say): it's fetched when it isn't among the editions Open Library lists first, and its id
+     * comes back so it can be the one offered.
+     */
+    async workWithEditions(key: string, matched?: string): Promise<{ work: WorkSummary; editions: Edition[]; matched: string | null } | null> {
       const summary = await work(key);
       if (!summary) return null;
       // Refresh the stored editions from Open Library at most once a week.
@@ -151,8 +157,21 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
         await upsert(await ol.editions(key, summary.authors));
         return true;
       });
+      let matchedId: string | null = null;
+      if (matched) {
+        const [known] = await db.select().from(edition).where(and(eq(edition.source, 'openlibrary'), eq(edition.sourceId, matched)));
+        if (known) {
+          matchedId = known.workKey === key ? known.id : null;
+        } else {
+          const found = await ol.edition(matched, summary.authors).catch((err: unknown) => {
+            log.warn({ err, matched }, 'matched edition lookup failed');
+            return null;
+          });
+          if (found?.workKey === key) matchedId = (await upsert([found]))[0]?.id ?? null;
+        }
+      }
       const rows = await db.select().from(edition).where(and(eq(edition.workKey, key), eq(edition.source, 'openlibrary')));
-      return { work: summary, editions: rows.map(toEdition).sort(byUsefulness) };
+      return { work: summary, editions: rows.map(toEdition).sort(byUsefulness), matched: matchedId };
     },
 
     /**

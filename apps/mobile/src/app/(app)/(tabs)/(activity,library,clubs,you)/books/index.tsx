@@ -150,15 +150,20 @@ export default function FindBook() {
         )}
         {showEmpty && <Hint>{t('books.noResults', { query: query.trim() })}</Hint>}
         {works.map((work) => (
+          // A translation you searched for shows as itself, with the book it belongs to underneath.
           <BookRow
             key={work.key}
-            href={{ pathname: '/books/work/[key]', params: { key: work.key, ...pick } }}
-            cover={work.cover}
-            title={work.title}
+            href={{ pathname: '/books/work/[key]', params: { key: work.key, ...(work.match ? { edition: work.match.key } : {}), ...pick } }}
+            cover={work.match?.cover ?? work.cover}
+            title={work.match?.title ?? work.title}
             note={status.get(`w:${work.key}`)}
             lines={[
               formatAuthors(work.authors),
-              [work.firstPublished ? t('books.firstPublished', { year: work.firstPublished }) : null, t('books.editions', { count: work.editionCount })]
+              [
+                work.match ? work.title : null,
+                work.firstPublished ? t('books.firstPublished', { year: work.firstPublished }) : null,
+                t('books.editions', { count: work.editionCount }),
+              ]
                 .filter(Boolean)
                 .join(' · '),
             ]}

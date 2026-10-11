@@ -27,15 +27,16 @@ import { useTheme } from '@/theme';
 
 /**
  * A book (all its editions). One decision: start reading it (or save it for later), or choose it for a
- * club. We pick a sensible edition; "Different edition?" lists them all for readers who care which one.
+ * club. We pick a sensible edition (the one you searched for, when the search matched a translation);
+ * "Different edition?" lists them all for readers who care which one.
  */
 export default function BookPage() {
   const { colors, fonts, fontSize, space, minTouch } = useTheme();
   const { t } = useTranslation();
-  const { key, pick: pickId } = useLocalSearchParams<{ key: string; pick?: string }>();
+  const { key, pick: pickId, edition: matchKey } = useLocalSearchParams<{ key: string; pick?: string; edition?: string }>();
   const pick = pickId ? { pick: pickId } : {};
   const picking = parsePick(pickId);
-  const work = useWork(key);
+  const work = useWork(key, matchKey);
   const readings = useReadings();
   const club = useClub(picking?.clubId ?? '', { enabled: Boolean(picking?.clubId) });
   const chooseForClub = useChooseForClub(picking?.clubId ?? '');
@@ -48,13 +49,21 @@ export default function BookPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
 
-  const all = useMemo(() => sortByLanguage(work.data?.editions ?? [], preferredLanguages(getLocales().map((l) => l.languageCode))), [work.data]);
+  // The edition you searched for first, then editions in your phone's languages.
+  const all = useMemo(() => {
+    const sorted = sortByLanguage(work.data?.editions ?? [], preferredLanguages(getLocales().map((l) => l.languageCode)));
+    const matched = sorted.find((e) => e.id === work.data?.matched);
+    return matched ? [matched, ...sorted.filter((e) => e !== matched)] : sorted;
+  }, [work.data]);
   const editions = useMemo(() => {
     const words = filter.toLowerCase().split(/\s+/).filter(Boolean);
     return words.length === 0 ? all : all.filter((e) => words.every((w) => editionSearchText(e).includes(w)));
   }, [all, filter]);
-  const chosen = pickEdition(all);
+  const matched = all.find((e) => e.id === work.data?.matched);
+  const chosen = matched ?? pickEdition(all);
   const summary = work.data?.work;
+  // Searched by a translation's title: the page goes by that title.
+  const heading = matched?.title ?? summary?.title;
   const mine = readings.data?.find((r) => r.bookKey === `w:${key}` && r.status === 'reading');
   const forClub = picking?.kind === 'club';
   const saved = want.data?.find((b) => b.bookKey === `w:${key}`);
@@ -89,18 +98,20 @@ export default function BookPage() {
 
   return (
     <Screen>
-      <PageTitle title={summary?.title ?? t('books.workTitle')} />
+      <PageTitle title={heading ?? t('books.workTitle')} />
       {work.isPending && <ActivityIndicator color={colors.accent} />}
       {work.isError && <Notice message={bookErrorMessage(t, work.error)} />}
       {summary && (
         <View style={{ gap: space.xl }}>
           <View style={{ alignItems: 'center', gap: space.md, paddingTop: space.sm }}>
-            <BookCover cover={chosen?.cover ?? summary.cover} title={summary.title} size="lg" />
+            <BookCover cover={chosen?.cover ?? summary.cover} title={heading ?? summary.title} size="lg" />
             <View style={{ alignItems: 'center', gap: space.xs }}>
               <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xl, lineHeight: fontSize.xl * 1.2, color: colors.text, textAlign: 'center' }}>
-                {summary.title}
+                {heading}
               </Text>
-              <Text style={{ fontSize: fontSize.md, color: colors.textMuted, textAlign: 'center' }}>{formatAuthors(summary.authors)}</Text>
+              <Text style={{ fontSize: fontSize.md, color: colors.textMuted, textAlign: 'center' }}>
+                {[formatAuthors(summary.authors), heading !== summary.title ? summary.title : null].filter(Boolean).join(' · ')}
+              </Text>
             </View>
           </View>
 
