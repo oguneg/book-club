@@ -150,10 +150,66 @@ describe('ISBN lookup', () => {
     expect(ctx.calls).toHaveLength(0);
   });
 
-  it('asks Google Books first when it has a key', async () => {
+  it('asks Open Library first, with authors from the work, and leaves Google alone when nothing is missing', async () => {
+    const f = fixtures(4);
+    const isbn = randomIsbn();
+    const ctx = await setup(
+      [
+        [/openlibrary\.org\/isbn\//, () => json({ ...f.olIsbn, isbn_13: [isbn] })],
+        [/search\.json\?q=key/, () => json(f.prideWork)],
+        [/googleapis/, () => json(f.google(isbn))],
+      ],
+      { GOOGLE_BOOKS_API_KEY: 'test-key' },
+    );
+    const { edition } = editionResponse.parse(await (await ctx.browser.request(`/api/books/isbn/${isbn}`)).json());
+    expect(edition).toMatchObject({ source: 'openlibrary', authors: ['Jane Austen'], pageCount: 435, workKey: 'OL66554W', cover: 'ol-12645114-M' });
+    expect(ctx.calls.some((u) => u.includes('googleapis'))).toBe(false);
+    // Known now: no provider is asked again.
+    const before = ctx.calls.length;
+    await ctx.browser.request(`/api/books/isbn/${isbn}`);
+    expect(ctx.calls).toHaveLength(before);
+  });
+
+  it("fills in the page count and cover from Google Books when Open Library's edition lacks them", async () => {
+    const f = fixtures(5);
+    const isbn = randomIsbn();
+    const bare = { ...f.olIsbn, number_of_pages: undefined, covers: undefined };
+    const ctx = await setup(
+      [
+        [/openlibrary\.org\/isbn\//, () => json({ ...bare, isbn_13: [isbn] })],
+        [/search\.json\?q=key/, () => json(f.prideWork)],
+        [/googleapis/, () => json(f.google(isbn))],
+      ],
+      { GOOGLE_BOOKS_API_KEY: 'test-key' },
+    );
+    const { edition } = editionResponse.parse(await (await ctx.browser.request(`/api/books/isbn/${isbn}`)).json());
+    // Still Open Library's edition of the work, so it counts as the same book.
+    expect(edition).toMatchObject({ source: 'openlibrary', workKey: 'OL66554W', pageCount: 480, cover: 'g-gVol5abcd' });
+  });
+
+  it("falls back to Google Books for an ISBN Open Library doesn't know, joined to the work by title and author", async () => {
     const f = fixtures(3);
     const isbn = randomIsbn();
-    const ctx = await setup([[/googleapis\.com\/books\/v1\/volumes\?q=isbn:/, () => json(f.google(isbn))]], { GOOGLE_BOOKS_API_KEY: 'test-key' });
+    let googleAsked = 0;
+    const ctx = await setup(
+      [
+        [/openlibrary\.org\/isbn\//, () => new Response('', { status: 404 })],
+        // Google's "temporarily unavailable" gets one retry.
+        [/googleapis/, () => (++googleAsked === 1 ? json({ error: { code: 503 } }, 503) : json(f.google(isbn)))],
+        [
+          /search\.json\?q=Pride/,
+          () =>
+            json({
+              docs: [
+                { key: '/works/OL15165350W', title: 'Pride and Prejudice', author_name: ['Jane Austen'], edition_count: 132 },
+                { key: '/works/OL66554W', title: 'Pride and Prejudice', author_name: ['Jane Austen'], edition_count: 4042, editions: { docs: [{ title: 'Pride and Prejudice' }] } },
+                { key: '/works/OL1W', title: 'Pride and Prejudice and Zombies', author_name: ['Seth Grahame-Smith'], edition_count: 90 },
+              ],
+            }),
+        ],
+      ],
+      { GOOGLE_BOOKS_API_KEY: 'test-key' },
+    );
     const res = await ctx.browser.request(`/api/books/isbn/${isbn}`);
     expect(res.status).toBe(200);
     expect(editionResponse.parse(await res.json()).edition).toMatchObject({
@@ -163,27 +219,43 @@ describe('ISBN lookup', () => {
       pageCount: 480,
       language: 'eng',
       isbn13: isbn,
+      workKey: 'OL66554W',
     });
-    expect(ctx.calls[0]).toContain('key=test-key');
+    expect(googleAsked).toBe(2);
+    expect(ctx.calls.find((u) => u.includes('googleapis'))).toContain('key=test-key');
   });
 
-  it('falls back to Open Library, with authors from the work', async () => {
-    const f = fixtures(4);
+  it("ignores a Google answer about another book's ISBN", async () => {
+    const f = fixtures(6);
     const isbn = randomIsbn();
     const ctx = await setup(
       [
+        [/openlibrary\.org\/isbn\//, () => new Response('', { status: 404 })],
+        [/googleapis/, () => json(f.google(randomIsbn()))],
+      ],
+      { GOOGLE_BOOKS_API_KEY: 'test-key' },
+    );
+    expect((await ctx.browser.request(`/api/books/isbn/${isbn}`)).status).toBe(404);
+  });
+
+  it("uses Google alone while Open Library is down, and doesn't remember a miss it couldn't check", async () => {
+    const f = fixtures(7);
+    const isbn = randomIsbn();
+    const unknown = randomIsbn();
+    const ctx = await setup(
+      [
+        [/openlibrary\.org\/isbn\//, () => new Response('', { status: 500 })],
+        [new RegExp(`googleapis.*isbn:${isbn}`), () => json(f.google(isbn))],
         [/googleapis/, () => json({ totalItems: 0 })],
-        [/openlibrary\.org\/isbn\//, () => json({ ...f.olIsbn, isbn_13: [isbn] })],
-        [/search\.json\?q=key/, () => json(f.prideWork)],
       ],
       { GOOGLE_BOOKS_API_KEY: 'test-key' },
     );
     const { edition } = editionResponse.parse(await (await ctx.browser.request(`/api/books/isbn/${isbn}`)).json());
-    expect(edition).toMatchObject({ source: 'openlibrary', authors: ['Jane Austen'], pageCount: 435, workKey: 'OL66554W', cover: 'ol-12645114-M' });
-    // Known now: no provider is asked again.
+    expect(edition).toMatchObject({ source: 'google', workKey: null });
+    expect((await ctx.browser.request(`/api/books/isbn/${unknown}`)).status).toBe(502);
     const before = ctx.calls.length;
-    await ctx.browser.request(`/api/books/isbn/${isbn}`);
-    expect(ctx.calls).toHaveLength(before);
+    expect((await ctx.browser.request(`/api/books/isbn/${unknown}`)).status).toBe(502);
+    expect(ctx.calls.length).toBeGreaterThan(before);
   });
 
   it('remembers ISBNs nobody knows', async () => {

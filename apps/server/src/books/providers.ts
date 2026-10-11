@@ -48,6 +48,17 @@ async function getJson<T>(fetchFn: Fetch, provider: string, url: string): Promis
   return (await res.json()) as T;
 }
 
+/** For comparing names across sources: no case, accents or punctuation ("Kürk Mantolu Madonna" = "kurk mantolu madonna"). */
+export function simplify(name: string): string {
+  return name
+    .toLocaleLowerCase('tr')
+    .replace(/ı/g, 'i')
+    .normalize('NFKD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
 const workId = (key: string | undefined) => key?.replace(/^\/works\//, '') ?? null;
 const editionId = (key: string) => key.replace(/^\/books\//, '');
 const languageCode = (key: string | undefined) => key?.replace(/^\/languages\//, '') ?? null;
@@ -189,6 +200,26 @@ export function openLibrary(fetchFn: Fetch) {
       const found = raw ? fromOlEdition(raw, []) : null;
       return found && { ...found, isbn13 };
     },
+
+    /**
+     * The work a book belongs to, from its title and first author: of the works by that author whose own title,
+     * or one of whose editions' titles, is this one (translations are often filed under the original), the one
+     * with the most editions. Null unless both clearly match.
+     */
+    async findWork(title: string, author: string): Promise<string | null> {
+      const wanted = simplify(title);
+      const surname = simplify(author).split(' ').pop();
+      if (!wanted || !surname) return null;
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(`${title} ${author}`)}&limit=10&fields=key,title,author_name,edition_count,editions,editions.title`;
+      const body = await getJson<{ docs?: (OlSearchDoc & { editions?: { docs?: { title?: string }[] } })[] }>(fetchFn, name, url);
+      const matches = (body?.docs ?? []).filter(
+        (d) =>
+          (d.author_name ?? []).some((a) => simplify(a).split(' ').includes(surname)) &&
+          [d.title, ...(d.editions?.docs ?? []).map((e) => e.title)].some((t) => t !== undefined && simplify(t) === wanted),
+      );
+      matches.sort((a, b) => (b.edition_count ?? 0) - (a.edition_count ?? 0));
+      return workId(matches[0]?.key);
+    },
   };
 }
 
@@ -212,10 +243,20 @@ interface GoogleVolume {
 export function googleBooks(fetchFn: Fetch, apiKey: string) {
   const name = 'google';
   return {
+    /**
+     * The volume with this ISBN. Only a volume that lists the ISBN counts: Google's search sometimes answers an
+     * ISBN with unrelated books. Its "temporarily unavailable" (503) is common, so that gets one retry.
+     */
     async isbn(isbn13: string): Promise<ProviderEdition | null> {
-      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn13}&maxResults=1&key=${encodeURIComponent(apiKey)}`;
-      const body = await getJson<{ items?: GoogleVolume[] }>(fetchFn, name, url);
-      const volume = body?.items?.[0];
+      const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn13}&maxResults=3&key=${encodeURIComponent(apiKey)}`;
+      let body: { items?: GoogleVolume[] } | null;
+      try {
+        body = await getJson<{ items?: GoogleVolume[] }>(fetchFn, name, url);
+      } catch (err) {
+        if (!(err instanceof ProviderError && err.status === 503)) throw err;
+        body = await getJson<{ items?: GoogleVolume[] }>(fetchFn, name, url);
+      }
+      const volume = body?.items?.find((v) => v.volumeInfo?.industryIdentifiers?.some((i) => normalizeIsbn(i.identifier) === isbn13));
       const info = volume?.volumeInfo;
       const title = clean(info?.title);
       if (!volume || !info || !title) return null;

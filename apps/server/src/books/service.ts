@@ -155,7 +155,12 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
       return { work: summary, editions: rows.map(toEdition).sort(byUsefulness) };
     },
 
-    /** Known locally, else Google Books (when configured), else Open Library. */
+    /**
+     * Known locally, else Open Library, whose editions belong to a work (so every edition counts as the same
+     * book in clubs and notes). Google Books (when configured) is the failsafe: for an ISBN Open Library doesn't
+     * know, or while it's down, joined to the Open Library work when title and author clearly match; and for
+     * the page count and cover when Open Library has the edition without them.
+     */
     async lookupIsbn(isbn13: string): Promise<Edition | null> {
       const [known] = await db.select().from(edition).where(eq(edition.isbn13, isbn13)).orderBy(sql`${edition.source} = 'manual'`).limit(1);
       if (known) return toEdition(known);
@@ -165,18 +170,32 @@ export function createBookService({ db, fetch: fetchFn, googleApiKey, log }: { d
       if (miss && Date.now() - miss.fetchedAt.getTime() < TTL.isbnMissing) return null;
 
       let found: ProviderEdition | null = null;
-      if (google) {
-        try {
-          found = await google.isbn(isbn13);
-        } catch (err) {
-          log.warn({ err, isbn13 }, 'google books lookup failed; trying open library');
+      let olDown: unknown = null;
+      try {
+        found = await ol.isbn(isbn13);
+        if (found?.workKey) found = { ...found, authors: (await work(found.workKey))?.authors ?? [] };
+      } catch (err) {
+        if (!google) throw err;
+        olDown = err;
+        log.warn({ err, isbn13 }, 'open library isbn lookup failed; trying google books');
+      }
+
+      if (google && (!found || found.pageCount === null || found.cover === null)) {
+        const backup = await google.isbn(isbn13).catch((err: unknown) => {
+          log.warn({ err, isbn13 }, 'google books lookup failed');
+          return null;
+        });
+        if (backup && found) {
+          found = { ...found, pageCount: found.pageCount ?? backup.pageCount, cover: found.cover ?? backup.cover };
+        } else if (backup) {
+          const author = backup.authors[0];
+          const workKey = author && !olDown ? await ol.findWork(backup.title, author).catch(() => null) : null;
+          found = { ...backup, workKey };
         }
       }
       if (!found) {
-        found = await ol.isbn(isbn13);
-        if (found?.workKey) found = { ...found, authors: (await work(found.workKey))?.authors ?? [] };
-      }
-      if (!found) {
+        // Open Library being down isn't "nobody knows this ISBN".
+        if (olDown) throw olDown;
         await db
           .insert(bookCache)
           .values({ key: missKey, value: { v: true } })
