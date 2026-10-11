@@ -377,3 +377,59 @@ export const userBlock = pgTable(
   },
   (table) => [primaryKey({ columns: [table.blockerId, table.blockedId] }), index('user_block_blocked_idx').on(table.blockedId)],
 );
+
+// Notifications: what the bell lists and phones get pushed. Few and useful; never text from past your place.
+export const notification = pgTable(
+  'notification',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: ['reply', 'notes', 'meeting-soon', 'meeting-set', 'finished', 'book-chosen', 'joined'] }).notNull(),
+    /** Who did it (the latest, for a bundle). */
+    actorId: text('actor_id').references(() => user.id, { onDelete: 'cascade' }),
+    clubId: text('club_id').references(() => club.id, { onDelete: 'cascade' }),
+    /** A bundle's book ("w:<work>"), so a clubmate's next note joins the unread bundle. */
+    bookKey: text('book_key'),
+    /** What to show, as it was then (book title, the meeting, your page), and where a tap goes. */
+    data: jsonb('data').notNull(),
+    /** Bundled notifications (clubmates' notes) count up while unread. */
+    count: integer('count').notNull().default(1),
+    /** Once only: a meeting's reminder. */
+    dedupeKey: text('dedupe_key'),
+    readAt: timestamp('read_at', { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [index('notification_user_idx').on(table.userId, table.updatedAt), uniqueIndex('notification_dedupe_uidx').on(table.userId, table.dedupeKey)],
+);
+
+/** Phones that may be pushed to: an Expo push token per app install, moved to whoever signs in on it. */
+export const pushToken = pgTable(
+  'push_token',
+  {
+    token: text('token').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    platform: text('platform', { enum: ['ios', 'android'] }).notNull(),
+    timeZone: text('time_zone'),
+    ...timestamps,
+  },
+  (table) => [index('push_token_user_idx').on(table.userId)],
+);
+
+/** What someone switched off; no row means everything is on. */
+export const notificationSetting = pgTable('notification_setting', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  replies: boolean('replies').notNull().default(true),
+  meetings: boolean('meetings').notNull().default(true),
+  notes: boolean('notes').notNull().default(true),
+  club: boolean('club').notNull().default(true),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});

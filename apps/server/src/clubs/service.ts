@@ -17,6 +17,7 @@ import type { z } from 'zod';
 import type { createClubInput, meetingInput, setClubBookInput, updateClubBookInput, updateClubInput } from '@bookclub/shared';
 import { borrowedCovers, toEdition, withCover } from '../books/service';
 import type { Db } from '../db/client';
+import type { NotificationEvents } from '../notifications/service';
 import { club, clubBook, clubMember, edition, meeting, user } from '../db/schema';
 
 /** Clubs one person may own at once (spam guard). */
@@ -47,7 +48,7 @@ function isUniqueViolation(err: unknown): boolean {
   return e.code === '23505' || e.cause?.code === '23505';
 }
 
-export function createClubService({ db }: { db: Db }) {
+export function createClubService({ db, events }: { db: Db; events?: NotificationEvents }) {
   async function roleOf(clubId: string, userId: string): Promise<ClubRole | null> {
     const [row] = await db
       .select({ role: clubMember.role })
@@ -264,6 +265,7 @@ export function createClubService({ db }: { db: Db }) {
       if (await roleOf(c.id, userId)) return { clubId: c.id };
       if ((await memberCount(c.id)) >= c.memberCap) throw new ClubError(409, 'club_full');
       await db.insert(clubMember).values({ clubId: c.id, userId, role: 'member' }).onConflictDoNothing();
+      void events?.joined(c.id, userId);
       return { clubId: c.id };
     },
 
@@ -311,6 +313,9 @@ export function createClubService({ db }: { db: Db }) {
       if (!e) throw new ClubError(400, 'unknown_edition');
       if (!e.pageCount) throw new ClubError(400, 'edition_without_pages');
       const existing = await currentBook(clubId);
+      // Another edition of the same book isn't news; a different book is.
+      const [was] = existing ? await db.select({ workKey: edition.workKey, id: edition.id }).from(edition).where(eq(edition.id, existing.editionId)) : [];
+      const sameBook = was !== undefined && (was.workKey ? was.workKey === e.workKey : was.id === e.id);
       if (existing) {
         await db
           .update(clubBook)
@@ -335,6 +340,7 @@ export function createClubService({ db }: { db: Db }) {
           finishDate: input.finishDate ?? null,
         });
       }
+      if (!sameBook) void events?.bookChosen(clubId, userId);
       return detail(clubId, userId);
     },
 
@@ -362,25 +368,29 @@ export function createClubService({ db }: { db: Db }) {
       const book = await currentBook(clubId);
       if (!book) throw new ClubError(409, 'no_current_book');
       await checkReadToPage(clubId, input.readToPage);
+      const id = randomUUID();
       await db.insert(meeting).values({
-        id: randomUUID(),
+        id,
         clubBookId: book.id,
         startsAt: new Date(input.startsAt),
         title: input.title,
         location: input.location || null,
         readToPage: input.readToPage ?? null,
       });
+      void events?.meetingSet(clubId, id, userId, false);
       return detail(clubId, userId);
     },
 
     async updateMeeting(clubId: string, userId: string, meetingId: string, input: z.infer<typeof meetingInput>) {
       await requireRole(clubId, userId, 'admin');
-      await meetingOfClub(clubId, meetingId);
+      const before = await meetingOfClub(clubId, meetingId);
       await checkReadToPage(clubId, input.readToPage);
       await db
         .update(meeting)
         .set({ startsAt: new Date(input.startsAt), title: input.title, location: input.location || null, readToPage: input.readToPage ?? null })
         .where(eq(meeting.id, meetingId));
+      // A new time is news; a new title or place alone isn't.
+      if (before.startsAt.getTime() !== new Date(input.startsAt).getTime()) void events?.meetingSet(clubId, meetingId, userId, true);
       return detail(clubId, userId);
     },
 

@@ -10,6 +10,7 @@ import { ApiError } from '@/api/client';
 import { useBlockActions, useBlocks } from '@/api/notes';
 import { usePublicConfig } from '@/api/config';
 import { appUrl, authClient } from '@/auth/client';
+import { signOut } from '@/auth/signOut';
 import { authErrorMessage, googleErrorMessage } from '@/auth/errors';
 import { LegalLinks } from '@/components/LegalPage';
 import { PageTitle } from '@/components/PageTitle';
@@ -57,7 +58,7 @@ export default function Account() {
             <TextLink href="/account/delete" label={t('account.deleteLink')} />
           </Section>
           <View style={{ alignSelf: 'flex-start' }}>
-            <Button variant="secondary" label={t('account.signOut')} onPress={() => void authClient.signOut()} />
+            <Button variant="secondary" label={t('account.signOut')} onPress={() => void signOut()} />
           </View>
           <LegalLinks />
           <ServerStatus />

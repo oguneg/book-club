@@ -36,6 +36,8 @@ const schema = z
     APPLE_BUNDLE_ID: z.string().default('se.ogun.bookclub'),
     GOOGLE_CLIENT_ID: z.string().optional(),
     GOOGLE_CLIENT_SECRET: z.string().optional(),
+    /** Only when "enhanced security for push notifications" is on in the Expo project: pushes then need it. */
+    EXPO_ACCESS_TOKEN: z.string().optional(),
     /** Google Books API key (ISBN lookups). Without it, ISBNs are looked up on Open Library only. */
     GOOGLE_BOOKS_API_KEY: z.string().optional(),
     /** `log` writes emails (with their links) to the server log; `resend` sends them. */

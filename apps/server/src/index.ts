@@ -10,6 +10,8 @@ import { loadEnv } from './env';
 import { attachLive, createLiveHub } from './live';
 import { moderatorAlerts } from './moderation';
 import { createNoteService } from './notes/service';
+import { expoPush } from './notifications/push';
+import { createNotificationService } from './notifications/service';
 import { createReadingService } from './readings/service';
 
 const env = loadEnv();
@@ -23,7 +25,9 @@ const mailer =
   env.EMAIL_TRANSPORT === 'resend' && env.RESEND_API_KEY
     ? resendMailer({ apiKey: env.RESEND_API_KEY, from: env.EMAIL_FROM, log })
     : logMailer(log);
-const clubs = createClubService({ db: database.db });
+const live = createLiveHub({ db: database.db, log });
+const notifications = createNotificationService({ db: database.db, live, push: expoPush({ fetch, accessToken: env.EXPO_ACCESS_TOKEN, log }), log });
+const clubs = createClubService({ db: database.db, events: notifications });
 const auth = createAuth({ env, db: database.db, mailer, log, beforeUserDelete: (userId) => clubs.releaseClubsOf(userId) });
 log.info(
   {
@@ -38,14 +42,13 @@ log.info(
 
 const books = createBookService({ db: database.db, fetch, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
 
-const live = createLiveHub({ db: database.db, log });
-const readings = createReadingService({ db: database.db, live });
+const readings = createReadingService({ db: database.db, live, events: notifications });
 
-const notes = createNoteService({ db: database.db, live, onHidden: moderatorAlerts({ env, mailer, log }) });
+const notes = createNoteService({ db: database.db, live, events: notifications, onHidden: moderatorAlerts({ env, mailer, log }) });
 
 const reporters = errorReporters(env, log);
 log.info({ server: reporters.server.enabled, web: reporters.web.enabled }, 'error tracking');
-const app = createApp({ env, database, auth, books, clubs, readings, notes, live, log, reporters });
+const app = createApp({ env, database, auth, books, clubs, readings, notes, notifications, live, log, reporters });
 const server = serve({ fetch: app.fetch, hostname: env.HOST, port: env.API_PORT }, (info) => {
   log.info({ port: info.port }, 'listening');
 });
@@ -61,6 +64,15 @@ const firstRun = setTimeout(housekeeping, 60_000);
 const daily = setInterval(housekeeping, 24 * 60 * 60 * 1000);
 firstRun.unref();
 daily.unref();
+
+// Meeting reminders: a look every ten minutes for meetings within a day (each reminder goes out once).
+const remind = () =>
+  notifications
+    .remindMeetings()
+    .then((due) => due > 0 && log.info({ due }, 'meeting reminders'))
+    .catch((err: unknown) => log.error({ err }, 'meeting reminders failed'));
+const reminders = setInterval(remind, 10 * 60 * 1000);
+reminders.unref();
 
 let stopping = false;
 function shutdown(signal: string) {

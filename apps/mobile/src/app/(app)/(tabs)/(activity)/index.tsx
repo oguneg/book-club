@@ -15,6 +15,7 @@ import { noteTime, placeLabel } from '@/notes/format';
 import { calendarOf } from '@/readings/calendar';
 import { readingLine } from '@/readings/format';
 import { Avatar } from '@/components/Avatar';
+import { Bell } from '@/components/Bell';
 import { BookCover } from '@/components/BookCover';
 import { FinishedSheet } from '@/components/FinishedSheet';
 import { Mascot } from '@/components/Mascot';
@@ -58,9 +59,14 @@ export default function Home() {
       <PageTitle title={t('tabs.home')} />
       <View style={{ gap: space.xl }}>
         <View style={{ gap: 2 }}>
-          <Text accessibilityRole="header" style={{ fontFamily: fonts.headingBold, fontSize: fontSize.xxl, lineHeight: fontSize.xxl * 1.15, color: colors.text }}>
-            {t(`homeFeed.greeting.${greeting}`, { name: firstName })}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.sm }}>
+            <Text accessibilityRole="header" style={{ flex: 1, fontFamily: fonts.headingBold, fontSize: fontSize.xxl, lineHeight: fontSize.xxl * 1.15, color: colors.text }}>
+              {t(`homeFeed.greeting.${greeting}`, { name: firstName })}
+            </Text>
+            <View style={{ marginTop: -6, marginRight: -space.sm }}>
+              <Bell />
+            </View>
+          </View>
           <Text style={{ color: colors.textMuted, fontSize: fontSize.md }}>
             {[new Intl.DateTimeFormat(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).format(now), weekPages > 0 ? t('homeFeed.weekLine', { count: weekPages, pages: new Intl.NumberFormat().format(weekPages) }) : null]
               .filter(Boolean)

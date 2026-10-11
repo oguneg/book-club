@@ -1,5 +1,8 @@
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { useUnreadCount } from '@/api/notifications';
 import { useAppearanceSync } from '@/api/preferences';
+import { registerPush, setBadge, useNotificationTaps } from '@/notifications/push';
 import { useLive } from '@/live/useLive';
 import { useProgressSyncEngine } from '@/readings/useProgressSyncEngine';
 import { useTheme } from '@/theme';
@@ -15,5 +18,13 @@ export default function AppGroupLayout() {
   useProgressSyncEngine();
   // Your style and light/dark follow your account from device to device.
   useAppearanceSync();
+  // Phones: pushes reach this account (the token can change, so every launch), a tap opens what it's
+  // about, and the app icon counts what's unread.
+  useNotificationTaps();
+  useEffect(() => {
+    void registerPush().catch(() => {});
+  }, []);
+  const unread = useUnreadCount();
+  useEffect(() => setBadge(unread), [unread]);
   return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />;
 }

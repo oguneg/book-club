@@ -6,6 +6,7 @@ export * from './clubs';
 export * from './goals';
 export * from './isbn';
 export * from './notes';
+export * from './notifications';
 export * from './pace';
 export * from './position';
 export * from './preferences';

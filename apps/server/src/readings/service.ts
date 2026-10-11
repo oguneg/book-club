@@ -17,6 +17,7 @@ import type { z } from 'zod';
 import type { logProgressInput, startReadingInput, updateReadingGoalsInput, updateReadingInput } from '@bookclub/shared';
 import { borrowedCovers, toEdition, withCover } from '../books/service';
 import type { Db } from '../db/client';
+import type { NotificationEvents } from '../notifications/service';
 import { clubBook, clubMember, edition, progressEvent, reading, readingGoal, user, wantToRead } from '../db/schema';
 import type { LiveHub } from '../live';
 
@@ -75,7 +76,7 @@ function isUniqueViolation(err: unknown): boolean {
   return e.code === '23505' || e.cause?.code === '23505';
 }
 
-export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
+export function createReadingService({ db, live, events }: { db: Db; live?: LiveHub; events?: NotificationEvents }) {
   async function own(id: string, userId: string) {
     const [row] = await db
       .select({ reading, edition })
@@ -335,6 +336,7 @@ export function createReadingService({ db, live }: { db: Db; live?: LiveHub }) {
         .where(eq(reading.id, id));
       await record(r, POSITION_SCALE, r.endPage);
       await changed(userId, r.bookKey);
+      void events?.finished(userId, r.bookKey);
       return detail(id, userId);
     },
 

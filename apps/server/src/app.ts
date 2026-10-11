@@ -10,6 +10,7 @@ import type { BookService } from './books/service';
 import type { ClubService } from './clubs/service';
 import type { LiveHub } from './live';
 import type { NoteService } from './notes/service';
+import type { NotificationService } from './notifications/service';
 import type { ReadingService } from './readings/service';
 import type { Database } from './db/client';
 import type { Env } from './env';
@@ -23,6 +24,7 @@ import { clubRoutes } from './routes/clubs';
 import { noteRoutes } from './routes/notes';
 import { readingRoutes } from './routes/readings';
 import { activityRoutes } from './routes/activity';
+import { notificationRoutes } from './routes/notifications';
 import { createActivityService } from './activity/service';
 
 export interface AppDeps {
@@ -33,6 +35,7 @@ export interface AppDeps {
   clubs: ClubService;
   readings: ReadingService;
   notes: NoteService;
+  notifications: NotificationService;
   live?: LiveHub;
   log: Logger;
   /** Error tracking: server errors, and crashes the app reports. Off unless DSNs are configured. */
@@ -47,7 +50,7 @@ function cacheControlFor(path: string): string {
   return 'public, max-age=3600';
 }
 
-export function createApp({ env, database, auth, books, clubs, readings, notes, live, log, reporters = errorReporters(env, log) }: AppDeps) {
+export function createApp({ env, database, auth, books, clubs, readings, notes, notifications, live, log, reporters = errorReporters(env, log) }: AppDeps) {
   const app = new Hono();
 
   app.use(async (c, next) => {
@@ -114,6 +117,7 @@ export function createApp({ env, database, auth, books, clubs, readings, notes, 
   app.route('/api/account', accountRoutes({ auth, db: database.db }));
   app.route('/api/preferences', preferenceRoutes({ auth, db: database.db, live }));
   app.route('/api/activity', activityRoutes({ auth, activity: createActivityService({ db: database.db }) }));
+  app.route('/api/notifications', notificationRoutes({ auth, notifications }));
   app.route('/api', bookRoutes({ auth, books }));
   app.route('/api', clubRoutes({ auth, clubs, readings, live }));
   app.route('/api', readingRoutes({ auth, readings }));

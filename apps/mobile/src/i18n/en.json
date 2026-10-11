@@ -909,5 +909,57 @@
       "update": "Update page",
       "note": "+ Note"
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "openWithUnread_one": "Notifications, {{count}} new",
+    "openWithUnread_other": "Notifications, {{count}} new",
+    "new": "New",
+    "settings": "Notification settings",
+    "rowDetail": "Replies, meetings, club news",
+    "empty": "Nothing yet. Replies to your notes, tomorrow's meeting and news from your clubs show up here.",
+    "loadFailed": "Couldn't load your notifications. Pull down to try again.",
+    "saveFailed": "Couldn't save that. Check your connection and try again.",
+    "followsYou": "These follow you to every device you sign in on.",
+    "readTo": "read up to p. {{page}}",
+    "kinds": {
+      "reply": "{{name}} replied to your note",
+      "replyPage": "{{name}} replied to your note on p. {{page}}",
+      "notes_one": "{{name}} left a note on a page you've read",
+      "notes_other": "{{count}} new notes on pages you've read, the latest from {{name}}",
+      "meetingSoon": "{{club}} meets {{when}}",
+      "meetingSet": "New meeting: {{when}}",
+      "meetingMoved": "Meeting moved to {{when}}",
+      "finished": "{{name}} finished {{book}}",
+      "bookChosen": "{{name}} chose the next book: {{book}}",
+      "joined": "{{name}} joined"
+    },
+    "push": {
+      "title": "Get these on your phone",
+      "body": "Replies, tomorrow's meeting and club news, as notifications. Never a word from past where you are.",
+      "denied": "Notifications are off for Bookclub. You can turn them on in your phone's Settings.",
+      "turnOn": "Turn on notifications",
+      "openSettings": "Open Settings",
+      "notNow": "Not now",
+      "on": "Notifications are on for this phone."
+    },
+    "topics": {
+      "replies": {
+        "name": "Replies to you",
+        "body": "Someone replied to your note."
+      },
+      "meetings": {
+        "name": "Meeting reminders",
+        "body": "The day before, with the page to reach in your copy."
+      },
+      "notes": {
+        "name": "Notes from your clubs",
+        "body": "Clubmates' notes on pages you've read, a few at a time."
+      },
+      "club": {
+        "name": "Club news",
+        "body": "A new book, a meeting set or moved, someone finishing or joining."
+      }
+    }
   }
 }

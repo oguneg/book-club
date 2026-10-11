@@ -2,7 +2,26 @@ import { asc, eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import type { Auth } from '../auth';
 import type { Db } from '../db/client';
-import { account, club, clubMember, edition, note, noteReaction, noteReport, progressEvent, reading, readingGoal, session, user as userTable, userBlock, userPreference, wantToRead } from '../db/schema';
+import {
+  account,
+  club,
+  clubMember,
+  edition,
+  note,
+  noteReaction,
+  noteReport,
+  notification,
+  notificationSetting,
+  progressEvent,
+  pushToken,
+  reading,
+  readingGoal,
+  session,
+  user as userTable,
+  userBlock,
+  userPreference,
+  wantToRead,
+} from '../db/schema';
 import { createRateLimiter } from '../rate-limit';
 import { requireSession, type SignedInEnv } from '../session';
 
@@ -113,6 +132,15 @@ export async function exportUserData(db: Db, user: SignedInEnv['Variables']['use
     appearance:
       (await db.select({ style: userPreference.appearanceStyle, mode: userPreference.appearanceMode }).from(userPreference).where(eq(userPreference.userId, user.id)))[0] ?? null,
     notes: notes.map(({ position, ...n }) => ({ ...n, percent: percent(position) })),
+    notifications: {
+      switchedOff:
+        (await db.select({ replies: notificationSetting.replies, meetings: notificationSetting.meetings, notes: notificationSetting.notes, club: notificationSetting.club }).from(notificationSetting).where(eq(notificationSetting.userId, user.id)))[0] ?? null,
+      phones: await db.select({ platform: pushToken.platform, timeZone: pushToken.timeZone, since: pushToken.createdAt }).from(pushToken).where(eq(pushToken.userId, user.id)),
+      received: await db
+        .select({ kind: notification.kind, at: notification.updatedAt, readAt: notification.readAt, count: notification.count, about: notification.data })
+        .from(notification)
+        .where(eq(notification.userId, user.id)),
+    },
     reactions,
     reports,
     blocked: blocks,

@@ -49,7 +49,9 @@ function Navigator() {
   const userId = session.data?.user.id ?? null;
   const lastUser = useRef<string | null | undefined>(undefined);
   useEffect(() => {
-    if (lastUser.current !== undefined && lastUser.current !== userId) queryClient.clear();
+    // Only when someone was signed in (signing out, or another account): the first check after a cold
+    // start isn't a change. Reset rather than clear: screens already open load again instead of waiting.
+    if (typeof lastUser.current === 'string' && lastUser.current !== userId) void queryClient.resetQueries();
     lastUser.current = userId;
   }, [userId, queryClient]);
   // Better Auth reports `isPending` again on every background refresh while signed out (e.g. when the

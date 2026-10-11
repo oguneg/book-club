@@ -1,8 +1,9 @@
-import { CircleHelp, FileText, Flag, LogOut, Palette, Settings, Shield } from 'lucide-react-native';
+import { Bell, CircleHelp, FileText, Flag, LogOut, Palette, Settings, Shield } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
 import { useIsModerator } from '@/api/admin';
 import { authClient } from '@/auth/client';
+import { signOut } from '@/auth/signOut';
 import { Avatar } from '@/components/Avatar';
 import { GoalsSummary } from '@/components/Goals';
 import { PageTitle } from '@/components/PageTitle';
@@ -53,13 +54,14 @@ export default function YouTab() {
           title={t('you.appearance')}
           detail={`${t(`appearance.styles.${appearance.style}.name`)} · ${t(`appearance.${appearance.mode}`)}`}
         />
+        <NavRow href="/notification-settings" icon={Bell} title={t('notifications.title')} detail={t('notifications.rowDetail')} />
         {moderator && <NavRow href="/admin/reports" icon={Flag} title={t('admin.open')} />}
         <NavRow href="/help" icon={CircleHelp} title={t('legal.help')} />
         <NavRow href="/privacy" icon={Shield} title={t('legal.privacy')} />
         <NavRow href="/terms" icon={FileText} title={t('legal.terms')} />
       </View>
       <View style={{ marginTop: space.xl, alignSelf: 'flex-start' }}>
-        <Button variant="secondary" label={t('account.signOut')} icon={<LogOut size={18} color={colors.text} />} onPress={() => void authClient.signOut()} />
+        <Button variant="secondary" label={t('account.signOut')} icon={<LogOut size={18} color={colors.text} />} onPress={() => void signOut()} />
       </View>
     </Screen>
   );

@@ -16,7 +16,8 @@ export type LiveEvent =
   | { type: 'club'; clubId: string } // a club's details changed (book, meetings, members)
   | { type: 'club-progress'; clubId: string } // a member of the club logged progress on the club book
   | { type: 'notes'; bookKey: string } // notes on this book changed (new note, reply, reaction, edit)
-  | { type: 'preferences' }; // my settings changed (on another device, or this one)
+  | { type: 'preferences' } // my settings changed (on another device, or this one)
+  | { type: 'notifications' }; // my notifications or their settings changed
 
 /** One per open app or tab; more than this from one account is a bug or abuse. */
 export const MAX_SOCKETS_PER_USER = 20;
@@ -98,6 +99,11 @@ export function createLiveHub({ db, log }: { db: Db; log: Logger }) {
     /** Settings changed: the reader's other devices pick them up. */
     preferencesChanged(userId: string) {
       send([userId], { type: 'preferences' });
+    },
+
+    /** New notifications, or some were read: the bell updates. */
+    notificationsChanged(userIds: string[]) {
+      send(userIds, { type: 'notifications' });
     },
 
     async readingChanged(userId: string, bookKey: string) {

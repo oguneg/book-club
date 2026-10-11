@@ -7,6 +7,7 @@ import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useClub } from '@/api/clubs';
 import { useClubProgress } from '@/api/readings';
 import { authClient } from '@/auth/client';
+import { PushPrompt } from '@/components/PushPrompt';
 import { formatAuthors } from '@/books/format';
 import { openReading, useStartReading } from '@/books/start';
 import { clubErrorMessage } from '@/clubs/errors';
@@ -30,6 +31,9 @@ import { Sheet } from '@/components/ui/Sheet';
 import { TextButton } from '@/components/ui/TextButton';
 import { useTheme } from '@/theme';
 
+/** "Not now" on the club page's notification prompt, until the app restarts. */
+let pushAsked = false;
+
 /**
  * A club: the book it's reading (and your one next step: open it, or start it), who's where, and the
  * meetings. The book itself, with everyone on its line and the club's notes, is the book's own page.
@@ -45,6 +49,7 @@ export default function ClubPage() {
   const progress = useClubProgress(id, { enabled: Boolean(club?.currentBook) });
   const me = progress.data?.find((m) => m.userId === session?.user.id);
   const [inviting, setInviting] = useState(false);
+  const [askLater, setAskLater] = useState(pushAsked);
   const book = club?.currentBook ?? null;
 
   return (
@@ -61,6 +66,16 @@ export default function ClubPage() {
             <IconButton icon={UserPlus} label={t('clubs.club.invite')} onPress={() => setInviting(true)} />
             <IconButton icon={Settings} label={t('clubs.club.settings')} onPress={() => router.push({ pathname: '/clubs/[id]/settings', params: { id: club.id } })} />
           </View>
+
+          {/* In a club is when notifications earn their place: ask here (once a visit, "Not now" holds until the app restarts). */}
+          {!askLater && (
+            <PushPrompt
+              onDismiss={() => {
+                pushAsked = true;
+                setAskLater(true);
+              }}
+            />
+          )}
 
           {book ? (
             <>

@@ -14,6 +14,7 @@ import { and, asc, count, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm
 import type { z } from 'zod';
 import type { createNoteInput, reportInput } from '@bookclub/shared';
 import type { Db } from '../db/client';
+import type { NotificationEvents } from '../notifications/service';
 import { club, clubBook, clubMember, edition, note, noteReaction, noteReport, reading, user, userBlock } from '../db/schema';
 import type { LiveHub } from '../live';
 
@@ -34,10 +35,12 @@ export type NoteScope = 'all' | 'public' | 'mine' | `club:${string}`;
 export function createNoteService({
   db,
   live,
+  events,
   onHidden,
 }: {
   db: Db;
   live?: LiveHub;
+  events?: NotificationEvents;
   /** A public note just reached enough reports to be hidden: tell the moderators. */
   onHidden?: (noteId: string) => void;
 }) {
@@ -259,6 +262,7 @@ export function createNoteService({
       };
       await db.insert(note).values(row);
       await announce(row);
+      if (row.clubId) void events?.clubNote(userId, { bookKey: row.bookKey, position: row.position, clubId: row.clubId });
       return { id };
     },
 
@@ -280,6 +284,7 @@ export function createNoteService({
         body,
       });
       await announce(parent);
+      void events?.replied(userId, parent);
       return { id };
     },
 

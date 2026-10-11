@@ -8,6 +8,8 @@ import { createClubService } from '../clubs/service';
 import { createLiveHub } from '../live';
 import { moderatorAlerts } from '../moderation';
 import { createNoteService } from '../notes/service';
+import type { PushMessage } from '../notifications/push';
+import { createNotificationService } from '../notifications/service';
 import { createReadingService } from '../readings/service';
 import { connectPglite, connectPostgres, type Database } from '../db/client';
 import type { EmailMessage, Mailer } from '../email/mailer';
@@ -59,13 +61,34 @@ export function testApp(
   fetchFn: Fetch = noNetwork,
 ) {
   const env = loadEnv({ APP_ENV: 'test', GIT_COMMIT: 'abc1234', ...vars });
-  const clubs = createClubService({ db: database.db });
+  const live = createLiveHub({ db: database.db, log });
+  const pushed: PushMessage[] = [];
+  const notifications = createNotificationService({
+    db: database.db,
+    live,
+    push: async (messages) => {
+      pushed.push(...messages);
+      return { deadTokens: messages.filter((m) => m.to.includes('Dead')).map((m) => m.to) };
+    },
+    log,
+  });
+  const clubs = createClubService({ db: database.db, events: notifications });
   const auth = createAuth({ env, db: database.db, mailer, log, beforeUserDelete: (userId) => clubs.releaseClubsOf(userId) });
   const books = createBookService({ db: database.db, fetch: fetchFn, googleApiKey: env.GOOGLE_BOOKS_API_KEY, log });
-  const live = createLiveHub({ db: database.db, log });
-  const readings = createReadingService({ db: database.db, live });
-  const notes = createNoteService({ db: database.db, live, onHidden: moderatorAlerts({ env, mailer, log }) });
-  return { env, auth, books, clubs, readings, notes, live, app: createApp({ env, database, auth, books, clubs, readings, notes, live, log, reporters: errorReporters(env, log, fetchFn) }) };
+  const readings = createReadingService({ db: database.db, live, events: notifications });
+  const notes = createNoteService({ db: database.db, live, events: notifications, onHidden: moderatorAlerts({ env, mailer, log }) });
+  return {
+    env,
+    auth,
+    books,
+    clubs,
+    readings,
+    notes,
+    notifications,
+    pushed,
+    live,
+    app: createApp({ env, database, auth, books, clubs, readings, notes, notifications, live, log, reporters: errorReporters(env, log, fetchFn) }),
+  };
 }
 
 /** A unique address per test, so tests can share one database (CI) without colliding. */
